@@ -1,5 +1,5 @@
 <template>
-  <div :class="'player-button ' + size" :title="title" onclick="mode_switch()">
+  <div :class="'player-button ' + size" :title="title" @click="bindtap">
     <i :class="'fa '+ type" aria-hidden="true"></i>
   </div>
 </template>
@@ -9,7 +9,10 @@ export default {
   props: {
     size: String,
     title: String,
-    bindtap: function () {},
+    bindtap: {
+      type: Function,
+      default: function () {},
+    },
     type: String,
     active: {
       type: Boolean,

@@ -1,15 +1,18 @@
 <template>
   <div class="music-image">
     <img
-      class="middle-image"
+      :class="'middle-image playing'"
       src="https://cdn.weyoung.tech/%E5%9B%BE%E7%89%87/Media%20%28lable%20side%20of%20CD%29.jpg"
       alt="图片加载失败"
+      :style="{webkitAnimationPlayState : (_play.isPlaying ? 'running':'paused')}"
     />
   </div>
 </template>
 <script>
+import { mapState } from "vuex";
 export default {
   name: "MusicImage",
+  computed: mapState(["_play"]),
 };
 </script>
 <style lang='scss' scoped>
@@ -44,6 +47,42 @@ $dark_border_color: var(--dark_border_color);
     border-radius: 50%;
     border: 6px solid $player_color;
     background: linear-gradient(145deg, #f9ffff, #d2d9e3);
+
+    &.playing {
+      box-shadow: clear;
+      /*css3动画无限制的旋转*/
+      -webkit-animation: music_disc 40s linear infinite;
+      animation: music_disc 40s linear infinite;
+    }
+    /*css3动画的旋转*/
+    @keyframes music_disc {
+      0% {
+        -webkit-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+      100% {
+        -webkit-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+      }
+    }
+    @-webkit-keyframes music_disc {
+      0% {
+        -webkit-transform: rotate(0deg);
+        -ms-transform: rotate(0deg);
+        -o-transform: rotate(0deg);
+        transform: rotate(0deg);
+      }
+      100% {
+        -webkit-transform: rotate(360deg);
+        -ms-transform: rotate(360deg);
+        -o-transform: rotate(360deg);
+        transform: rotate(360deg);
+      }
+    }
   }
 }
 </style>
