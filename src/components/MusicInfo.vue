@@ -6,7 +6,7 @@
     <div class="progressbar">
       <div class="timetext">
         <span id="now">0:00</span>
-        <span id="length">0:00</span>
+        <span id="length">{{musicLength}}</span>
       </div>
       <div class="timebar_out">
         <div class="timebar_in">
@@ -15,19 +15,33 @@
       </div>
     </div>
   </div>
+  <audio :src="_playlist[_play.nowPlaying].musicUrl" autoplay="autoplay" id="music"></audio>
 </template>
 <script>
 import MusicImage from "./MusicImage";
 import { mapState } from "vuex";
 export default {
   name: "MusicInfo",
+  data() {
+    return {
+      seconds: 0,
+      music: document.getElementById("music"),
+      intPlaying: null,
+      left: null,
+    };
+  },
   props: {},
   computed: {
     ...mapState(["_play", "_playlist"]),
+    musicLength: "",
+    //   parseInt(document.getElementById("music").duration / 60) +
+    //   ":" +
+    //   parseInt(document.getElementById("music").duration % 60),
   },
   components: {
     MusicImage,
   },
+  methods: {},
 };
 </script>
 <style lang='scss' scoped>

@@ -3,7 +3,7 @@
     <AppBar />
     <InfoBlock />
     <PlayBar />
-    <Button />
+    <!-- <Button /> -->
     <!-- <div class="player-button player large active" title="暂停" id="pauseButton" onclick="play()">
       <i class="fa fa-pause" aria-hidden="true"></i>
     </div>
@@ -19,14 +19,14 @@
 import AppBar from "./AppBar";
 import InfoBlock from "./MusicInfo";
 import PlayBar from "./PlayBar";
-import Button from "./Button";
+// import Button from "./Button";
 export default {
   name: "Main",
   components: {
     AppBar,
     InfoBlock,
     PlayBar,
-    Button,
+    // Button,
   },
 };
 </script>

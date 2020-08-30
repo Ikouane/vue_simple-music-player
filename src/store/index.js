@@ -14,20 +14,20 @@ export default createStore({
     _playlist: [{
       musicName: "Say Goodbye",
       musicAuthor: "S Club 7",
-      musicImage: "url",
-      musicUrl: "url",
+      musicImage: "https://cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.jpg",
+      musicUrl: "https://cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.mp3",
       isLike: false,
     }, {
       musicName: "Good To Be Alive",
       musicAuthor: "Meghan Trainor",
-      musicImage: "url",
-      musicUrl: "url",
+      musicImage: "https://cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.jpg",
+      musicUrl: "https://cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.mp3",
       isLike: false,
     }, {
       musicName: "High Hopes",
       musicAuthor: "Gabriela Bee",
-      musicImage: "url",
-      musicUrl: "url",
+      musicImage: "https://cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.jpg",
+      musicUrl: "https://cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.mp3",
       isLike: false,
     }],
     example_array: [{
@@ -41,9 +41,11 @@ export default createStore({
   mutations: {
     pause(state) {
       state._play.isPlaying = false
+      document.getElementById("music").pause();
     },
     play(state) {
       state._play.isPlaying = true
+      document.getElementById("music").play();
     },
     prev(state) {
       if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1

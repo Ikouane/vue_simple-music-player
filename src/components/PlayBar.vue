@@ -19,15 +19,18 @@ import Button from "./Button";
 import { mapState } from "vuex";
 import { mapMutations } from "vuex";
 export default {
-  name: "PalyBar",
+  name: "PlayBar",
   components: {
     Button,
   },
   computed: mapState([
     // 映射 this.isPlaying 为 store.state.isPlaying
     "_play",
+    "_playlist",
   ]),
-  methods: mapMutations(["play", "pause", "prev", "next"]),
+  methods: {
+    ...mapMutations(["play", "pause", "prev", "next"]),
+  },
 };
 </script>
 <style lang="scss" scoped>

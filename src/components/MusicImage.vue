@@ -2,7 +2,7 @@
   <div class="music-image">
     <img
       :class="'middle-image playing'"
-      src="https://cdn.weyoung.tech/%E5%9B%BE%E7%89%87/Media%20%28lable%20side%20of%20CD%29.jpg"
+      :src="_playlist[_play.nowPlaying].musicImage"
       alt="图片加载失败"
       :style="{webkitAnimationPlayState : (_play.isPlaying ? 'running':'paused')}"
     />
@@ -12,7 +12,7 @@
 import { mapState } from "vuex";
 export default {
   name: "MusicImage",
-  computed: mapState(["_play"]),
+  computed: mapState(["_play", "_playlist"]),
 };
 </script>
 <style lang='scss' scoped>
