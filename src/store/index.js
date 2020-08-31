@@ -39,6 +39,32 @@ export default createStore({
     }]
   },
   mutations: {
+    deepClone(obj = {}) {
+      const _this = this;
+      if (typeof obj !== 'object' || obj == null) //如果不为引用类型直接返回
+      {
+        return obj
+      }
+      let result
+      if (obj instanceof Array) {
+        result = []
+      }
+      if (obj instanceof Object) {
+        result = {}
+      }
+      for (const key in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, key)) { //如果为本身属性则递归调用，一步一步展开，再判断内容是值类型还是引用类型，直到遍历结束
+          result[key] = _this.commit('deepClone', obj[key])
+        } //若为从原型继承的属性就跳过
+      }
+      return result;
+    },
+    // setStore(state, o_Play) {
+    //   state._play = {}
+    //   state._playlist = []
+    //   state._play = this.commit('deepClone', o_Play._play)
+    //   state._playlist = this.commit('deepClone', o_Play._playlist)
+    // },
     pause(state) {
       state._play.isPlaying = false
       document.getElementById("music").pause();
@@ -87,7 +113,13 @@ export default createStore({
       else state._play.nowPage = "PLAYING NOW"
     },
     modeSwitch(state) {
-      state
+      if (state._play.mode === "day") {
+        state._play.mode = "night"
+        document.querySelector('body').setAttribute('style', 'background-color:var(--dark_main_color)')
+      } else {
+        document.querySelector('body').setAttribute('style', 'background-color:var(--main_color)')
+        state._play.mode = "day"
+      }
     }
   },
   actions: {},

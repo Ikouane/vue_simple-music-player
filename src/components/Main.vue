@@ -1,5 +1,5 @@
 <template>
-  <div class="mplayer">
+  <div :class="'mplayer'+ (_play.mode === 'day'? '' : ' dark')">
     <AppBar />
     <PlayList v-if="_play.nowPage === 'PLAYLIST'" />
     <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
@@ -48,5 +48,10 @@ export default {
   height: 715px;
   overflow: hidden;
   position: relative;
+
+  &.dark {
+    background-color: var(--dark_player_color);
+    border: 2px solid black;
+  }
 }
 </style>

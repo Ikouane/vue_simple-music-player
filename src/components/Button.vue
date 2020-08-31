@@ -53,11 +53,23 @@ $dark_border_color: var(--dark_border_color);
   text-align: center;
   transition: all 0.3s ease;
 
-  &.dark {
+  .dark & {
     border: 2px solid $dark_border_color;
     background: linear-gradient(145deg, #2a2e33, #23272b);
     box-shadow: 5px 5px 10px #212529, -5px -5px 10px #2d3137;
+
+    &.small {
+      box-shadow: 2px 2px 4px #212529, -2px -2px 4px #2d3137;
+    }
+
+    &:hover {
+      background: var(--dark_active_color) !important;
+      box-shadow: clear;
+      border: 2px solid var(--dark_active_color);
+      box-shadow: inset 6px 6px 12px #c9460e, inset -6px -6px 12px #ff5e12;
+    }
   }
+
   &.small {
     height: 30px;
     width: 30px;

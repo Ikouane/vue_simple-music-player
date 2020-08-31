@@ -40,6 +40,12 @@ $dark_border_color: var(--dark_border_color);
   box-shadow: 20px 20px 24px #b6bcc5, -20px -20px 24px #ffffff;
   margin-bottom: 40px;
 
+  .dark & {
+    border: clear;
+    box-shadow: clear;
+    box-shadow: 20px 20px 20px #1d2024, -20px -20px 20px #2d3036;
+  }
+
   .middle-image {
     width: 250px;
     height: 250px;
@@ -47,6 +53,12 @@ $dark_border_color: var(--dark_border_color);
     border-radius: 50%;
     border: 6px solid $player_color;
     background: linear-gradient(145deg, #f9ffff, #d2d9e3);
+
+    .dark & {
+      border: clear;
+      box-shadow: clear;
+      border: 6px solid var(--dark_player_color);
+    }
 
     &.playing {
       box-shadow: clear;

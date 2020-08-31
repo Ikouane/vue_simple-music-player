@@ -10,12 +10,33 @@
 // import HelloWorld from "./components/HelloWorld.vue";
 import Main from "./components/Main";
 import "@/assets/index.css";
+// import { mapState, mapMutations } from "vuex";
+// import Axios from "axios";
+
 export default {
   name: "App",
   components: {
     // HelloWorld,
     Main,
   },
+  computed: {
+    // ...mapState(["_play"]),
+  },
+  // methods: {
+  //   ...mapMutations(["setStore"]),
+  // },
+  // created() {
+  //   const _this = this;
+  //   Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
+  //     .then((response) => {
+  //       console.log(response.data);
+  //       _this.setStore(response.data);
+  //     })
+  //     .catch(function (error) {
+  //       // 请求失败处理
+  //       console.log(error);
+  //     });
+  // },
 };
 </script>
 <style lang="scss">

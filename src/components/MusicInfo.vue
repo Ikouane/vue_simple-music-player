@@ -111,7 +111,7 @@ export default {
           this.left = otimebar_out.offsetWidth;
         } else this.left = e.clientX - otimebar_in.offsetLeft;
         console.log("调整进度条" + this.left + "px");
-        this.nowTimeLength = this.left + 5;
+        this.nowTimeLength = this.left + "px";
         this.nowTime =
           parseInt(
             ((this.left / otimebar_out.offsetWidth) * music.duration) / 60
