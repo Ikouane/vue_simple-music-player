@@ -1,8 +1,10 @@
 <template>
   <div class="mplayer">
     <AppBar />
-    <InfoBlock />
-    <PlayBar />
+    <PlayList v-if="_play.nowPage === 'PLAYLIST'" />
+    <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
+    <PlayBar v-show="_play.nowPage === 'PLAYING NOW'" />
+
     <!-- <Button /> -->
     <!-- <div class="player-button player large active" title="暂停" id="pauseButton" onclick="play()">
       <i class="fa fa-pause" aria-hidden="true"></i>
@@ -19,14 +21,20 @@
 import AppBar from "./AppBar";
 import InfoBlock from "./MusicInfo";
 import PlayBar from "./PlayBar";
+import PlayList from "./PlayList";
 // import Button from "./Button";
+import { mapState } from "vuex";
 export default {
   name: "Main",
   components: {
     AppBar,
     InfoBlock,
     PlayBar,
+    PlayList,
     // Button,
+  },
+  computed: {
+    ...mapState(["_play", "_playlist"]),
   },
 };
 </script>

@@ -1,15 +1,18 @@
 <template>
-  <div class="player-middle">
+  <div class="player-middle" v-show="show">
     <MusicImage />
     <p class="music-name">{{_playlist[_play.nowPlaying].musicName}}</p>
     <p class="music-author">{{_playlist[_play.nowPlaying].musicAuthor}}</p>
     <div class="progressbar">
       <div class="timetext">
-        <span id="now">0:00</span>
+        <span id="now">{{nowLength}}</span>
         <span id="length">{{musicLength}}</span>
       </div>
       <div class="timebar_out">
-        <div class="timebar_in">
+        <div
+          class="timebar_in"
+          :style="{width: (Math.floor((nowTime / musicDuration) * 100) + '%')}"
+        >
           <span class="bar_point" id="bar_point"></span>
         </div>
       </div>
@@ -20,28 +23,76 @@
 <script>
 import MusicImage from "./MusicImage";
 import { mapState } from "vuex";
+import { mapMutations } from "vuex";
 export default {
   name: "MusicInfo",
   data() {
     return {
       seconds: 0,
-      music: document.getElementById("music"),
       intPlaying: null,
       left: null,
+      musicLength: "...",
+      nowLength: "0:00",
+      musicDuration: 0,
+      nowTime: 0,
     };
   },
-  props: {},
+  props: {
+    show: {
+      type: Boolean,
+      default: true,
+    },
+  },
   computed: {
     ...mapState(["_play", "_playlist"]),
-    musicLength: "",
-    //   parseInt(document.getElementById("music").duration / 60) +
-    //   ":" +
-    //   parseInt(document.getElementById("music").duration % 60),
+    _nowPlaying() {
+      return this._play.nowPlaying;
+    },
+    _isPlaying() {
+      return this._play.isPlaying;
+    },
   },
   components: {
     MusicImage,
   },
-  methods: {},
+  methods: {
+    ...mapMutations(["next"]),
+    musicLengthCal(_music) {
+      return (
+        parseInt(_music.duration / 60) + ":" + parseInt(_music.duration % 60)
+      );
+    },
+    nowLengthCal(_music) {
+      return (
+        parseInt(_music.currentTime / 60) +
+        ":" +
+        parseInt(_music.currentTime % 60)
+      );
+    },
+  },
+  mounted() {
+    document.getElementById("music").addEventListener("canplay", () => {
+      this.musicLength = this.musicLengthCal(document.getElementById("music")); //音频加载完成后，获取时长
+      this.musicDuration = document.getElementById("music").duration;
+    });
+    document.getElementById("music").addEventListener("ended", () => {
+      this.next(); //播放完成后，自动下一首
+    });
+    this.intPlaying = setInterval(() => {
+      if (this._isPlaying) {
+        this.nowLength = this.nowLengthCal(document.getElementById("music"));
+        this.nowTime = parseInt(document.getElementById("music").currentTime);
+        console.log(document.getElementById("music").currentTime);
+      }
+    }, 1000);
+    // document.getElementById("music").addEventListener("timeupdate", () => {});
+  },
+  watch: {
+    _nowPlaying(val, oldVal) {
+      //普通的watch监听
+      console.log("nowPlaying: " + val, oldVal);
+    },
+  },
 };
 </script>
 <style lang='scss' scoped>

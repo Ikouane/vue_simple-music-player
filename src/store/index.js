@@ -9,7 +9,7 @@ export default createStore({
       nowPlaying: 0,
       playTime: 0,
       mode: "day", //Or "night"
-      nowPage: "play", //Or "playlist", "musicLrc"
+      nowPage: "PLAYING NOW", //Or "PLAYLIST", "musicLrc"
     },
     _playlist: [{
       musicName: "Say Goodbye",
@@ -55,6 +55,20 @@ export default createStore({
       if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
       state._play.isPlaying = true
     },
+    goList(state) {
+      state._play.nowPage = "PLAYLIST"
+    },
+    goMain(state) {
+      state._play.nowPage = "PLAYING NOW"
+    },
+    listSwitch(state) {
+      if (state._play.nowPage === "PLAYING NOW")
+        state._play.nowPage = "PLAYLIST"
+      else state._play.nowPage = "PLAYING NOW"
+    },
+    modeSwitch(state) {
+      state
+    }
   },
   actions: {},
   modules: {}

@@ -61,11 +61,20 @@ $dark_border_color: var(--dark_border_color);
   &.small {
     height: 30px;
     width: 30px;
+    box-shadow: 2px 2px 4px #c6cdd6, -2px -2px 4px #ffffff;
+
+    i {
+      transform: scale(0.66);
+    }
   }
 
   &.middle {
     height: 45px;
     width: 45px;
+
+    i {
+      transform: scale(0.88);
+    }
   }
 
   &.large {

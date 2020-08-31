@@ -3,9 +3,9 @@
     <i class="fa fa-paint-brush" aria-hidden="true"></i>
   </div>-->
   <div class="appbar">
-    <Button size="middle" title="切换主题" bindtap="mode_switch()" type="fa-paint-brush" />
-    <div class="title" title="正在播放">PLAYING NOW</div>
-    <Button size="middle" title="播放列表" bindtap="list_switch()" type="fa-bars" />
+    <Button size="middle" title="切换主题" :bindtap="mode_switch" type="fa-paint-brush" />
+    <div class="title" title="正在播放">{{_play.nowPage}}</div>
+    <Button size="middle" title="播放列表" :bindtap="list_switch" type="fa-bars" />
   </div>
   <!-- <div class="player-button middle" title="播放列表" onclick="list_switch()">
     <i class="fa fa-bars" aria-hidden="true"></i>
@@ -14,10 +14,17 @@
 <script>
 import Button from "./Button";
 import "@/assets/index.css";
+import { mapState, mapMutations } from "vuex";
 export default {
   name: "AppBar",
   components: {
     Button,
+  },
+  computed: {
+    ...mapState(["_play"]),
+  },
+  methods: {
+    ...mapMutations({ list_switch: "listSwitch", mode_switch: "modeSwitch" }),
   },
 };
 </script>
