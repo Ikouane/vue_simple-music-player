@@ -4,8 +4,16 @@
       <span>{{title}}</span>
       <span>{{subTitle}}</span>
     </div>
-    <Button size="small" title="暂停" v-if="active" active type="fa-pause" :bindtap="pause" />
-    <Button size="small" title="播放" v-else active type="fa-play" :bindtap="pause" />
+    <Button
+      size="small"
+      title="暂停"
+      v-if="_play.isPlaying && _play.nowPlaying == listIndex"
+      active
+      type="fa-pause"
+      :data-index="listIndex"
+    />
+    <!--  :bindtap="pause" :bindtap="play" 事件已代理-->
+    <Button size="small" title="播放" v-else active type="fa-play" :data-index="listIndex" />
     <!-- <div class="player-button player small active" title="暂停" id="pauseButton" onclick="play()">
       <i class="fa fa-pause" aria-hidden="true"></i>
     </div>
@@ -29,6 +37,7 @@ export default {
       type: Boolean,
       default: false,
     },
+    listIndex: Number,
   },
   computed: {
     ...mapState(["_play", "_playlist"]),
@@ -59,7 +68,7 @@ export default {
   .music-info {
     display: flex;
     flex-direction: column;
-    padding: 5px 0;
+    padding: 5px;
     font-size: 14px;
 
     & span:nth-child(1) {

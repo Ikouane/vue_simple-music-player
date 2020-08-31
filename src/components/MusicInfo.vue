@@ -5,15 +5,16 @@
     <p class="music-author">{{_playlist[_play.nowPlaying].musicAuthor}}</p>
     <div class="progressbar">
       <div class="timetext">
-        <span id="now">{{nowLength}}</span>
+        <span id="now">{{drag? nowTime : nowLength}}</span>
         <span id="length">{{musicLength}}</span>
       </div>
-      <div class="timebar_out">
+      <div class="timebar_out" @click="changeTime($event)">
         <div
           class="timebar_in"
-          :style="{width: (Math.floor((nowTime / musicDuration) * 100) + '%')}"
+          :style="{width: drag? nowTimeLength + 'px' :(Math.floor((_play.playTime / musicDuration) * 100) + '%'),
+            transition: (drag)? 'clear' : 'all 0.2s ease-out'}"
         >
-          <span class="bar_point" id="bar_point"></span>
+          <span class="bar_point" id="bar_point" @mousedown="handelMouseDrag($event)"></span>
         </div>
       </div>
     </div>
@@ -30,11 +31,13 @@ export default {
     return {
       seconds: 0,
       intPlaying: null,
-      left: null,
+      left: 0,
       musicLength: "...",
       nowLength: "0:00",
       musicDuration: 0,
+      drag: false,
       nowTime: 0,
+      nowTimeLength: 0,
     };
   },
   props: {
@@ -56,7 +59,7 @@ export default {
     MusicImage,
   },
   methods: {
-    ...mapMutations(["next"]),
+    ...mapMutations(["next", "goTime", "setTime"]),
     musicLengthCal(_music) {
       return (
         parseInt(_music.duration / 60) + ":" + parseInt(_music.duration % 60)
@@ -68,6 +71,79 @@ export default {
         ":" +
         parseInt(_music.currentTime % 60)
       );
+    },
+    changeTime(event) {
+      //点击播放条更新进度
+      const music = document.getElementById("music"),
+        otimebar_out = document.getElementsByClassName("timebar_out")[0],
+        otimebar_in = document.getElementsByClassName("timebar_in")[0];
+      console.log(
+        "调整进度条" +
+          (event.clientX - otimebar_in.getBoundingClientRect().left) +
+          "px"
+      );
+      // otimebar_in.style("width", event.clientX - otimebar_in.offsetLeft + "px");
+      // this.left = event.clientX - otimebar_in.offsetLeft;
+      this.goTime(
+        parseInt(
+          ((event.clientX - otimebar_in.getBoundingClientRect().left) /
+            otimebar_out.offsetWidth) *
+            music.duration
+        )
+      ); //不能使用 offsetLeft 代替 jq.offset().left
+    },
+    handelMouseDrag(event) {
+      const music = document.getElementById("music"),
+        otimebar_out = document.getElementsByClassName("timebar_out")[0],
+        otimebar_in = document.getElementsByClassName("timebar_in")[0];
+      let e = event || window.event;
+      console.log("开始拖拽");
+      this.drag = true;
+      console.log(e);
+      document.onmousemove = (event) => {
+        let e = event || window.event;
+        if (parseInt(e.clientX - otimebar_in.offsetLeft) < 0) {
+          this.left = 0;
+        } else if (
+          e.clientX - otimebar_in.offsetLeft >
+          otimebar_out.offsetWidth
+        ) {
+          this.left = otimebar_out.offsetWidth;
+        } else this.left = e.clientX - otimebar_in.offsetLeft;
+        console.log("调整进度条" + this.left + "px");
+        this.nowTimeLength = this.left + 5;
+        this.nowTime =
+          parseInt(
+            ((this.left / otimebar_out.offsetWidth) * music.duration) / 60
+          ) +
+          ":" +
+          parseInt(
+            ((this.left / otimebar_out.offsetWidth) * music.duration) % 60
+          );
+        // $("#now").text(
+        //   parseInt(((this.left / otimebar_out.offsetWidth) * music.duration) / 60) +
+        //     ":" +
+        //     parseInt(((this.left / otimebar_out.offsetWidth) * music.duration) % 60)
+        // );
+        // $(".timebar_in").css("width", this.left + "px");
+        //防止选择内容--当拖动鼠标过快时候，弹起鼠标，bar也会移动，修复bug
+        window.getSelection
+          ? window.getSelection().removeAllRanges()
+          : document.selection.empty();
+      };
+      document.onmouseup = () => {
+        document.onmousemove = null; //弹起鼠标不做任何操作
+        if (this.left == null) {
+          console.log("未发生拖拽");
+        } else {
+          console.log("拖拽结束");
+          this.goTime(
+            parseInt((this.left / otimebar_out.offsetWidth) * music.duration)
+          );
+          this.left = null;
+          this.drag = false;
+        }
+      };
     },
   },
   mounted() {
@@ -81,8 +157,8 @@ export default {
     this.intPlaying = setInterval(() => {
       if (this._isPlaying) {
         this.nowLength = this.nowLengthCal(document.getElementById("music"));
-        this.nowTime = parseInt(document.getElementById("music").currentTime);
-        console.log(document.getElementById("music").currentTime);
+        this.setTime(parseInt(document.getElementById("music").currentTime));
+        //console.log(document.getElementById("music").currentTime);
       }
     }, 1000);
     // document.getElementById("music").addEventListener("timeupdate", () => {});

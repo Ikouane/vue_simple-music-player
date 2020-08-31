@@ -47,6 +47,15 @@ export default createStore({
       state._play.isPlaying = true
       document.getElementById("music").play();
     },
+    playSwitch(state) {
+      if (state._play.isPlaying) {
+        state._play.isPlaying = false
+        document.getElementById("music").pause();
+      } else {
+        state._play.isPlaying = true
+        document.getElementById("music").play();
+      }
+    },
     prev(state) {
       if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
       state._play.isPlaying = true
@@ -54,6 +63,17 @@ export default createStore({
     next(state) {
       if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
       state._play.isPlaying = true
+    },
+    goPlay(state, desIndex) {
+      // state._play.isPlaying = false
+      state._play.nowPlaying = desIndex
+    },
+    goTime(state, desTime) {
+      document.getElementById("music").currentTime = desTime;
+      state._play.playTime = desTime;
+    },
+    setTime(state, time) {
+      state._play.playTime = time;
     },
     goList(state) {
       state._play.nowPage = "PLAYLIST"

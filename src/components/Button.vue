@@ -95,6 +95,7 @@ $dark_border_color: var(--dark_border_color);
 
   i {
     color: $text_color;
+    pointer-events: none; //点击穿透
   }
 }
 </style>
