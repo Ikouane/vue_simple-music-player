@@ -1,5 +1,5 @@
 <template>
-  <div :class="'player-button ' + size" :title="title" @click="bindtap">
+  <div :class="'player-button ' + size + (active ?' active': '')" :title="title" @click="bindtap">
     <i :class="'fa '+ type" aria-hidden="true"></i>
   </div>
 </template>
@@ -62,7 +62,8 @@ $dark_border_color: var(--dark_border_color);
       box-shadow: 2px 2px 4px #212529, -2px -2px 4px #2d3137;
     }
 
-    &:hover {
+    &:hover,
+    &.active {
       background: var(--dark_active_color) !important;
       box-shadow: clear;
       border: 2px solid var(--dark_active_color);
@@ -94,7 +95,8 @@ $dark_border_color: var(--dark_border_color);
     width: 60px;
   }
 
-  &:hover {
+  &:hover,
+  &.active {
     background: var(--active_color) !important;
     box-shadow: clear;
     border: 2px solid var(--active_color);

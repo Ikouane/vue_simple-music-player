@@ -1,18 +1,42 @@
 <template>
-  <div class="music-image">
-    <img
-      :class="'middle-image playing'"
-      :src="_playlist[_play.nowPlaying].musicImage"
-      alt="图片加载失败"
-      :style="{webkitAnimationPlayState : (_play.isPlaying ? 'running':'paused')}"
+  <div :class="'flexbox ' + size">
+    <Button
+      v-if="size === 'small'"
+      size="middle"
+      title="我喜欢"
+      :bindtap="switchLike"
+      type="fa-heart"
+      :active="_playlist[_play.nowPlaying].isLike"
     />
+    <div :class="'music-image ' + size">
+      <img
+        :class="'middle-image playing ' + size"
+        :src="_playlist[_play.nowPlaying].musicImage"
+        alt="图片加载失败"
+        :style="{webkitAnimationPlayState : (_play.isPlaying ? 'running':'paused')}"
+      />
+    </div>
+    <Button v-if="size === 'small'" size="middle" title="更多" type="fa-ellipsis-h" />
   </div>
 </template>
 <script>
-import { mapState } from "vuex";
+import Button from "./Button";
+import { mapState, mapMutations } from "vuex";
 export default {
   name: "MusicImage",
+  components: {
+    Button,
+  },
+  props: {
+    size: {
+      type: String,
+      default: "",
+    },
+  },
   computed: mapState(["_play", "_playlist"]),
+  methods: {
+    ...mapMutations(["switchLike"]),
+  },
 };
 </script>
 <style lang='scss' scoped>
@@ -32,13 +56,41 @@ $dark_active_color: var(--dark_active_color);
 $dark_title_color: var(--dark_title_color);
 $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
+.flexbox {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+
+  &.small {
+    margin-bottom: 40px;
+  }
+  // * {
+  //   float: left;
+  // }
+
+  // &.clearfix::after {
+  //   content: "";
+  //   display: block; //or table
+  //   clear: both;
+  // }
+}
 
 .music-image {
+  margin: auto;
   width: 250px;
   height: 250px;
   border-radius: 50%;
   box-shadow: 20px 20px 24px #b6bcc5, -20px -20px 24px #ffffff;
   margin-bottom: 40px;
+  transition: 0.3s all ease-in-out;
+
+  &.small {
+    margin: auto;
+    width: 150px;
+    height: 150px;
+    box-shadow: 12px 12px 16px #b6bcc5, -12px -12px 16px #ffffff;
+  }
 
   .dark & {
     border: clear;
@@ -53,6 +105,13 @@ $dark_border_color: var(--dark_border_color);
     border-radius: 50%;
     border: 6px solid $player_color;
     background: linear-gradient(145deg, #f9ffff, #d2d9e3);
+    transition: 0.3s all ease-in-out;
+
+    &.small {
+      width: 150px;
+      height: 150px;
+      border: 4px solid $player_color;
+    }
 
     .dark & {
       border: clear;

@@ -1,20 +1,17 @@
 <template>
   <div :class="'mplayer'+ (_play.mode === 'day'? '' : ' dark')">
+    <Modal
+      :title="_play.msg? '通知' : '正在播放'"
+      :content="_play.msg || _playlist[_play.nowPlaying].musicName +
+        ' - ' +
+        _playlist[_play.nowPlaying].musicAuthor"
+    />
     <AppBar />
-    <PlayList v-if="_play.nowPage === 'PLAYLIST'" />
+    <MusicImage :size="_play.nowPage === 'PLAYLIST' ? 'small' : ''" />
+    <!-- v-if="_play.nowPage === 'PLAYLIST'" -->
+    <PlayList :slide="_play.nowPage === 'PLAYLIST' ? 'slide-up' : 'slide-down'" />
     <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
     <PlayBar v-show="_play.nowPage === 'PLAYING NOW'" />
-
-    <!-- <Button /> -->
-    <!-- <div class="player-button player large active" title="暂停" id="pauseButton" onclick="play()">
-      <i class="fa fa-pause" aria-hidden="true"></i>
-    </div>
-    <div class="player-button player large" title="播放" onclick="play()">
-      <i class="fa fa-play" aria-hidden="true"></i>
-    </div>
-    <div class="player-button large" title="下一首">
-      <i class="fa fa-forward" aria-hidden="true"></i>
-    </div>-->
   </div>
 </template>
 <script>
@@ -22,16 +19,24 @@ import AppBar from "./AppBar";
 import InfoBlock from "./MusicInfo";
 import PlayBar from "./PlayBar";
 import PlayList from "./PlayList";
-// import Button from "./Button";
+import MusicImage from "./MusicImage";
 import { mapState } from "vuex";
+import Modal from "./Modal";
 export default {
   name: "Main",
+  // data() {
+  //   return {
+  //     title: String,
+  //     msg: String,
+  //   };
+  // },
   components: {
     AppBar,
     InfoBlock,
     PlayBar,
     PlayList,
-    // Button,
+    MusicImage,
+    Modal,
   },
   computed: {
     ...mapState(["_play", "_playlist"]),

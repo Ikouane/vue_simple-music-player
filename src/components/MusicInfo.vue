@@ -1,6 +1,5 @@
 <template>
   <div class="player-middle" v-show="show">
-    <MusicImage />
     <p class="music-name">{{_playlist[_play.nowPlaying].musicName}}</p>
     <p class="music-author">{{_playlist[_play.nowPlaying].musicAuthor}}</p>
     <div class="progressbar">
@@ -22,7 +21,6 @@
   <audio :src="_playlist[_play.nowPlaying].musicUrl" autoplay="autoplay" id="music"></audio>
 </template>
 <script>
-import MusicImage from "./MusicImage";
 import { mapState } from "vuex";
 import { mapMutations } from "vuex";
 export default {
@@ -55,9 +53,7 @@ export default {
       return this._play.isPlaying;
     },
   },
-  components: {
-    MusicImage,
-  },
+  components: {},
   methods: {
     ...mapMutations(["next", "goTime", "setTime"]),
     musicLengthCal(_music) {
@@ -111,7 +107,7 @@ export default {
           this.left = otimebar_out.offsetWidth;
         } else this.left = e.clientX - otimebar_in.offsetLeft;
         console.log("调整进度条" + this.left + "px");
-        this.nowTimeLength = this.left + "px";
+        this.nowTimeLength = this.left + 5;
         this.nowTime =
           parseInt(
             ((this.left / otimebar_out.offsetWidth) * music.duration) / 60

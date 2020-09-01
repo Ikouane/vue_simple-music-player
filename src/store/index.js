@@ -10,6 +10,7 @@ export default createStore({
       playTime: 0,
       mode: "day", //Or "night"
       nowPage: "PLAYING NOW", //Or "PLAYLIST", "musicLrc"
+      msg: null
     },
     _playlist: [{
       musicName: "Say Goodbye",
@@ -85,14 +86,19 @@ export default createStore({
     prev(state) {
       if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
       state._play.isPlaying = true
+      this.commit('clearMsg');
     },
     next(state) {
       if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
       state._play.isPlaying = true
+      this.commit('clearMsg');
     },
     goPlay(state, desIndex) {
-      // state._play.isPlaying = false
+      state._play.isPlaying = false
       state._play.nowPlaying = desIndex
+      state._play.isPlaying = true
+
+      this.commit('clearMsg');
     },
     goTime(state, desTime) {
       document.getElementById("music").currentTime = desTime;
@@ -115,13 +121,35 @@ export default createStore({
     modeSwitch(state) {
       if (state._play.mode === "day") {
         state._play.mode = "night"
+        state._play.msg = "已切换至夜间模式"
         document.querySelector('body').setAttribute('style', 'background-color:var(--dark_main_color)')
       } else {
         document.querySelector('body').setAttribute('style', 'background-color:var(--main_color)')
         state._play.mode = "day"
+        state._play.msg = "已切换至日间模式"
       }
+    },
+    switchLike(state) {
+      if (state._playlist[state._play.nowPlaying].isLike) {
+        console.log("取消我喜欢")
+        state._play.msg = "已移出我喜欢"
+      } else {
+        console.log("我喜欢")
+        state._play.msg = "已添加至我喜欢"
+      }
+      state._playlist[state._play.nowPlaying].isLike = !state._playlist[state._play.nowPlaying].isLike
+    },
+    clearMsg(state) {
+      state._play.msg = null
     }
   },
   actions: {},
+  getters: {
+    getContent(state) {
+      return (state._playlist[state._play.nowPlaying].musicName +
+        " - " +
+        state._playlist[state._play.nowPlaying].musicAuthor)
+    }
+  },
   modules: {}
 })

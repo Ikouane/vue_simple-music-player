@@ -1,15 +1,9 @@
 <template>
-  <!-- <div class="player-button middle" title="切换主题" onclick="mode_switch()">
-    <i class="fa fa-paint-brush" aria-hidden="true"></i>
-  </div>-->
   <div class="appbar">
     <Button size="middle" title="切换主题" :bindtap="mode_switch" type="fa-paint-brush" />
     <div class="title" title="正在播放">{{_play.nowPage}}</div>
     <Button size="middle" title="播放列表" :bindtap="list_switch" type="fa-bars" />
   </div>
-  <!-- <div class="player-button middle" title="播放列表" onclick="list_switch()">
-    <i class="fa fa-bars" aria-hidden="true"></i>
-  </div>-->
 </template>
 <script>
 import Button from "./Button";

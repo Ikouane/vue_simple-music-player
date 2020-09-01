@@ -1,5 +1,5 @@
 <template>
-  <div @click="handelClick($event)">
+  <div @click="handelClick($event)" :class="slide">
     <ListItem
       v-for="(item, i) in _playlist"
       v-bind:key="i"
@@ -21,6 +21,7 @@ export default {
       type: Boolean,
       default: true,
     },
+    slide: String,
   },
   computed: {
     ...mapState(["_play", "_playlist"]),
@@ -44,4 +45,36 @@ export default {
 };
 </script>
 <style lang='scss' scoped>
+div {
+  display: none;
+}
+.slide-up {
+  animation: slide 0.2s ease-in-out forwards;
+  display: block;
+}
+
+.slide-down {
+  animation: slide-reverse 0.2s ease-in-out forwards;
+}
+
+@keyframes slide {
+  from {
+    opacity: 0;
+    transform: translatey(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translatey(0);
+  }
+}
+
+@keyframes slide-reverse {
+  from {
+    transform: translatey(0);
+  }
+  to {
+    transform: translatey(100%);
+    display: none;
+  }
+}
 </style>
