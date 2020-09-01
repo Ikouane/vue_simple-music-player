@@ -4,24 +4,32 @@
     <p class="music-author">{{_playlist[_play.nowPlaying].musicAuthor}}</p>
     <div class="progressbar">
       <div class="timetext">
-        <span id="now">{{drag? nowTime : (_play.isPlaying ? nowLength : nowTime)}}</span>
+        <span id="now">
+          {{drag? nowTime : (formatTime(parseInt(_play.playTime / 60)) +
+          ":" +
+          formatTime(parseInt(_play.playTime % 60)))}}
+        </span>
         <span id="length">{{musicLength}}</span>
       </div>
-      <div class="timebar_out" @click="changeTime($event)">
+      <div class="timebar_out" @click="changeTime($event)" title="点击调整进度(←,→)">
         <div
           class="timebar_in"
           :style="{width: drag? nowTimeLength + 'px' :(Math.floor((_play.playTime / musicDuration) * 100) + '%'),
             transition: (drag)? 'clear' : 'all 0.2s ease-out'}"
         >
-          <span class="bar_point" id="bar_point" @mousedown="handelMouseDrag($event)"></span>
+          <span class="bar_point" id="bar_point" @mousedown="handelMouseDrag($event)" title="拖动进度"></span>
         </div>
       </div>
     </div>
-    <audio :src="_playlist[_play.nowPlaying].musicUrl" autoplay="autoplay" id="music"></audio>
+    <audio
+      :src="_playlist[_play.nowPlaying].musicUrl"
+      :autoplay="_isPlaying?'autoplay':'false'"
+      id="music"
+    ></audio>
   </div>
 </template>
 <script>
-import { mapState,mapMutations } from "vuex";
+import { mapState, mapMutations } from "vuex";
 export default {
   name: "MusicInfo",
   data() {
@@ -55,13 +63,15 @@ export default {
   components: {},
   methods: {
     ...mapMutations(["next", "goTime", "setTime"]),
-    formatTime(timeNum){
-      if(timeNum < 10) return ('0' + timeNum)
-      else return timeNum
+    formatTime(timeNum) {
+      if (timeNum < 10) return "0" + timeNum;
+      else return timeNum;
     },
     musicLengthCal(_music) {
       return (
-        this.formatTime(parseInt(_music.duration / 60)) + ":" + this.formatTime(parseInt(_music.duration % 60))
+        this.formatTime(parseInt(_music.duration / 60)) +
+        ":" +
+        this.formatTime(parseInt(_music.duration % 60))
       );
     },
     nowLengthCal(_music) {
@@ -90,6 +100,7 @@ export default {
             music.duration
         )
       ); //不能使用 offsetLeft 代替 jq.offset().left
+      this.nowLength = this.nowLengthCal(document.getElementById("music"));
     },
     handelMouseDrag(event) {
       const music = document.getElementById("music"),
@@ -101,7 +112,9 @@ export default {
       console.log(e);
       document.onmousemove = (event) => {
         let e = event || window.event;
-        if (parseInt(e.clientX - otimebar_in.getBoundingClientRect().left) < 0) {
+        if (
+          parseInt(e.clientX - otimebar_in.getBoundingClientRect().left) < 0
+        ) {
           this.left = 0;
         } else if (
           e.clientX - otimebar_in.getBoundingClientRect().left >
@@ -112,13 +125,17 @@ export default {
         console.log("调整进度条" + this.left + "px");
         this.nowTimeLength = this.left + 5;
         this.nowTime =
-          this.formatTime(parseInt(
-            ((this.left / otimebar_out.offsetWidth) * music.duration) / 60
-          )) +
+          this.formatTime(
+            parseInt(
+              ((this.left / otimebar_out.offsetWidth) * music.duration) / 60
+            )
+          ) +
           ":" +
-          this.formatTime(parseInt(
-            ((this.left / otimebar_out.offsetWidth) * music.duration) % 60
-          ));
+          this.formatTime(
+            parseInt(
+              ((this.left / otimebar_out.offsetWidth) * music.duration) % 60
+            )
+          );
         // $("#now").text(
         //   parseInt(((this.left / otimebar_out.offsetWidth) * music.duration) / 60) +
         //     ":" +
@@ -139,6 +156,7 @@ export default {
           this.goTime(
             parseInt((this.left / otimebar_out.offsetWidth) * music.duration)
           );
+          this.nowLength = this.nowLengthCal(document.getElementById("music"));
           this.left = null;
           this.drag = false;
         }

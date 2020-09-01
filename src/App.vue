@@ -10,7 +10,7 @@
 // import HelloWorld from "./components/HelloWorld.vue";
 import Main from "./components/Main";
 import "@/assets/index.css";
-// import { mapState, mapMutations } from "vuex";
+import { mapMutations } from "vuex";
 // import Axios from "axios";
 
 export default {
@@ -22,9 +22,37 @@ export default {
   computed: {
     // ...mapState(["_play"]),
   },
-  // methods: {
-  //   ...mapMutations(["setStore"]),
-  // },
+  mounted() {
+    var _this = this;
+    document.onkeydown = function (e) {
+      let key = e.keyCode || window.event.keyCode;
+      if (key == 37) {
+        //== 83 && event.ctrlKey
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击左箭头");
+        _this.minusTime();
+      } else if (key == 39) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击右箭头");
+        _this.addTime();
+      } else if (key == 32) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击空格");
+        _this.playSwitch();
+      } else if (key == 38) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击上箭头");
+        _this.prev();
+      } else if (key == 40) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击下箭头");
+        _this.next();
+      }
+    };
+  },
+  methods: {
+    ...mapMutations(["addTime", "minusTime", "playSwitch", "prev", "next"]),
+  },
   // created() {
   //   const _this = this;
   //   Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
@@ -65,4 +93,9 @@ $dark_border_color: var(--dark_border_color);
 //   // color: #2c3e50;
 //   // margin-top: 60px;
 // }
+
+.helper {
+  position: fixed;
+  top: 0;
+}
 </style>

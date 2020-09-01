@@ -103,9 +103,21 @@ export default createStore({
       this.commit('clearMsg');
     },
     goTime(state, desTime) {
+
+      if (desTime < 0) {
+        desTime = 0;
+      } else if (desTime > document.getElementById("music").duration) {
+        desTime = document.getElementById("music").duration
+      }
       document.getElementById("music").currentTime = desTime;
       state._play.playTime = desTime;
       if (!state._play.isPlaying) document.getElementById("music").pause(); //当音乐没播放时，调整进度会直接播放音乐，已修复
+    },
+    addTime() {
+      this.commit('goTime', document.getElementById("music").currentTime + 10);
+    },
+    minusTime() {
+      this.commit('goTime', document.getElementById("music").currentTime - 10);
     },
     setTime(state, time) {
       state._play.playTime = time;

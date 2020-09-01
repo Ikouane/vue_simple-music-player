@@ -1,17 +1,25 @@
 <template>
   <div class="player-bottom">
-    <Button size="large" title="上一首" type="fa-backward" :bindtap="prev" />
+    <Button size="large" title="上一首(↑)" type="fa-backward" :bindtap="prev" />
     <Button
       size="large"
-      title="暂停"
+      title="暂停(空格)"
       v-if="_play.isPlaying"
       active
       type="fa-pause"
       :bindtap="pause"
       id="pauseButton"
     />
-    <Button size="large" title="播放" v-else active type="fa-play" :bindtap="play" id="playButton" />
-    <Button size="large" title="下一首" type="fa-forward" :bindtap="next" />
+    <Button
+      size="large"
+      title="播放(空格)"
+      v-else
+      active
+      type="fa-play"
+      :bindtap="play"
+      id="playButton"
+    />
+    <Button size="large" title="下一首(↓)" type="fa-forward" :bindtap="next" />
   </div>
 </template>
 <script>
