@@ -5,12 +5,12 @@ import {
 export default createStore({
   state: {
     _play: {
-      isPlaying: true,
+      isPlaying: false,
       nowPlaying: 0,
       playTime: 0,
       mode: "day", //Or "night"
       nowPage: "PLAYING NOW", //Or "PLAYLIST", "musicLrc"
-      msg: null
+      msg: "出于隐私保护，请手动播放"
     },
     _playlist: [{
       musicName: "Say Goodbye",
@@ -69,18 +69,20 @@ export default createStore({
     pause(state) {
       state._play.isPlaying = false
       document.getElementById("music").pause();
+      this.commit('clearMsg');
+      state._play.msg = "音乐已暂停"
     },
     play(state) {
       state._play.isPlaying = true
       document.getElementById("music").play();
+      this.commit('clearMsg');
+      state._play.msg = "音乐已播放"
     },
     playSwitch(state) {
       if (state._play.isPlaying) {
-        state._play.isPlaying = false
-        document.getElementById("music").pause();
+        this.commit('pause');
       } else {
-        state._play.isPlaying = true
-        document.getElementById("music").play();
+        this.commit('play');
       }
     },
     prev(state) {
@@ -103,6 +105,7 @@ export default createStore({
     goTime(state, desTime) {
       document.getElementById("music").currentTime = desTime;
       state._play.playTime = desTime;
+      if (!state._play.isPlaying) document.getElementById("music").pause(); //当音乐没播放时，调整进度会直接播放音乐，已修复
     },
     setTime(state, time) {
       state._play.playTime = time;
@@ -141,7 +144,7 @@ export default createStore({
     },
     clearMsg(state) {
       state._play.msg = null
-    }
+    },
   },
   actions: {},
   getters: {

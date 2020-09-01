@@ -1,9 +1,10 @@
 <template>
   <div
     :class="'modal ' + (isShow ? 'modal-show' : 'modal-hide') + (_play.mode === 'night' ? ' drak': '')"
+    @click="handleClose"
   >
     <label class="modal-title">{{title}}</label>
-    <div class="modal-content">{{_play.msg || content}}</div>
+    <div class="modal-content">{{content}}</div>
     <div class="modal-button" v-if="okmsg && cancelmsg">
       <button class="button-ok">{{okmsg}}</button>
       <button class="button-cancel" @click="handleClose()">{{cancelmsg}}</button>
@@ -32,6 +33,9 @@ export default {
     },
     ...mapActions(["getContent"]),
   },
+  created() {
+    setTimeout(()=>{this.isShow = true},0)
+  },
   computed: { ...mapState(["_play"]) },
   watch: {
     content() {
@@ -40,7 +44,7 @@ export default {
       if (this.timer) clearTimeout(this.timer);
 
       this.timer = setTimeout(() => {
-        console.log("时间到" + this.isShow);
+        //console.log("时间到" + this.isShow);
         this.isShow = false;
         clearTimeout(this.timer);
         this.timer = null;

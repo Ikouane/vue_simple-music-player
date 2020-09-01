@@ -4,7 +4,7 @@
     <p class="music-author">{{_playlist[_play.nowPlaying].musicAuthor}}</p>
     <div class="progressbar">
       <div class="timetext">
-        <span id="now">{{drag? nowTime : nowLength}}</span>
+        <span id="now">{{drag? nowTime : (_play.isPlaying ? nowLength : nowTime)}}</span>
         <span id="length">{{musicLength}}</span>
       </div>
       <div class="timebar_out" @click="changeTime($event)">
@@ -17,12 +17,11 @@
         </div>
       </div>
     </div>
+    <audio :src="_playlist[_play.nowPlaying].musicUrl" autoplay="autoplay" id="music"></audio>
   </div>
-  <audio :src="_playlist[_play.nowPlaying].musicUrl" autoplay="autoplay" id="music"></audio>
 </template>
 <script>
-import { mapState } from "vuex";
-import { mapMutations } from "vuex";
+import { mapState,mapMutations } from "vuex";
 export default {
   name: "MusicInfo",
   data() {
@@ -31,10 +30,10 @@ export default {
       intPlaying: null,
       left: 0,
       musicLength: "...",
-      nowLength: "0:00",
+      nowLength: "00:00",
       musicDuration: 0,
       drag: false,
-      nowTime: 0,
+      nowTime: "00:00",
       nowTimeLength: 0,
     };
   },
@@ -56,16 +55,20 @@ export default {
   components: {},
   methods: {
     ...mapMutations(["next", "goTime", "setTime"]),
+    formatTime(timeNum){
+      if(timeNum < 10) return ('0' + timeNum)
+      else return timeNum
+    },
     musicLengthCal(_music) {
       return (
-        parseInt(_music.duration / 60) + ":" + parseInt(_music.duration % 60)
+        this.formatTime(parseInt(_music.duration / 60)) + ":" + this.formatTime(parseInt(_music.duration % 60))
       );
     },
     nowLengthCal(_music) {
       return (
-        parseInt(_music.currentTime / 60) +
+        this.formatTime(parseInt(_music.currentTime / 60)) +
         ":" +
-        parseInt(_music.currentTime % 60)
+        this.formatTime(parseInt(_music.currentTime % 60))
       );
     },
     changeTime(event) {
@@ -98,24 +101,24 @@ export default {
       console.log(e);
       document.onmousemove = (event) => {
         let e = event || window.event;
-        if (parseInt(e.clientX - otimebar_in.offsetLeft) < 0) {
+        if (parseInt(e.clientX - otimebar_in.getBoundingClientRect().left) < 0) {
           this.left = 0;
         } else if (
-          e.clientX - otimebar_in.offsetLeft >
+          e.clientX - otimebar_in.getBoundingClientRect().left >
           otimebar_out.offsetWidth
         ) {
           this.left = otimebar_out.offsetWidth;
-        } else this.left = e.clientX - otimebar_in.offsetLeft;
+        } else this.left = e.clientX - otimebar_in.getBoundingClientRect().left;
         console.log("调整进度条" + this.left + "px");
         this.nowTimeLength = this.left + 5;
         this.nowTime =
-          parseInt(
+          this.formatTime(parseInt(
             ((this.left / otimebar_out.offsetWidth) * music.duration) / 60
-          ) +
+          )) +
           ":" +
-          parseInt(
+          this.formatTime(parseInt(
             ((this.left / otimebar_out.offsetWidth) * music.duration) % 60
-          );
+          ));
         // $("#now").text(
         //   parseInt(((this.left / otimebar_out.offsetWidth) * music.duration) / 60) +
         //     ":" +
