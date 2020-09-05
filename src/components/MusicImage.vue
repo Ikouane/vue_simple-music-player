@@ -1,7 +1,7 @@
 <template>
   <div :class="'flexbox ' + size">
     <Button
-      v-if="size === 'small'"
+      v-show="size === 'small'"
       size="middle"
       title="我喜欢"
       :bindtap="switchLike"
@@ -16,7 +16,7 @@
         :style="{webkitAnimationPlayState : (_play.isPlaying ? 'running':'paused')}"
       />
     </div>
-    <Button v-if="size === 'small'" size="middle" title="更多" type="fa-ellipsis-h" />
+    <Button v-show="size === 'small'" size="middle" title="更多" type="fa-ellipsis-h" />
   </div>
 </template>
 <script>
@@ -62,8 +62,43 @@ $dark_border_color: var(--dark_border_color);
   align-items: center;
   margin: auto;
 
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
   &.small {
     margin-bottom: 40px;
+
+    @keyframes fade-in {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    &::v-deep .player-button {
+      animation: fade-in 0.5s;
+    }
+  }
+
+  &::v-deep .player-button {
+    animation: fade-out 0.5s;
   }
   // * {
   //   float: left;
@@ -89,13 +124,18 @@ $dark_border_color: var(--dark_border_color);
     margin: auto;
     width: 150px;
     height: 150px;
+    box-shadow: none;
     box-shadow: 12px 12px 16px #b6bcc5, -12px -12px 16px #ffffff;
   }
 
   .dark & {
-    border: clear;
-    box-shadow: clear;
+    box-shadow: none;
     box-shadow: 20px 20px 20px #1d2024, -20px -20px 20px #2d3036;
+
+    &.small {
+      box-shadow: none;
+      box-shadow: 12px 12px 16px #1d2024, -12px -12px 16px #2d3036;
+    }
   }
 
   .middle-image {
@@ -114,9 +154,14 @@ $dark_border_color: var(--dark_border_color);
     }
 
     .dark & {
-      border: clear;
-      box-shadow: clear;
+      border: none;
       border: 6px solid var(--dark_player_color);
+      background: linear-gradient(145deg, #2a2e33, #23272b);
+
+      &.small {
+        border: none;
+        border: 4px solid var(--dark_player_color);
+      }
     }
 
     &.playing {

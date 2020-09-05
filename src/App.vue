@@ -11,7 +11,7 @@
 import Main from "./components/Main";
 import "@/assets/index.css";
 import { mapMutations } from "vuex";
-// import Axios from "axios";
+import Axios from "axios";
 
 export default {
   name: "App",
@@ -51,20 +51,31 @@ export default {
     };
   },
   methods: {
-    ...mapMutations(["addTime", "minusTime", "playSwitch", "prev", "next"]),
+    ...mapMutations([
+      "addTime",
+      "minusTime",
+      "playSwitch",
+      "prev",
+      "next",
+      "setStore",
+    ]),
   },
-  // created() {
-  //   const _this = this;
-  //   Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
-  //     .then((response) => {
-  //       console.log(response.data);
-  //       _this.setStore(response.data);
-  //     })
-  //     .catch(function (error) {
-  //       // 请求失败处理
-  //       console.log(error);
-  //     });
-  // },
+  created() {
+    const _this = this;
+    Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
+      .then((response) => {
+        console.log(response.data);
+        _this.setStore(response.data);
+        if (response.data._play.mode === "night")
+          document
+            .querySelector("body")
+            .setAttribute("style", "background-color:var(--dark_main_color)");
+      })
+      .catch(function (error) {
+        // 请求失败处理
+        console.log(error);
+      });
+  },
 };
 </script>
 <style lang="scss">

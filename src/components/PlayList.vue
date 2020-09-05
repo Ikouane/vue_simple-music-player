@@ -51,6 +51,10 @@ div {
 .slide-up {
   animation: slide 0.2s ease-in-out forwards;
   display: block;
+
+  overflow: auto;
+  height: 435px;
+  padding: 0 2px 0 0;
 }
 
 .slide-down {
@@ -76,5 +80,34 @@ div {
     transform: translatey(100%);
     display: none;
   }
+}
+
+/*修改滚动条样式*/
+div::-webkit-scrollbar {
+  width: 2px;
+}
+
+div::-webkit-scrollbar-track {
+  // background: rgb(239, 239, 239);
+  // border-radius: 2px;
+}
+
+div::-webkit-scrollbar-thumb {
+  background: #bfbfbf;
+  border-radius: 10px;
+
+  .dark & {
+    background: #333;
+  }
+}
+
+div::-webkit-scrollbar-thumb:hover {
+  background: #333;
+  .dark & {
+    background: #bfbfbf;
+  }
+}
+
+div::-webkit-scrollbar-corner {
 }
 </style>

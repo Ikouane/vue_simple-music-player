@@ -10,7 +10,7 @@ export default createStore({
       playTime: 0,
       mode: "day", //Or "night"
       nowPage: "PLAYING NOW", //Or "PLAYLIST", "musicLrc"
-      msg: "出于隐私保护，请手动播放"
+      msg: "数据请求中" //出于隐私保护，请手动播放
     },
     _playlist: [{
       musicName: "Say Goodbye",
@@ -60,12 +60,14 @@ export default createStore({
       }
       return result;
     },
-    // setStore(state, o_Play) {
-    //   state._play = {}
-    //   state._playlist = []
-    //   state._play = this.commit('deepClone', o_Play._play)
-    //   state._playlist = this.commit('deepClone', o_Play._playlist)
-    // },
+    setStore(state, o_Play) {
+      // state._play = {}
+      // state._playlist = []
+      state._play = o_Play._play
+      state._playlist = o_Play._playlist
+      // state._play = this.commit('deepClone', o_Play._play)
+      // state._playlist = this.commit('deepClone', o_Play._playlist)
+    },
     pause(state) {
       state._play.isPlaying = false
       document.getElementById("music").pause();

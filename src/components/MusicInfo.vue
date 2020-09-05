@@ -225,6 +225,7 @@ $dark_border_color: var(--dark_border_color);
     font-weight: bold;
     font-size: var(--title_size);
     margin-bottom: 10px;
+    line-height: var(--title_size);
 
     .dark & {
       color: var(--dark_title_color);
@@ -235,6 +236,7 @@ $dark_border_color: var(--dark_border_color);
     color: var(--text_color);
     margin-bottom: 40px;
     font-size: var(--text_size);
+    line-height: var(--title_size);
 
     .dark & {
       color: var(--dark_text_color);
