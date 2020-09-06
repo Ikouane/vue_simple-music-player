@@ -21,6 +21,7 @@
         </div>
       </div>
     </div>
+    <div class="music-lrc">{{lrc_line}}</div>
     <audio
       :src="_playlist[_play.nowPlaying].musicUrl"
       :autoplay="_isPlaying?'autoplay':'false'"
@@ -30,6 +31,8 @@
 </template>
 <script>
 import { mapState, mapMutations } from "vuex";
+import Axios from "axios";
+// import $ from "jquery";
 export default {
   name: "MusicInfo",
   data() {
@@ -43,6 +46,8 @@ export default {
       drag: false,
       nowTime: "00:00",
       nowTimeLength: 0,
+      lrc: "",
+      lrc_line: "",
     };
   },
   props: {
@@ -162,6 +167,39 @@ export default {
         }
       };
     },
+    transToArray(lrc, time) {
+      let lrcArray = lrc.split("\n");
+      let lrcFormatArray = [];
+      var pattern = /^[\\[].{5,10}?]/;
+      let timeArray = [];
+      for (let index = 0; index < lrcArray.length; index++) {
+        let timeMatch = pattern.exec(lrcArray[index]);
+
+        if (timeMatch) {
+          if (timeMatch.toString.length < 11) {
+            timeMatch = timeMatch.toString() + "0";
+          }
+
+          lrcFormatArray[timeMatch] = lrcArray[index].substring(
+            timeMatch.toString().length - 1
+          );
+        } else console.warn(timeMatch);
+      }
+      if (time) {
+        for (const key in lrcFormatArray) {
+          timeArray.push(key);
+        }
+        //console.error(timeArray);
+        for (let index = 0; index < timeArray.length; index++) {
+          if (time < timeArray[index]) {
+            //console.error(timeArray[index]);
+            return lrcFormatArray[timeArray[index - 1]];
+          }
+        }
+      }
+
+      return lrcFormatArray;
+    },
   },
   mounted() {
     document.getElementById("music").addEventListener("canplay", () => {
@@ -178,12 +216,102 @@ export default {
         //console.log(document.getElementById("music").currentTime);
       }
     }, 1000);
-    // document.getElementById("music").addEventListener("timeupdate", () => {});
+
+    document.getElementById("music").addEventListener("timeupdate", () => {
+      //防抖准备
+      //console.log(e);
+      this.lrc_line = this.transToArray(
+        this.lrc,
+        `[${
+          this.formatTime(
+            parseInt(document.getElementById("music").currentTime / 60)
+          ) +
+          ":" +
+          this.formatTime(
+            parseInt(document.getElementById("music").currentTime % 60)
+          ) +
+          "." +
+          (parseFloat(
+            document.getElementById("music").currentTime -
+              parseInt(document.getElementById("music").currentTime)
+          ).toFixed(3) *
+            1000 ==
+          0
+            ? "000"
+            : parseFloat(
+                document.getElementById("music").currentTime -
+                  parseInt(document.getElementById("music").currentTime)
+              ).toFixed(3) * 1000)
+        }]`
+      );
+      console.log(
+        `[${
+          this.formatTime(
+            parseInt(document.getElementById("music").currentTime / 60)
+          ) +
+          ":" +
+          this.formatTime(
+            parseInt(document.getElementById("music").currentTime % 60)
+          ) +
+          "." +
+          (parseFloat(
+            document.getElementById("music").currentTime -
+              parseInt(document.getElementById("music").currentTime)
+          ).toFixed(3) *
+            1000 ==
+          0
+            ? "000"
+            : parseFloat(
+                document.getElementById("music").currentTime -
+                  parseInt(document.getElementById("music").currentTime)
+              ).toFixed(3) * 1000)
+        }]` +
+          "" +
+          this.transToArray(
+            this.lrc,
+            `[${
+              this.formatTime(
+                parseInt(document.getElementById("music").currentTime / 60)
+              ) +
+              ":" +
+              this.formatTime(
+                parseInt(document.getElementById("music").currentTime % 60)
+              ) +
+              "." +
+              (parseFloat(
+                document.getElementById("music").currentTime -
+                  parseInt(document.getElementById("music").currentTime)
+              ).toFixed(3) *
+                1000 ==
+              0
+                ? "000"
+                : parseFloat(
+                    document.getElementById("music").currentTime -
+                      parseInt(document.getElementById("music").currentTime)
+                  ).toFixed(3) * 1000)
+            }]`
+          )
+      );
+    });
   },
   watch: {
     _nowPlaying(val, oldVal) {
       //普通的watch监听
       console.log("nowPlaying: " + val, oldVal);
+
+      const _this = this;
+      Axios.get(
+        "https://api.weyoung.tech/vue_simple-music-player/get.php?method=lrc&id=" +
+          _this._playlist[_this._play.nowPlaying].musicId
+      )
+        .then((response) => {
+          //console.log(response.data);
+          _this.lrc = response.data.lyric;
+        })
+        .catch(function (error) {
+          // 请求失败处理
+          console.log(error);
+        });
     },
   },
 };
@@ -212,7 +340,7 @@ $dark_border_color: var(--dark_border_color);
   text-align: center;
   justify-content: center;
   align-items: center;
-  margin-bottom: 100px;
+  margin-bottom: 70px; //100px
   color: $text_color;
 
   p {
@@ -308,6 +436,18 @@ $dark_border_color: var(--dark_border_color);
         border: 5px solid var(--dark_player_color);
         box-shadow: 2px 2px 6px #000000;
       }
+    }
+  }
+
+  .music-lrc {
+    margin-top: 16px;
+    font-size: 14px;
+    line-height: 14px;
+    height: 14px;
+    color: var(--text_color);
+
+    .dark & {
+      color: var(--dark_text_color);
     }
   }
 }

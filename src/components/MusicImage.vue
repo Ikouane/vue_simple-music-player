@@ -16,12 +16,19 @@
         :style="{webkitAnimationPlayState : (_play.isPlaying ? 'running':'paused')}"
       />
     </div>
-    <Button v-show="size === 'small'" size="middle" title="更多" type="fa-ellipsis-h" />
+    <Button
+      v-show="size === 'small'"
+      size="middle"
+      title="更多"
+      :bindtap="getMore"
+      type="fa-ellipsis-h"
+    />
   </div>
 </template>
 <script>
 import Button from "./Button";
 import { mapState, mapMutations } from "vuex";
+import Axios from "axios";
 export default {
   name: "MusicImage",
   components: {
@@ -35,7 +42,20 @@ export default {
   },
   computed: mapState(["_play", "_playlist"]),
   methods: {
-    ...mapMutations(["switchLike"]),
+    ...mapMutations(["switchLike", "addMore"]),
+    getMore() {
+      const _this = this;
+      Axios.get(
+        "https://api.weyoung.tech/vue_simple-music-player/get.php?method=more"
+      )
+        .then((response) => {
+          _this.addMore(response.data._playlist);
+        })
+        .catch(function (error) {
+          // 请求失败处理
+          console.log(error);
+        });
+    },
   },
 };
 </script>

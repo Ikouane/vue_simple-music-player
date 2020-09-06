@@ -159,6 +159,9 @@ export default createStore({
     clearMsg(state) {
       state._play.msg = null
     },
+    addMore(state, o_PlayList) {
+      state._playlist = state._playlist.concat(o_PlayList);
+    }
   },
   actions: {},
   getters: {
