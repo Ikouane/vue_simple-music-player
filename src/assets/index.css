@@ -17,6 +17,8 @@
     --dark_title_color: #adaeaf;
     --dark_text_color: #7c7d7f;
     --dark_border_color: #202428;
+
+    --scrollbar_width: 0px;
 }
 
 * {

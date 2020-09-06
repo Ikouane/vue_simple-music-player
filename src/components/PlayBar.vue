@@ -7,7 +7,7 @@
       v-if="_play.isPlaying"
       active
       type="fa-pause"
-      :bindtap="pause"
+      :bindtap="musicFadeOut"
       id="pauseButton"
     />
     <Button
@@ -16,7 +16,7 @@
       v-else
       active
       type="fa-play"
-      :bindtap="play"
+      :bindtap="musicFadeIn"
       id="playButton"
     />
     <Button size="large" title="下一首(↓)" type="fa-forward" :bindtap="next" />
@@ -37,7 +37,14 @@ export default {
     "_playlist",
   ]),
   methods: {
-    ...mapMutations(["play", "pause", "prev", "next"]),
+    ...mapMutations([
+      "play",
+      "pause",
+      "prev",
+      "next",
+      "musicFadeIn",
+      "musicFadeOut",
+    ]),
   },
 };
 </script>

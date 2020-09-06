@@ -44,7 +44,7 @@ export default {
 <style lang='scss' scoped>
 .list-card {
   display: flex;
-  width: 100%;
+  width: 356px; //100%
   padding: 10px;
   box-sizing: border-box;
   justify-content: space-between;

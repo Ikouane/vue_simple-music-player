@@ -196,6 +196,8 @@ export default {
             return lrcFormatArray[timeArray[index - 1]];
           }
         }
+
+        return "";
       }
 
       return lrcFormatArray;

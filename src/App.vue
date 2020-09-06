@@ -38,7 +38,7 @@ export default {
       } else if (key == 32) {
         window.event.preventDefault(); //关闭浏览器快捷键
         console.log("点击空格");
-        _this.playSwitch();
+        _this.playSwitchFade();
       } else if (key == 38) {
         window.event.preventDefault(); //关闭浏览器快捷键
         console.log("点击上箭头");
@@ -58,6 +58,7 @@ export default {
       "prev",
       "next",
       "setStore",
+      "playSwitchFade",
     ]),
   },
   created() {

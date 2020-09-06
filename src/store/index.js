@@ -80,6 +80,35 @@ export default createStore({
       this.commit('clearMsg');
       state._play.msg = "音乐已播放"
     },
+    musicFadeIn() {
+      this.commit('play');
+      //document.getElementById("music").volume = 0;
+      let v = document.getElementById("music").volume;
+      let int = setInterval(() => {
+        console.log("渐入");
+        v += 0.1;
+        if (v >= 1) {
+          clearInterval(int);
+        } else {
+          document.getElementById("music").volume = v;
+        }
+      }, 100);
+    },
+    musicFadeOut() {
+      //document.getElementById("music").volume = 1;
+      let v = document.getElementById("music").volume;
+      v = 0.8;
+      let int = setInterval(() => {
+        console.log("渐出");
+        v -= 0.1;
+        if (v <= 0) {
+          this.commit('pause');
+          clearInterval(int);
+        } else {
+          document.getElementById("music").volume = v;
+        }
+      }, 100);
+    },
     playSwitch(state) {
       if (state._play.isPlaying) {
         this.commit('pause');
@@ -87,21 +116,103 @@ export default createStore({
         this.commit('play');
       }
     },
+    playSwitchFade(state) {
+      if (state._play.isPlaying) {
+        this.commit('musicFadeOut');
+      } else {
+        this.commit('musicFadeIn');
+      }
+    },
     prev(state) {
-      if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
-      state._play.isPlaying = true
+      let v = document.getElementById("music").volume;
+      let int = setInterval(() => {
+        console.log("渐出");
+        v -= 0.1;
+        if (v <= 0) {
+          state._play.isPlaying = false
+          if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
+          state._play.isPlaying = true
+          let v2 = document.getElementById("music").volume;
+          let int2 = setInterval(() => {
+            console.log("渐入");
+            v2 += 0.1;
+            if (v2 >= 1) {
+              clearInterval(int2);
+            } else {
+              document.getElementById("music").volume = v2;
+            }
+          }, 100);
+          clearInterval(int);
+        } else {
+          document.getElementById("music").volume = v;
+        }
+      }, 75);
+
+      // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
+      // state._play.isPlaying = true
       this.commit('clearMsg');
     },
     next(state) {
-      if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
-      state._play.isPlaying = true
+      let v = document.getElementById("music").volume;
+      v = 0.8;
+      let int = setInterval(() => {
+        console.log("渐出");
+        v -= 0.1;
+        if (v <= 0) {
+          state._play.isPlaying = false
+          if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
+          state._play.isPlaying = true
+          let v2 = document.getElementById("music").volume;
+          let int2 = setInterval(() => {
+            console.log("渐入");
+            v2 += 0.1;
+            if (v2 >= 1) {
+              clearInterval(int2);
+            } else {
+              document.getElementById("music").volume = v2;
+            }
+          }, 100);
+          clearInterval(int);
+        } else {
+          document.getElementById("music").volume = v;
+        }
+      }, 75);
+
+      // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
+      // state._play.isPlaying = true
       this.commit('clearMsg');
     },
     goPlay(state, desIndex) {
-      state._play.isPlaying = false
-      state._play.nowPlaying = desIndex
-      state._play.isPlaying = true
 
+      let v = document.getElementById("music").volume;
+      v = 0.8;
+      let int = setInterval(() => {
+        console.log("渐出");
+        v -= 0.1;
+        if (v <= 0) {
+          state._play.isPlaying = false
+          //this.commit('pause');
+          state._play.nowPlaying = desIndex
+          //this.commit('play');
+          state._play.isPlaying = true
+          let v2 = document.getElementById("music").volume;
+          let int2 = setInterval(() => {
+            console.log("渐入");
+            v2 += 0.1;
+            if (v2 >= 1) {
+              clearInterval(int2);
+            } else {
+              document.getElementById("music").volume = v2;
+            }
+          }, 100);
+          clearInterval(int);
+        } else {
+          document.getElementById("music").volume = v;
+        }
+      }, 50);
+      // state._play.isPlaying = false
+      // state._play.nowPlaying = desIndex
+      // state._play.isPlaying = true
       this.commit('clearMsg');
     },
     goTime(state, desTime) {

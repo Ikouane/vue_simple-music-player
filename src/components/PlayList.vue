@@ -1,5 +1,5 @@
 <template>
-  <div @click="handelClick($event)" :class="slide">
+  <div @click="handelClick($event)" :class="slide" id="list">
     <ListItem
       v-for="(item, i) in _playlist"
       v-bind:key="i"
@@ -14,6 +14,8 @@
 <script>
 import ListItem from "./ListItem";
 import { mapState, mapMutations } from "vuex";
+import $ from "jquery";
+import "@/assets/index.css";
 export default {
   name: "PlayList",
   props: {
@@ -41,6 +43,19 @@ export default {
         this.goPlay(index);
       }
     },
+  },
+  mounted() {
+    let timer = null;
+
+    document.getElementById("list").addEventListener("scroll", (e) => {
+      if (timer) return;
+      timer = setTimeout(() => {
+        $("#list").css("--scrollbar_width", "0px");
+        timer = null;
+      }, 1500);
+      console.log(e);
+      $("#list").css("--scrollbar_width", "2px");
+    });
   },
 };
 </script>
@@ -83,16 +98,16 @@ div {
 }
 
 /*修改滚动条样式*/
-div::-webkit-scrollbar {
-  width: 2px;
+::-webkit-scrollbar {
+  width: var(--scrollbar_width); //2px;
 }
 
-div::-webkit-scrollbar-track {
+::-webkit-scrollbar-track {
   // background: rgb(239, 239, 239);
   // border-radius: 2px;
 }
 
-div::-webkit-scrollbar-thumb {
+::-webkit-scrollbar-thumb {
   background: #bfbfbf;
   border-radius: 10px;
 
@@ -101,13 +116,13 @@ div::-webkit-scrollbar-thumb {
   }
 }
 
-div::-webkit-scrollbar-thumb:hover {
+::-webkit-scrollbar-thumb:hover {
   background: #333;
   .dark & {
     background: #bfbfbf;
   }
 }
 
-div::-webkit-scrollbar-corner {
+::-webkit-scrollbar-corner {
 }
 </style>
