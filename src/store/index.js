@@ -4,6 +4,7 @@ import {
 
 export default createStore({
   state: {
+    _success: false,
     _play: {
       isPlaying: false,
       nowPlaying: 0,
@@ -61,12 +62,18 @@ export default createStore({
       return result;
     },
     setStore(state, o_Play) {
+      this.commit('pause');
       // state._play = {}
       // state._playlist = []
       state._play = o_Play._play
       state._playlist = o_Play._playlist
+      if (state._play.mode === "night") document.querySelector('body').setAttribute('style', 'background-color:var(--dark_main_color)')
+
       // state._play = this.commit('deepClone', o_Play._play)
       // state._playlist = this.commit('deepClone', o_Play._playlist)
+      // this.commit('clearMsg');
+      // state._play.msg = "数据已更新";
+      console.log("数据已更新");
     },
     pause(state) {
       state._play.isPlaying = false
@@ -123,6 +130,9 @@ export default createStore({
         this.commit('musicFadeIn');
       }
     },
+    updateTitle(state) {
+      document.title = state._playlist[state._play.nowPlaying].musicName + " - " + state._playlist[state._play.nowPlaying].musicAuthor;
+    },
     prev(state) {
       let v = document.getElementById("music").volume;
       let int = setInterval(() => {
@@ -132,6 +142,7 @@ export default createStore({
           state._play.isPlaying = false
           if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
           state._play.isPlaying = true
+          this.commit('updateTitle');
           let v2 = document.getElementById("music").volume;
           let int2 = setInterval(() => {
             console.log("渐入");
@@ -162,6 +173,7 @@ export default createStore({
           state._play.isPlaying = false
           if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
           state._play.isPlaying = true
+          this.commit('updateTitle');
           let v2 = document.getElementById("music").volume;
           let int2 = setInterval(() => {
             console.log("渐入");
@@ -195,6 +207,7 @@ export default createStore({
           state._play.nowPlaying = desIndex
           //this.commit('play');
           state._play.isPlaying = true
+          this.commit('updateTitle');
           let v2 = document.getElementById("music").volume;
           let int2 = setInterval(() => {
             console.log("渐入");
@@ -272,6 +285,9 @@ export default createStore({
     },
     addMore(state, o_PlayList) {
       state._playlist = state._playlist.concat(o_PlayList);
+    },
+    setSuccess(state, isSuccess) {
+      state._success = isSuccess;
     }
   },
   actions: {},

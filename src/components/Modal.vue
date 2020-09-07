@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="'modal ' + (isShow ? 'modal-show' : 'modal-hide') + (_play.mode === 'night' ? ' drak': '')"
+    :class="'modal ' + (isShow ? 'modal-show' : 'modal-hide') + (_play.mode === 'night' ? ' dark': '')"
     @click="handleClose"
   >
     <label class="modal-title">{{title}}</label>
@@ -34,7 +34,9 @@ export default {
     ...mapActions(["getContent"]),
   },
   created() {
-    setTimeout(()=>{this.isShow = true},0)
+    setTimeout(() => {
+      this.isShow = true;
+    }, 0);
   },
   computed: { ...mapState(["_play"]) },
   watch: {
@@ -74,10 +76,10 @@ export default {
   z-index: 1;
 
   background-color: rgba(255, 255, 255, 0.72);
-  //   backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  //backdrop-filter: saturate(180%) blur(20px);
+  //-webkit-backdrop-filter: saturate(180%) blur(20px);
 
-  &.drak {
+  &.dark {
     background-color: rgba(0, 0, 0, 0.72);
     color: white;
   }
