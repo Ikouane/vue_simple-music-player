@@ -14,25 +14,29 @@ export default createStore({
       msg: "数据请求中" //出于隐私保护，请手动播放
     },
     _playlist: [{
+      musicId: "21687063",
       musicName: "Say Goodbye",
       musicAuthor: "S Club 7",
       musicImage: "https://cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.jpg",
       musicUrl: "https://cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.mp3",
-      isLike: false,
+      isLike: false
     }, {
+      musicId: "416531370",
       musicName: "Good To Be Alive",
       musicAuthor: "Meghan Trainor",
       musicImage: "https://cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.jpg",
       musicUrl: "https://cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.mp3",
-      isLike: false,
+      isLike: false
     }, {
+      musicId: "1358168845",
       musicName: "High Hopes",
       musicAuthor: "Gabriela Bee",
       musicImage: "https://cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.jpg",
       musicUrl: "https://cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.mp3",
-      isLike: false,
+      isLike: false
     }],
     example_array: [{
+      mnusicId: "musicId",
       musicName: "MusicName",
       musicAuthor: "musicAuthor",
       musicImage: "url",
@@ -68,7 +72,7 @@ export default createStore({
       state._play = o_Play._play
       state._playlist = o_Play._playlist
       if (state._play.mode === "night") document.querySelector('body').setAttribute('style', 'background-color:var(--dark_main_color)')
-
+      else document.querySelector('body').setAttribute('style', 'background-color:var(--main_color)')
       // state._play = this.commit('deepClone', o_Play._play)
       // state._playlist = this.commit('deepClone', o_Play._playlist)
       // this.commit('clearMsg');
@@ -163,7 +167,7 @@ export default createStore({
       // state._play.isPlaying = true
       this.commit('clearMsg');
     },
-    next(state) {
+    next(state, hasWrong) {
       let v = document.getElementById("music").volume;
       v = 0.8;
       let int = setInterval(() => {
@@ -193,6 +197,10 @@ export default createStore({
       // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
       // state._play.isPlaying = true
       this.commit('clearMsg');
+
+      if (hasWrong) {
+        state._play.msg = "播放出错，已为您跳过";
+      }
     },
     goPlay(state, desIndex) {
 
@@ -259,15 +267,26 @@ export default createStore({
         state._play.nowPage = "PLAYLIST"
       else state._play.nowPage = "PLAYING NOW"
     },
-    modeSwitch(state) {
-      if (state._play.mode === "day") {
-        state._play.mode = "night"
-        state._play.msg = "已切换至夜间模式"
-        document.querySelector('body').setAttribute('style', 'background-color:var(--dark_main_color)')
+    modeSwitch(state, target) {
+      if (target === "night" || target === "day") {
+        state._play.mode = target
+        if (state._play.mode === "day") {
+          document.querySelector('body').setAttribute('style', 'background-color:var(--main_color)')
+          state._play.msg = "已切换至日间模式"
+        } else {
+          state._play.msg = "已切换至夜间模式"
+          document.querySelector('body').setAttribute('style', 'background-color:var(--dark_main_color)')
+        }
       } else {
-        document.querySelector('body').setAttribute('style', 'background-color:var(--main_color)')
-        state._play.mode = "day"
-        state._play.msg = "已切换至日间模式"
+        if (state._play.mode === "day") {
+          state._play.mode = "night"
+          state._play.msg = "已切换至夜间模式"
+          document.querySelector('body').setAttribute('style', 'background-color:var(--dark_main_color)')
+        } else {
+          document.querySelector('body').setAttribute('style', 'background-color:var(--main_color)')
+          state._play.mode = "day"
+          state._play.msg = "已切换至日间模式"
+        }
       }
     },
     switchLike(state) {
@@ -282,6 +301,10 @@ export default createStore({
     },
     clearMsg(state) {
       state._play.msg = null
+    },
+    setMsg(state, message) {
+      this.commit('clearMsg');
+      state._play.msg = message;
     },
     addMore(state, o_PlayList) {
       state._playlist = state._playlist.concat(o_PlayList);

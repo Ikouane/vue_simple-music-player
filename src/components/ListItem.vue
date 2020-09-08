@@ -9,11 +9,11 @@
       title="暂停"
       v-if="_play.isPlaying && _play.nowPlaying == listIndex"
       active
-      type="fa-pause"
+      type="fa fa-pause"
       :data-index="listIndex"
     />
     <!--  :bindtap="pause" :bindtap="play" 事件已代理-->
-    <Button size="small" title="播放" v-else active type="fa-play" :data-index="listIndex" />
+    <Button size="small" title="播放" v-else active type="fa fa-play" :data-index="listIndex" />
   </div>
 </template>
 <script>
@@ -74,6 +74,8 @@ export default {
 
     & span:nth-child(1) {
       color: var(--title_color);
+      font-weight: bold;
+      margin-bottom: 3px;
     }
 
     & span:nth-child(2) {

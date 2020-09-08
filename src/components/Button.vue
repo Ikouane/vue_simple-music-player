@@ -1,6 +1,6 @@
 <template>
   <div :class="'player-button ' + size + (active ?' active': '')" :title="title" @click="bindtap">
-    <i :class="'fa '+ type" aria-hidden="true"></i>
+    <i :class="type" aria-hidden="true"></i>
   </div>
 </template>
 <script>

@@ -1,8 +1,8 @@
 <template>
   <div class="appbar">
-    <Button size="middle" title="切换主题" :bindtap="mode_switch" type="fa-paint-brush" />
+    <Button size="middle" title="切换主题" :bindtap="mode_switch" type="fa fa-paint-brush" />
     <div class="title" title="正在播放">{{_play.nowPage}}</div>
-    <Button size="middle" title="播放列表" :bindtap="list_switch" type="fa-bars" />
+    <Button size="middle" title="播放列表" :bindtap="list_switch" type="fa fa-bars" />
   </div>
 </template>
 <script>

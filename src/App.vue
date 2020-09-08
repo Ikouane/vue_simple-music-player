@@ -59,6 +59,7 @@ export default {
       "next",
       "setStore",
       "playSwitchFade",
+      "modeSwitch",
     ]),
   },
   created() {
@@ -76,6 +77,26 @@ export default {
         // 请求失败处理
         console.log(error);
       });
+
+    let listeners = {
+      dark: (mediaQueryList) => {
+        if (mediaQueryList.matches) {
+          this.modeSwitch("night");
+        }
+      },
+      light: (mediaQueryList) => {
+        if (mediaQueryList.matches) {
+          this.modeSwitch("day");
+        }
+      },
+    };
+
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addListener(listeners.dark);
+    window
+      .matchMedia("(prefers-color-scheme: light)")
+      .addListener(listeners.light);
   },
 };
 </script>

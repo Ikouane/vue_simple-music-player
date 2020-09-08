@@ -35,13 +35,14 @@ export default {
     ...mapMutations(["playSwitch", "goPlay"]),
     handelClick(e) {
       let index = parseInt(e.target.getAttribute("data-index"));
-      console.log(index);
-      if (this._play.nowPlaying === index) {
-        //当点击的是当前的音乐时切换播放状态
-        this.playSwitch();
-      } else {
-        this.goPlay(index);
-      }
+      if (!Number.isNaN(index)) {
+        if (this._play.nowPlaying === index) {
+          //当点击的是当前的音乐时切换播放状态
+          this.playSwitch();
+        } else {
+          this.goPlay(index);
+        }
+      } else console.log(index);
     },
   },
   mounted() {

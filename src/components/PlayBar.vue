@@ -1,12 +1,12 @@
 <template>
   <div class="player-bottom">
-    <Button size="large" title="上一首(↑)" type="fa-backward" :bindtap="prev" />
+    <Button size="large" title="上一首(↑)" type="fa fa-backward" :bindtap="prev" />
     <Button
       size="large"
       title="暂停(空格)"
       v-if="_play.isPlaying"
       active
-      type="fa-pause"
+      type="fa fa-pause"
       :bindtap="musicFadeOut"
       id="pauseButton"
     />
@@ -15,11 +15,11 @@
       title="播放(空格)"
       v-else
       active
-      type="fa-play"
+      type="fa fa-play"
       :bindtap="musicFadeIn"
       id="playButton"
     />
-    <Button size="large" title="下一首(↓)" type="fa-forward" :bindtap="next" />
+    <Button size="large" title="下一首(↓)" type="fa fa-forward" :bindtap="next" />
   </div>
 </template>
 <script>

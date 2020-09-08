@@ -1,14 +1,26 @@
 <template>
   <div :class="'flexbox ' + size">
-    <Button
-      v-show="size === 'small'"
-      size="middle"
-      title="我喜欢"
-      :bindtap="switchLike"
-      type="fa-heart"
-      :active="_playlist[_play.nowPlaying].isLike"
-    />
-    <div :class="'music-image ' + size">
+    <Modal v-if="uploadSuccess" title="提示" :content="'上传数据成功，编号为'+ pid" aod="aod" />
+    <div class="flexbox_part">
+      <Button
+        v-show="size === 'small'"
+        size="middle"
+        title="我喜欢"
+        :bindtap="switchLike"
+        @click="this.hasChange = true;"
+        type="fa fa-heart"
+        :active="_playlist[_play.nowPlaying].isLike"
+      />
+      <Button
+        v-show="size === 'small'"
+        size="middle"
+        title="更多"
+        :bindtap="getMore"
+        type="fa fa-ellipsis-h"
+      />
+    </div>
+    <div :class="'music-image ' + size" @click="playSwitchFade()">
+      <!-- @click="setSuccess(true)" title="进入传送门"-->
       <img
         :class="'middle-image playing ' + size"
         :src="_playlist[_play.nowPlaying].musicImage"
@@ -16,23 +28,41 @@
         :style="{webkitAnimationPlayState : (_play.isPlaying ? 'running':'paused')}"
       />
     </div>
-    <Button
-      v-show="size === 'small'"
-      size="middle"
-      title="更多"
-      :bindtap="getMore"
-      type="fa-ellipsis-h"
-    />
+    <div class="flexbox_part">
+      <Button
+        v-show="size === 'small'"
+        size="middle"
+        title="备份数据到云端"
+        :bindtap="saveList"
+        type="fas fa-cloud-upload-alt"
+      />
+      <Button
+        v-show="size === 'small'"
+        size="middle"
+        title="从云端还原数据"
+        @click="setSuccess(true)"
+        type="fas fa-cloud-download-alt"
+      />
+    </div>
   </div>
 </template>
 <script>
 import Button from "./Button";
 import { mapState, mapMutations } from "vuex";
 import Axios from "axios";
+import Modal from "./Modal";
 export default {
   name: "MusicImage",
+  data() {
+    return {
+      uploadSuccess: false,
+      pid: "",
+      hasChange: true,
+    };
+  },
   components: {
     Button,
+    Modal,
   },
   props: {
     size: {
@@ -40,9 +70,17 @@ export default {
       default: "",
     },
   },
-  computed: mapState(["_play", "_playlist"]),
+  computed: {
+    ...mapState(["_play", "_playlist", "_success"]),
+  },
   methods: {
-    ...mapMutations(["switchLike", "addMore"]),
+    ...mapMutations([
+      "switchLike",
+      "addMore",
+      "setSuccess",
+      "playSwitchFade",
+      "setMsg",
+    ]),
     getMore() {
       const _this = this;
       Axios.get(
@@ -50,11 +88,42 @@ export default {
       )
         .then((response) => {
           _this.addMore(response.data._playlist);
+          _this.hasChange = true;
         })
         .catch(function (error) {
           // 请求失败处理
           console.log(error);
         });
+    },
+    saveList() {
+      if (!this.hasChange) {
+        console.log("数据未改变");
+        this.setMsg("距上次备份，数据未发生改变");
+      } else {
+        const _this = this;
+        let data = new FormData();
+        data.append("method", "save");
+        data.append("play", JSON.stringify(_this._play));
+        data.append("playlist", JSON.stringify(_this._playlist));
+        Axios.post(
+          "https://api.weyoung.tech/vue_simple-music-player/get.php",
+          data,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data; charset=UTF-8", //将表单数据传递转化为form-data类型
+            },
+          }
+        )
+          .then(function (response) {
+            console.log(response.data);
+            _this.uploadSuccess = true;
+            _this.hasChange = false;
+            _this.pid = response.data.pid;
+          })
+          .catch(function (error) {
+            alert(error);
+          });
+      }
     },
   },
 };
@@ -81,6 +150,13 @@ $dark_border_color: var(--dark_border_color);
   justify-content: center;
   align-items: center;
   margin: auto;
+
+  .flexbox_part {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    height: 158px;
+  }
 
   @keyframes fade-in {
     from {
@@ -139,6 +215,7 @@ $dark_border_color: var(--dark_border_color);
   box-shadow: 20px 20px 24px #b6bcc5, -20px -20px 24px #ffffff;
   margin-bottom: 40px;
   transition: 0.3s all ease-in-out;
+  cursor: pointer;
 
   &.small {
     margin: auto;

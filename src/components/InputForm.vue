@@ -10,48 +10,6 @@
       :id="i"
       :value="input_text.slice()[i]"
     />
-    <!-- <input
-      class="input-single"
-      disabled="disabled"
-      maxlength="1"
-      id="1"
-      :value="input_text.slice()[0]"
-    />
-    <input
-      class="input-single"
-      disabled="disabled"
-      maxlength="1"
-      id="2"
-      :value="input_text.slice()[1]"
-    />
-    <input
-      class="input-single"
-      disabled="disabled"
-      maxlength="1"
-      id="3"
-      :value="input_text.slice()[2]"
-    />
-    <input
-      class="input-single"
-      disabled="disabled"
-      maxlength="1"
-      id="4"
-      :value="input_text.slice()[3]"
-    />
-    <input
-      class="input-single"
-      disabled="disabled"
-      maxlength="1"
-      id="5"
-      :value="input_text.slice()[4]"
-    />
-    <input
-      class="input-single"
-      disabled="disabled"
-      maxlength="1"
-      id="6"
-      :value="input_text.slice()[5]"
-    />-->
     <br />
     <input class="input-union" maxlength="4" v-model="input_text" />
   </div>
@@ -84,6 +42,12 @@ export default {
       c_input = document.getElementsByClassName("inputbox")[0];
     u_input.focus();
 
+    u_input.addEventListener("blur", () => {
+      if (this._success) {
+        this.setSuccess(false);
+      }
+    });
+
     c_input.addEventListener("click", (e) => {
       console.log(e.target.id);
       // if (e.target.id) {
@@ -91,6 +55,7 @@ export default {
       // } else u_input.focus();
       u_input.focus();
     });
+
     u_input.addEventListener("keydown", (e) => {
       // if (this.input_text.length >= 6) {
       //   if (e.key === "Backspace") {
@@ -176,15 +141,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-.v-enter,
-.v-leave-to {
-  opacity: 0; //透明度,0代表完全透明,1完全不透明
-}
-.v-enter-active,
-.v-leave-active {
-  transition: all 1s ease; // all 所有样式, 0.5秒动画的执行时间,ease变速执行
-}
-
 .inputbox {
   width: 100%;
   text-align: center;
@@ -206,7 +162,7 @@ export default {
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 
   &-show {
-    top: 0px;
+    top: 80px;
     transform: translate(-50%);
     transition: all 0.5s ease;
   }

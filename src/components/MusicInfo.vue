@@ -23,7 +23,9 @@
         </div>
       </div>
     </div>
-    <div class="music-lrc">{{lrc_line}}</div>
+    <div class="music-lrc">
+      <span id="music-lrc">{{lrc_line}}</span>
+    </div>
     <audio
       :src="_playlist[_play.nowPlaying].musicUrl"
       :autoplay="_isPlaying?'autoplay':'false'"
@@ -50,6 +52,9 @@ export default {
       nowTimeLength: 0,
       lrc: "",
       lrc_line: "",
+      lrcArray: [],
+      lrcFormatArray: [],
+      timeArray: [],
     };
   },
   props: {
@@ -177,51 +182,45 @@ export default {
         }
       };
     },
-    transToArray(lrc, time) {
+    transToArray(lrc) {
+      this.lrcArray = [];
+      this.lrcFormatArray = [];
+      this.timeArray = [];
+
       if (lrc) {
-        let lrcArray = lrc.split("\n").sort(); //先进行排序
-        let lrcFormatArray = [];
+        this.lrcArray = lrc.split("\n").sort(); //先进行排序
+        //this.lrcFormatArray = [];
         var pattern = /^[\\[]\d.{5,10}?]/;
         /*  
       /^[\\[].{5,10}?]/;
       */
-        let timeArray = [];
-        for (let index = 0; index < lrcArray.length; index++) {
-          let timeMatch = pattern.exec(lrcArray[index]);
+        //this.timeArray = [];
+        for (let index = 0; index < this.lrcArray.length; index++) {
+          let timeMatch = pattern.exec(this.lrcArray[index]);
           if (timeMatch) {
             let length = timeMatch.toString().length;
             if (timeMatch.toString().length < 11) {
               timeMatch = timeMatch.toString().replace("]", "0]");
             }
 
-            lrcFormatArray[timeMatch] = lrcArray[index].substring(
+            this.lrcFormatArray[timeMatch] = this.lrcArray[index].substring(
               length //timeMatch.toString().length - 1
             );
-          } else console.warn(timeArray);
-        }
-        if (time) {
-          for (const key in lrcFormatArray) {
-            timeArray.push(key);
-          }
-          //console.error(timeArray);
-          for (let index = 0; index < timeArray.length; index++) {
-            if (time < timeArray[index]) {
-              //console.error(timeArray[index]);
-              return lrcFormatArray[timeArray[index - 1]];
-            }
-          }
-          if (time >= timeArray[timeArray.length - 1]) {
-            return lrcFormatArray[timeArray[timeArray.length - 1]]; //最后一句歌词处理
-          } else return "";
+          } else console.warn(this.timeArray);
         }
 
-        return lrcFormatArray;
+        for (const key in this.lrcFormatArray) {
+          this.timeArray.push(key);
+        }
+
+        return this.lrcFormatArray;
       } else {
         this.getLrc();
       }
     },
     getLrc() {
       const _this = this;
+      console.log(_this._playlist[_this._play.nowPlaying].musicId);
       Axios.get(
         "https://api.weyoung.tech/vue_simple-music-player/get.php?method=lrc&id=" +
           _this._playlist[_this._play.nowPlaying].musicId
@@ -231,11 +230,24 @@ export default {
           if (response.data.nolyric) {
             _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
           } else _this.lrc = response.data.lyric;
+          this.transToArray(response.data.lyric);
         })
         .catch(function (error) {
           // 请求失败处理
           console.log(error);
         });
+    },
+    getLrc_line(time) {
+      if (time) {
+        for (let index = 0; index < this.timeArray.length; index++) {
+          if (time < this.timeArray[index]) {
+            return this.lrcFormatArray[this.timeArray[index - 1]];
+          }
+        }
+        if (time >= this.timeArray[this.timeArray.length - 1]) {
+          return this.lrcFormatArray[this.timeArray[this.timeArray.length - 1]]; //最后一句歌词处理
+        } else return "";
+      }
     },
     formatNumber(num) {
       if (num < 10) num = "00" + num;
@@ -279,11 +291,16 @@ export default {
       }
     }, 1000);
 
+    document.getElementById("music").addEventListener("error", () => {
+      console.log("无法播放，已为您跳过。");
+      this.next("wrong");
+    });
+
     document.getElementById("music").addEventListener("timeupdate", () => {
       //防抖准备
       //console.log(e);
-      this.lrc_line = this.transToArray(
-        this.lrc,
+
+      this.lrc_line = this.getLrc_line(
         `[${
           this.formatTime(
             parseInt(document.getElementById("music").currentTime / 60)
@@ -301,30 +318,46 @@ export default {
           )
         }]`
       );
-      console.log(
-        `[${
-          this.formatTime(
-            parseInt(document.getElementById("music").currentTime / 60)
-          ) +
-          ":" +
-          this.formatTime(
-            parseInt(document.getElementById("music").currentTime % 60)
-          ) +
-          "." +
-          this.formatNumber(
-            parseFloat(
-              document.getElementById("music").currentTime -
-                parseInt(document.getElementById("music").currentTime)
-            ).toFixed(3) * 1000
-          )
-        }]` + this.lrc_line
-      );
     });
+
+    $.fn.shake = function (
+      intShakes /*Amount of shakes*/,
+      intDistance /*Shake distance*/,
+      intDuration /*Time duration*/,
+      intDirection /* Shake direction, new Addtion*/
+    ) {
+      this.each(function () {
+        var jqNode = $(this);
+        jqNode.css({ position: "relative" });
+        for (var x = 1; x <= intShakes; x++) {
+          switch (intDirection) {
+            case "top":
+              jqNode
+                .animate({ top: intDistance * -1 }, intDuration / intShakes / 4)
+                .animate({ top: intDistance }, intDuration / intShakes / 2)
+                .animate({ top: 0 }, intDuration / intShakes / 4);
+              break;
+            case "left":
+              jqNode
+                .animate(
+                  { left: intDistance * -1 },
+                  intDuration / intShakes / 4
+                )
+                .animate({ left: intDistance }, intDuration / intShakes / 2)
+                .animate({ left: 0 }, intDuration / intShakes / 4);
+              break;
+          }
+        }
+      });
+      return this;
+    };
   },
   watch: {
     _nowPlaying(val, oldVal) {
       //普通的watch监听
       console.log("nowPlaying: " + val, oldVal);
+      $("#music-name").shake(1, 40, 100, "top");
+      $(".music-author").shake(1, 30, 100, "top");
 
       $("#music-name").css(
         "--overflow_width",
@@ -336,6 +369,19 @@ export default {
       );
 
       this.getLrc();
+    },
+
+    lrc_line() {
+      console.warn("歌词变更");
+      $("#music-lrc").shake(1, 20, 100, "top"); //$(this).shake(2,10,400); src:https://www.oschina.net/code/snippet_5189_6334
+      $("#music-lrc").css(
+        "--overflow_width_lrc",
+        parseInt(document.getElementById("music-lrc").offsetWidth) - 324 < 0
+          ? "0px"
+          : 324 -
+              parseInt(document.getElementById("music-lrc").offsetWidth) +
+              "px"
+      );
     },
   },
 };
@@ -377,12 +423,13 @@ $dark_border_color: var(--dark_border_color);
     font-weight: bold;
     font-size: var(--title_size);
     margin-bottom: 10px;
-    line-height: var(--title_size);
 
     overflow: hidden;
     width: 100%;
 
     span {
+      line-height: 40px;
+
       @keyframes gothrough {
         0% {
           transform: translateX(0%);
@@ -491,8 +538,30 @@ $dark_border_color: var(--dark_border_color);
     margin-top: 16px;
     font-size: 14px;
     line-height: 14px;
-    height: 14px;
+    height: 20px;
     color: var(--text_color);
+    width: 324px;
+    overflow: hidden;
+
+    span {
+      line-height: 20px;
+
+      @keyframes gothrough_lrc {
+        0% {
+          transform: translateX(0%);
+        }
+        50% {
+          transform: translateX(var(--overflow_width_lrc));
+        }
+        100% {
+          transform: translateX(0%);
+        }
+      }
+
+      display: inline-block;
+      white-space: nowrap;
+      animation: gothrough_lrc 3s ease-in-out infinite;
+    }
 
     .dark & {
       color: var(--dark_text_color);

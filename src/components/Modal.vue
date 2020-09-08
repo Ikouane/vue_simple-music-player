@@ -26,6 +26,10 @@ export default {
     content: String,
     okmsg: String,
     cancelmsg: String,
+    aod: {
+      type: Boolean,
+      default: false,
+    },
   },
   methods: {
     handleClose() {
@@ -42,15 +46,21 @@ export default {
   watch: {
     content() {
       //普通的watch监听，小防抖
-      if (!this.isShow) this.isShow = true;
-      if (this.timer) clearTimeout(this.timer);
 
-      this.timer = setTimeout(() => {
-        //console.log("时间到" + this.isShow);
-        this.isShow = false;
-        clearTimeout(this.timer);
-        this.timer = null;
-      }, 3000);
+      if (this.aod) {
+        //aod开启时不自动消失
+        if (!this.isShow) this.isShow = true;
+      } else {
+        if (!this.isShow) this.isShow = true;
+        if (this.timer) clearTimeout(this.timer);
+
+        this.timer = setTimeout(() => {
+          //console.log("时间到" + this.isShow);
+          this.isShow = false;
+          clearTimeout(this.timer);
+          this.timer = null;
+        }, 3000);
+      }
     },
   },
 };
@@ -76,8 +86,8 @@ export default {
   z-index: 1;
 
   background-color: rgba(255, 255, 255, 0.72);
-  //backdrop-filter: saturate(180%) blur(20px);
-  //-webkit-backdrop-filter: saturate(180%) blur(20px);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
 
   &.dark {
     background-color: rgba(0, 0, 0, 0.72);
@@ -98,11 +108,13 @@ export default {
 
   &-title {
     font-size: 12px;
+    line-height: 16px;
   }
 
   &-content {
     font-size: 14px;
-    margin-top: 2px;
+    line-height: 20px;
+    margin-top: 6px;
     font-weight: bold;
   }
 
