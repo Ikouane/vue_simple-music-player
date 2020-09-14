@@ -58,6 +58,15 @@ export default {
       $("#list").css("--scrollbar_width", "2px");
     });
   },
+  watch: {
+    _playlist(val) {
+      let top = val.length * 78 - 780; //Smooth Scroll
+      document.getElementById("list").scrollTo({
+        top,
+        behavior: "smooth",
+      });
+    },
+  },
 };
 </script>
 <style lang='scss' scoped>

@@ -19,7 +19,11 @@
         type="fa fa-ellipsis-h"
       />
     </div>
-    <div :class="'music-image ' + size" @click="playSwitchFade()">
+    <div
+      :class="'music-image ' + size"
+      @click="playSwitchFade()"
+      :title="_play.isPlaying ? '暂停' : '播放'"
+    >
       <!-- @click="setSuccess(true)" title="进入传送门"-->
       <img
         :class="'middle-image playing ' + size"
@@ -216,6 +220,30 @@ $dark_border_color: var(--dark_border_color);
   margin-bottom: 40px;
   transition: 0.3s all ease-in-out;
   cursor: pointer;
+  position: relative;
+
+  @keyframes scaleCircle {
+    from {
+      transform: scale(1);
+      opacity: 0;
+    }
+
+    to {
+      transform: scale(1.2);
+      opacity: 0.5;
+    }
+  }
+
+  // &::before {
+  //   content: "";
+  //   position: absolute;
+  //   top: 5px;
+  //   height: 250px;
+  //   width: 250px;
+  //   border-radius: 50%;
+  //   border: 1px dashed #333;
+  //   animation: scaleCircle 3s ease-in-out infinite alternate;
+  // }
 
   &.small {
     margin: auto;
@@ -267,6 +295,7 @@ $dark_border_color: var(--dark_border_color);
       -webkit-animation: music_disc 40s linear infinite;
       animation: music_disc 40s linear infinite;
     }
+
     /*css3动画的旋转*/
     @keyframes music_disc {
       0% {

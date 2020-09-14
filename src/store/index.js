@@ -5,6 +5,7 @@ import {
 export default createStore({
   state: {
     _success: false,
+    _pid: "",
     _play: {
       isPlaying: false,
       nowPlaying: 0,
@@ -89,6 +90,7 @@ export default createStore({
       state._play.isPlaying = true
       document.getElementById("music").play();
       this.commit('clearMsg');
+      this.commit('updateTitle');
       state._play.msg = "音乐已播放"
     },
     musicFadeIn() {
@@ -194,13 +196,15 @@ export default createStore({
         }
       }, 75);
 
-      // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
-      // state._play.isPlaying = true
-      this.commit('clearMsg');
+      this.commit("clearMsg");
 
-      if (hasWrong) {
+      if (hasWrong === "wrong") {
         state._play.msg = "播放出错，已为您跳过";
       }
+
+      // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
+      // state._play.isPlaying = true
+
     },
     goPlay(state, desIndex) {
 
@@ -308,9 +312,17 @@ export default createStore({
     },
     addMore(state, o_PlayList) {
       state._playlist = state._playlist.concat(o_PlayList);
+      this.commit("clearMsg");
+      state._play.msg = "已加载更多歌曲";
     },
     setSuccess(state, isSuccess) {
       state._success = isSuccess;
+    },
+    setPid(state, dPid) {
+      if (dPid) {
+        state._pid = dPid;
+        state._play.msg = `当前歌单编号为：${dPid}`;
+      }
     }
   },
   actions: {},

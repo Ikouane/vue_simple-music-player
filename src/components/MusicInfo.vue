@@ -3,7 +3,10 @@
     <p class="music-name">
       <span id="music-name">{{_playlist[_play.nowPlaying].musicName}}</span>
     </p>
-    <p class="music-author">{{_playlist[_play.nowPlaying].musicAuthor}}</p>
+    <p class="music-author">
+      {{_playlist[_play.nowPlaying].musicAuthor}}
+      <span id="aboutAuthor">{{aboutAuthor}}</span>
+    </p>
     <div class="progressbar">
       <div class="timetext">
         <span id="now">
@@ -55,6 +58,7 @@ export default {
       lrcArray: [],
       lrcFormatArray: [],
       timeArray: [],
+      aboutAuthor: "",
     };
   },
   props: {
@@ -230,7 +234,7 @@ export default {
           if (response.data.nolyric) {
             _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
           } else _this.lrc = response.data.lyric;
-          this.transToArray(response.data.lyric);
+          this.transToArray(_this.lrc); //Fix
         })
         .catch(function (error) {
           // 请求失败处理
@@ -253,6 +257,21 @@ export default {
       if (num < 10) num = "00" + num;
       else if (num < 100) num = "0" + num;
       return num;
+    },
+    getAuthor() {
+      const _this = this;
+      Axios.get(
+        "https://api.weyoung.tech/vue_simple-music-player/get.php?method=author&sid=" +
+          _this._playlist[_this._play.nowPlaying].musicId
+      )
+        .then((response) => {
+          if (response.data.status === "200") {
+            if (response.data.des == "") {
+              this.aboutAuthor = "";
+            } else this.aboutAuthor = "[作者介绍]" + response.data.des;
+          }
+        })
+        .catch((error) => console.log(error));
     },
   },
   mounted() {
@@ -369,18 +388,46 @@ export default {
       );
 
       this.getLrc();
+      this.getAuthor();
     },
 
     lrc_line() {
       console.warn("歌词变更");
       $("#music-lrc").shake(1, 20, 100, "top"); //$(this).shake(2,10,400); src:https://www.oschina.net/code/snippet_5189_6334
-      $("#music-lrc").css(
-        "--overflow_width_lrc",
-        parseInt(document.getElementById("music-lrc").offsetWidth) - 324 < 0
-          ? "0px"
-          : 324 -
-              parseInt(document.getElementById("music-lrc").offsetWidth) +
-              "px"
+
+      if (parseInt(document.getElementById("music-lrc").offsetWidth) >= 324) {
+        $("#music-lrc").css(
+          "--overflow_width_lrc",
+          324 -
+            parseInt(document.getElementById("music-lrc").offsetWidth) +
+            "px"
+        );
+        $("#music-lrc").addClass("goScroll");
+      } else {
+        $("#music-lrc").removeClass("goScroll");
+        $("#music-lrc").css("--overflow_width_lrc", "0px");
+      }
+      // $("#music-lrc").css(
+      //   "--overflow_width_lrc",
+      //   parseInt(document.getElementById("music-lrc").offsetWidth) - 324 < 0
+      //     ? "0px"
+      //     : 324 -
+      //         parseInt(document.getElementById("music-lrc").offsetWidth) +
+      //         "px"
+      // );
+    },
+    aboutAuthor() {
+      $("#aboutAuthor").css(
+        "--overflow_time_aboutAuthor",
+        parseInt(document.getElementById("aboutAuthor").offsetWidth) * 0.05 +
+          "s"
+      );
+      $("#aboutAuthor").css(
+        "--overflow_width_aboutAuthor",
+        -324 -
+          20 -
+          parseInt(document.getElementById("aboutAuthor").offsetWidth) +
+          "px"
       );
     },
   },
@@ -457,6 +504,44 @@ $dark_border_color: var(--dark_border_color);
     margin-bottom: 40px;
     font-size: var(--text_size);
     line-height: var(--title_size);
+    overflow: hidden;
+    height: 60px;
+    width: 324px;
+
+    span {
+      font-size: 12px;
+      line-height: 20px;
+      margin-left: 100%;
+
+      @keyframes gothrough_author {
+        0% {
+          //margin-left: 324px;
+          opacity: 0;
+          visibility: hidden;
+        }
+        3% {
+          visibility: visible;
+          opacity: 1;
+        }
+        70% {
+          transform: translateX(var(--overflow_width_aboutAuthor));
+          opacity: 1;
+        }
+        71% {
+          opacity: 0;
+          visibility: hidden;
+        }
+        100% {
+          opacity: 0;
+          visibility: hidden;
+        }
+      }
+
+      display: inline-block;
+      white-space: nowrap;
+      animation: gothrough_author var(--overflow_time_aboutAuthor) linear
+        infinite 3s;
+    }
 
     .dark & {
       color: var(--dark_text_color);
@@ -546,21 +631,24 @@ $dark_border_color: var(--dark_border_color);
     span {
       line-height: 20px;
 
-      @keyframes gothrough_lrc {
-        0% {
-          transform: translateX(0%);
-        }
-        50% {
-          transform: translateX(var(--overflow_width_lrc));
-        }
-        100% {
-          transform: translateX(0%);
-        }
-      }
-
       display: inline-block;
       white-space: nowrap;
-      animation: gothrough_lrc 3s ease-in-out infinite;
+      //animation: gothrough_lrc 2s ease-in-out infinite;
+
+      &.goScroll {
+        @keyframes gothrough_lrc {
+          0% {
+            transform: translateX(0%);
+          }
+          80% {
+            transform: translateX(var(--overflow_width_lrc));
+          }
+          100% {
+            transform: translateX(0%);
+          }
+        }
+        animation: gothrough_lrc 2s ease-in-out infinite;
+      }
     }
 
     .dark & {

@@ -55,6 +55,8 @@ export default {
 
   cursor: pointer;
 
+  //Feature text-shadow: 0 0 1px #ccc;
+
   &.active {
     background-color: rgba(#84a4ff, 0.1);
     box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.01) inset;
@@ -71,6 +73,7 @@ export default {
     padding: 5px;
     font-size: 14px;
     pointer-events: none;
+    line-height: 20px;
 
     & span:nth-child(1) {
       color: var(--title_color);

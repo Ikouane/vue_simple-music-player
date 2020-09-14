@@ -54,10 +54,10 @@ export default {
     };
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_success"]),
+    ...mapState(["_play", "_playlist", "_success", "_pid"]),
   },
   methods: {
-    ...mapMutations(["setStore", "setSuccess"]),
+    ...mapMutations(["setStore", "setSuccess", "setPid"]),
     // showInputSwitch() {
     //   this.setSuccess(!this._success);
     // },
@@ -113,19 +113,27 @@ export default {
       }
     });
 
+    let pid = window.location.search,
+      pidStr = "?pid=";
+    this.setPid(pid.substring(pid.indexOf(pidStr) + pidStr.length));
+
     // this.$EventBus.$on("successMsg", (msg) => {
     //   // InputForm发送来的消息
     //   this.showInput = msg;
     // });
   },
-  // watch: {
-  //   _success(val, oldVal) {
-  //     //console.log("状态改变", val, oldVal);
-  //     if (val) {
-  //       if (!oldVal) this.showInputSwitch();
-  //     } else console.log("状态改变", val, oldVal);
-  //   },
-  // },
+  watch: {
+    // _success(val, oldVal) {
+    //   //console.log("状态改变", val, oldVal);
+    //   if (val) {
+    //     if (!oldVal) this.showInputSwitch();
+    //   } else console.log("状态改变", val, oldVal);
+    // },
+    _pid(val) {
+      console.log(`歌单已变更为${val}`);
+      this.getList(val);
+    },
+  },
 };
 </script>
 <style lang="scss" scoped>
@@ -135,7 +143,7 @@ export default {
   padding: 25px;
   border-radius: 36px;
   border: 2px solid white;
-  height: 715px;
+  height: 735px; //715px
   overflow: hidden;
   position: relative;
 
