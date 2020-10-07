@@ -9,6 +9,7 @@
       :listIndex="i"
     />
   </div>
+  <div class="mask"></div>
   <!-- <ListItem title="歌曲标题" subTitle="歌曲歌手" /> -->
 </template>
 <script>
@@ -44,6 +45,30 @@ export default {
         }
       } else console.log(index);
     },
+
+    myBrowser() {
+      var userAgent = navigator.userAgent; //取得浏览器的userAgent字符串
+      var isOpera = userAgent.indexOf("Opera") > -1;
+      if (isOpera) {
+        return "Opera";
+      } //判断是否Opera浏览器
+      if (userAgent.indexOf("Firefox") > -1) {
+        return "FF";
+      } //判断是否Firefox浏览器
+      if (userAgent.indexOf("Chrome") > -1) {
+        return "Chrome";
+      }
+      if (userAgent.indexOf("Safari") > -1) {
+        return "Safari";
+      } //判断是否Safari浏览器
+      if (
+        userAgent.indexOf("compatible") > -1 &&
+        userAgent.indexOf("MSIE") > -1 &&
+        !isOpera
+      ) {
+        return "IE";
+      } //判断是否IE浏览器
+    },
   },
   mounted() {
     let timer = null;
@@ -57,6 +82,16 @@ export default {
       console.log(e);
       $("#list").css("--scrollbar_width", "2px");
     });
+
+    document.getElementsByClassName("mask")[0].style.top =
+      document.getElementsByClassName("mplayer")[0].offsetTop + 735 - 2 + "px";
+
+    //以下是调用上面的函数
+    var mb = this.myBrowser();
+    if ("Chrome" === mb) {
+      console.log("检测到Chrome, 开放所有功能");
+      document.getElementsByClassName("mask")[0].style.display = "block";
+    } else console.log("建议使用Chrome, 开放所有功能");
   },
   watch: {
     _playlist(val) {
@@ -73,12 +108,46 @@ export default {
 div {
   display: none;
 }
+
+.mask {
+  display: none;
+  position: fixed;
+  width: 356px;
+  height: 45px;
+  background: -webkit-gradient(
+    linear,
+    bottom,
+    top,
+    from(var(--player_color)),
+    to(transparent)
+  );
+  background: linear-gradient(to top, var(--player_color), transparent);
+  left: 50%;
+  transform: translate(-50%);
+  margin-left: -1px;
+  top: 90%;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  pointer-events: none;
+
+  .dark & {
+    background: -webkit-linear-gradient(
+      top,
+      transparent,
+      var(--dark_player_color)
+    );
+    background: linear-gradient(to top, var(--dark_player_color), transparent);
+  }
+}
+
 .slide-up {
   animation: slide 0.2s ease-in-out forwards;
   display: block;
 
-  overflow: auto;
-  height: 435px;
+  overflow: hidden;
+  overflow-y: scroll;
+  height: 470px;
+  //height: 435px;
   padding: 0 2px 0 0;
 }
 

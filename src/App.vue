@@ -60,26 +60,35 @@ export default {
       "setStore",
       "playSwitchFade",
       "modeSwitch",
+      "getLocal",
     ]),
   },
   created() {
     let pid = window.location.search,
       pidStr = "?pid=";
     if (pid.substring(pid.indexOf(pidStr) + pidStr.length) == "") {
-      const _this = this;
-      Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
-        .then((response) => {
-          console.log(response.data);
-          _this.setStore(response.data);
-          if (response.data._play.mode === "night")
-            document
-              .querySelector("body")
-              .setAttribute("style", "background-color:var(--dark_main_color)");
-        })
-        .catch(function (error) {
-          // 请求失败处理
-          console.log(error);
-        });
+      if (localStorage.getItem("vue_simple-music-player")) {
+        console.log("发现本地数据");
+        this.getLocal();
+      } else {
+        const _this = this;
+        Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
+          .then((response) => {
+            console.log(response.data);
+            _this.setStore(response.data);
+            if (response.data._play.mode === "night")
+              document
+                .querySelector("body")
+                .setAttribute(
+                  "style",
+                  "background-color:var(--dark_main_color)"
+                );
+          })
+          .catch(function (error) {
+            // 请求失败处理
+            console.log(error);
+          });
+      }
     } else {
       console.log("获取目标歌单");
     }

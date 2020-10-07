@@ -1,13 +1,18 @@
 <template>
   <div :class="'flexbox ' + size">
-    <Modal v-if="uploadSuccess" title="提示" :content="'上传数据成功，编号为'+ pid" aod="aod" />
+    <Modal
+      v-if="uploadSuccess"
+      title="提示"
+      :content="'上传数据成功，编号为' + pid"
+      aod="aod"
+    />
     <div class="flexbox_part">
       <Button
         v-show="size === 'small'"
         size="middle"
         title="我喜欢"
         :bindtap="switchLike"
-        @click="this.hasChange = true;"
+        @click="this.hasChange = true"
         type="fa fa-heart"
         :active="_playlist[_play.nowPlaying].isLike"
       />
@@ -29,7 +34,9 @@
         :class="'middle-image playing ' + size"
         :src="_playlist[_play.nowPlaying].musicImage"
         alt="图片加载失败"
-        :style="{webkitAnimationPlayState : (_play.isPlaying ? 'running':'paused')}"
+        :style="{
+          webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
+        }"
       />
     </div>
     <div class="flexbox_part">
@@ -84,6 +91,7 @@ export default {
       "setSuccess",
       "playSwitchFade",
       "setMsg",
+      "setLocal",
     ]),
     getMore() {
       const _this = this;
@@ -98,6 +106,8 @@ export default {
           // 请求失败处理
           console.log(error);
         });
+
+      this.setLocal();
     },
     saveList() {
       if (!this.hasChange) {

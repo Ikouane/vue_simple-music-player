@@ -1,20 +1,27 @@
 <template>
-  <div :class="'mplayer'+ (_play.mode === 'day'? '' : ' dark')">
+  <div :class="'mplayer' + (_play.mode === 'day' ? '' : ' dark')">
     <!-- <transition>
       <InputModal v-if="_success" :isShow="_success" :isWrong="isWrong" />
     </transition>-->
     <InputModal :isShow="_success" :isWrong="isWrong" />
     <!--v-if="showInput" :isShow="showInput"-->
     <Modal
-      :title="_play.msg? '通知' : '正在播放'"
-      :content="_play.msg || _playlist[_play.nowPlaying].musicName +
-        ' - ' +
-        _playlist[_play.nowPlaying].musicAuthor"
+      :title="
+        _play.msg ? '通知' : _play.isPlaying ? '正在播放' : '已同步上次播放'
+      "
+      :content="
+        _play.msg ||
+        _playlist[_play.nowPlaying].musicName +
+          ' - ' +
+          _playlist[_play.nowPlaying].musicAuthor
+      "
     />
     <AppBar />
     <MusicImage :size="_play.nowPage === 'PLAYLIST' ? 'small' : ''" />
     <!-- v-if="_play.nowPage === 'PLAYLIST'" -->
-    <PlayList :slide="_play.nowPage === 'PLAYLIST' ? 'slide-up' : 'slide-down'" />
+    <PlayList
+      :slide="_play.nowPage === 'PLAYLIST' ? 'slide-up' : 'slide-down'"
+    />
     <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
     <PlayBar v-show="_play.nowPage === 'PLAYING NOW'" />
   </div>

@@ -67,9 +67,10 @@ export default createStore({
       return result;
     },
     setStore(state, o_Play) {
-      this.commit('pause');
+      if (document.getElementById("music")) this.commit('pause');
+      else console.log("音乐未加载，无须暂停")
       // state._play = {}
-      // state._playlist = []
+      // state._playlist = [
       state._play = o_Play._play
       state._playlist = o_Play._playlist
       if (state._play.mode === "night") document.querySelector('body').setAttribute('style', 'background-color:var(--dark_main_color)')
@@ -78,6 +79,7 @@ export default createStore({
       // state._playlist = this.commit('deepClone', o_Play._playlist)
       // this.commit('clearMsg');
       // state._play.msg = "数据已更新";
+
       console.log("数据已更新");
     },
     pause(state) {
@@ -87,6 +89,9 @@ export default createStore({
       state._play.msg = "音乐已暂停"
     },
     play(state) {
+      if (state._play.playTime > 0) {
+        document.getElementById('music').currentTime = state._play.playTime
+      }
       state._play.isPlaying = true
       document.getElementById("music").play();
       this.commit('clearMsg');
@@ -207,7 +212,6 @@ export default createStore({
 
     },
     goPlay(state, desIndex) {
-
       let v = document.getElementById("music").volume;
       v = 0.8;
       let int = setInterval(() => {
@@ -323,6 +327,20 @@ export default createStore({
         state._pid = dPid;
         state._play.msg = `当前歌单编号为：${dPid}`;
       }
+    },
+    setLocal(state) {
+      localStorage.setItem('vue_simple-music-player', JSON.stringify({
+        _play: state._play,
+        _playlist: state._playlist
+      }));
+    },
+    getLocal() {
+      let local = localStorage.getItem('vue_simple-music-player');
+      if (local) {
+        let _local = JSON.parse(local);
+        _local._play.isPlaying = false
+        this.commit('setStore', _local);
+      }
     }
   },
   actions: {},
@@ -331,7 +349,7 @@ export default createStore({
       return (state._playlist[state._play.nowPlaying].musicName +
         " - " +
         state._playlist[state._play.nowPlaying].musicAuthor)
-    }
+    },
   },
   modules: {}
 })

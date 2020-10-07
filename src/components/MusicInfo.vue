@@ -1,39 +1,57 @@
 <template>
   <div class="player-middle" v-show="show">
     <p class="music-name">
-      <span id="music-name">{{_playlist[_play.nowPlaying].musicName}}</span>
+      <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
     </p>
     <p class="music-author">
-      {{_playlist[_play.nowPlaying].musicAuthor}}
-      <span id="aboutAuthor">{{aboutAuthor}}</span>
+      {{ _playlist[_play.nowPlaying].musicAuthor }}
+      <span id="aboutAuthor">{{ aboutAuthor }}</span>
     </p>
     <div class="progressbar">
       <div class="timetext">
         <span id="now">
-          {{drag? nowTime : (formatTime(parseInt(_play.playTime / 60)) +
-          ":" +
-          formatTime(parseInt(_play.playTime % 60)))}}
+          {{
+            drag
+              ? nowTime
+              : formatTime(parseInt(_play.playTime / 60)) +
+                ":" +
+                formatTime(parseInt(_play.playTime % 60))
+          }}
         </span>
-        <span id="length">{{musicLength}}</span>
+        <span id="length">{{ musicLength }}</span>
       </div>
-      <div class="timebar_out" @click="changeTime($event)" title="点击调整进度(←,→)">
+      <div
+        class="timebar_out"
+        @click="changeTime($event)"
+        title="点击调整进度(←,→)"
+      >
         <div
           class="timebar_in"
-          :style="{width: drag? nowTimeLength + 'px' :(Math.floor((_play.playTime / musicDuration) * 100) + '%'),
-            transition: (drag)? 'clear' : 'all 0.2s ease-out'}"
+          :style="{
+            width: drag
+              ? nowTimeLength + 'px'
+              : Math.floor((_play.playTime / musicDuration) * 100) + '%',
+            transition: drag ? 'clear' : 'all 0.2s ease-out',
+          }"
         >
-          <span class="bar_point" id="bar_point" @mousedown="handelMouseDrag($event)" title="拖动进度"></span>
+          <span
+            class="bar_point"
+            id="bar_point"
+            @mousedown="handelMouseDrag($event)"
+            title="拖动进度"
+          ></span>
         </div>
       </div>
     </div>
     <div class="music-lrc">
-      <span id="music-lrc">{{lrc_line}}</span>
+      <span id="music-lrc">{{ lrc_line }}</span>
     </div>
     <audio
       :src="_playlist[_play.nowPlaying].musicUrl"
-      :autoplay="_isPlaying?'autoplay':'false'"
       id="music"
+      :autoplay="_isPlaying"
     ></audio>
+    <!-- :autoplay="_isPlaying ? 'autoplay' : 'false'" -->
   </div>
 </template>
 <script>
@@ -44,21 +62,21 @@ export default {
   name: "MusicInfo",
   data() {
     return {
-      seconds: 0,
-      intPlaying: null,
-      left: 0,
-      musicLength: "...",
-      nowLength: "00:00",
-      musicDuration: 0,
-      drag: false,
-      nowTime: "00:00",
-      nowTimeLength: 0,
-      lrc: "",
-      lrc_line: "",
-      lrcArray: [],
-      lrcFormatArray: [],
-      timeArray: [],
-      aboutAuthor: "",
+      seconds: 0, //已播放时间, 默认为0
+      intPlaying: null, //播放计时器
+      left: 0, //播放条距左距离
+      musicLength: "...", //歌曲长度（格式化）
+      nowLength: "00:00", //当前播放长度
+      musicDuration: 0, //歌曲长度
+      drag: false, //是否拖动进度条
+      nowTime: "00:00", //当前播放长度(拖动进度条时)
+      nowTimeLength: 0, //当前播放长度(拖动进度条时)
+      lrc: "", //歌词
+      lrc_line: "", //当前歌词
+      lrcArray: [], //歌词数组
+      lrcFormatArray: [], //歌词数组（格式化）
+      timeArray: [], //歌词时间数组
+      aboutAuthor: "", //作者介绍
     };
   },
   props: {
@@ -76,7 +94,6 @@ export default {
       return this._play.isPlaying;
     },
   },
-  components: {},
   methods: {
     ...mapMutations([
       "next",
@@ -87,24 +104,31 @@ export default {
       "pause",
       "setStore",
     ]),
+
     formatTime(timeNum) {
+      //补0，格式化数字
       if (timeNum < 10) return "0" + timeNum;
       else return timeNum;
     },
+
     musicLengthCal(_music) {
+      //返回歌曲总时间
       return (
         this.formatTime(parseInt(_music.duration / 60)) +
         ":" +
         this.formatTime(parseInt(_music.duration % 60))
       );
     },
+
     nowLengthCal(_music) {
+      //返回当前播放时间
       return (
         this.formatTime(parseInt(_music.currentTime / 60)) +
         ":" +
         this.formatTime(parseInt(_music.currentTime % 60))
       );
     },
+
     changeTime(event) {
       //点击播放条更新进度
       const music = document.getElementById("music"),
@@ -115,8 +139,6 @@ export default {
           (event.clientX - otimebar_in.getBoundingClientRect().left) +
           "px"
       );
-      // otimebar_in.style("width", event.clientX - otimebar_in.offsetLeft + "px");
-      // this.left = event.clientX - otimebar_in.offsetLeft;
       this.goTime(
         parseInt(
           ((event.clientX - otimebar_in.getBoundingClientRect().left) /
@@ -124,13 +146,14 @@ export default {
             music.duration
         )
       ); //不能使用 offsetLeft 代替 jq.offset().left
-      this.nowLength = this.nowLengthCal(document.getElementById("music"));
+      this.nowLength = this.nowLengthCal(music);
     },
+
     handelMouseDrag(event) {
       const music = document.getElementById("music"),
         otimebar_out = document.getElementsByClassName("timebar_out")[0],
         otimebar_in = document.getElementsByClassName("timebar_in")[0];
-      let e = event || window.event;
+      let e = event || window.event; //兼容性处理
       console.log("开始拖拽");
       this.drag = true;
       console.log(e);
@@ -160,17 +183,12 @@ export default {
               ((this.left / otimebar_out.offsetWidth) * music.duration) % 60
             )
           );
-        // $("#now").text(
-        //   parseInt(((this.left / otimebar_out.offsetWidth) * music.duration) / 60) +
-        //     ":" +
-        //     parseInt(((this.left / otimebar_out.offsetWidth) * music.duration) % 60)
-        // );
-        // $(".timebar_in").css("width", this.left + "px");
-        //防止选择内容--当拖动鼠标过快时候，弹起鼠标，bar也会移动，修复bug
+        // FIXME: 防止选择内容--当拖动鼠标过快时候，弹起鼠标，bar也会移动
         window.getSelection
           ? window.getSelection().removeAllRanges()
           : document.selection.empty();
       };
+
       document.onmouseup = () => {
         document.onmousemove = null; //弹起鼠标不做任何操作
         if (this.left == null) {
@@ -186,19 +204,19 @@ export default {
         }
       };
     },
+
+    //将歌词JSON转化为数组
     transToArray(lrc) {
+      //歌词数组
       this.lrcArray = [];
+      //格式化歌词数组
       this.lrcFormatArray = [];
+      //时间数组
       this.timeArray = [];
 
       if (lrc) {
         this.lrcArray = lrc.split("\n").sort(); //先进行排序
-        //this.lrcFormatArray = [];
-        var pattern = /^[\\[]\d.{5,10}?]/;
-        /*  
-      /^[\\[].{5,10}?]/;
-      */
-        //this.timeArray = [];
+        var pattern = /^[\\[]\d.{5,10}?]/; //提取时间
         for (let index = 0; index < this.lrcArray.length; index++) {
           let timeMatch = pattern.exec(this.lrcArray[index]);
           if (timeMatch) {
@@ -208,7 +226,7 @@ export default {
             }
 
             this.lrcFormatArray[timeMatch] = this.lrcArray[index].substring(
-              length //timeMatch.toString().length - 1
+              length
             );
           } else console.warn(this.timeArray);
         }
@@ -222,6 +240,8 @@ export default {
         this.getLrc();
       }
     },
+
+    //获取歌词（byid）
     getLrc() {
       const _this = this;
       console.log(_this._playlist[_this._play.nowPlaying].musicId);
@@ -241,6 +261,8 @@ export default {
           console.log(error);
         });
     },
+
+    //获取此时歌词（bytime）
     getLrc_line(time) {
       if (time) {
         for (let index = 0; index < this.timeArray.length; index++) {
@@ -253,11 +275,13 @@ export default {
         } else return "";
       }
     },
+
     formatNumber(num) {
       if (num < 10) num = "00" + num;
       else if (num < 100) num = "0" + num;
       return num;
     },
+
     getAuthor() {
       const _this = this;
       Axios.get(
@@ -274,71 +298,71 @@ export default {
         .catch((error) => console.log(error));
     },
   },
+
   mounted() {
     //window.vue = this; //开放Vue
+    const $music = document.getElementById("music");
 
-    document.getElementById("music").addEventListener("canplay", () => {
-      this.musicLength = this.musicLengthCal(document.getElementById("music")); //音频加载完成后，获取时长
-      this.musicDuration = document.getElementById("music").duration;
+    $music.addEventListener("canplay", () => {
+      this.musicLength = this.musicLengthCal($music); //音频加载完成后，获取时长
+      this.musicDuration = $music.duration;
 
       this.getLrc();
     });
 
-    document.getElementById("music").addEventListener("pause", () => {
+    $music.addEventListener("pause", () => {
+      //监听音乐暂停
       if (this._play.isPlaying) {
-        console.log("音乐已暂停（外部）"); //无法渐出
+        console.log("音乐已暂停（外部）");
+        // FIXME: 无法渐出
         this.pause();
       } else console.log("音乐已暂停（内部）");
     });
 
-    document.getElementById("music").addEventListener("playing", () => {
+    $music.addEventListener("playing", () => {
+      //监听音乐播放
       if (!this._play.isPlaying) {
         console.log("音乐已播放（外部）");
         this.musicFadeIn();
       } else console.log("音乐已播放（内部）");
     });
 
-    document.getElementById("music").addEventListener("ended", () => {
+    $music.addEventListener("ended", () => {
       this.next(); //播放完成后，自动下一首
     });
 
     this.intPlaying = setInterval(() => {
       if (this._isPlaying) {
-        this.nowLength = this.nowLengthCal(document.getElementById("music"));
-        this.setTime(parseInt(document.getElementById("music").currentTime));
+        this.nowLength = this.nowLengthCal($music);
+        this.setTime(parseInt($music.currentTime));
         //console.log(document.getElementById("music").currentTime);
       }
     }, 1000);
 
-    document.getElementById("music").addEventListener("error", () => {
+    $music.addEventListener("error", () => {
       console.log("无法播放，已为您跳过。");
       this.next("wrong");
     });
 
-    document.getElementById("music").addEventListener("timeupdate", () => {
-      //防抖准备
-      //console.log(e);
+    $music.addEventListener("timeupdate", () => {
+      //TODO:防抖准备
 
       this.lrc_line = this.getLrc_line(
         `[${
-          this.formatTime(
-            parseInt(document.getElementById("music").currentTime / 60)
-          ) +
+          this.formatTime(parseInt($music.currentTime / 60)) +
           ":" +
-          this.formatTime(
-            parseInt(document.getElementById("music").currentTime % 60)
-          ) +
+          this.formatTime(parseInt($music.currentTime % 60)) +
           "." +
           this.formatNumber(
             parseFloat(
-              document.getElementById("music").currentTime -
-                parseInt(document.getElementById("music").currentTime)
+              $music.currentTime - parseInt($music.currentTime)
             ).toFixed(3) * 1000
           )
         }]`
       );
     });
 
+    // 切换歌曲动画：
     $.fn.shake = function (
       intShakes /*Amount of shakes*/,
       intDistance /*Shake distance*/,
@@ -373,7 +397,7 @@ export default {
   },
   watch: {
     _nowPlaying(val, oldVal) {
-      //普通的watch监听
+      //监听歌曲改变
       console.log("nowPlaying: " + val, oldVal);
       $("#music-name").shake(1, 40, 100, "top");
       $(".music-author").shake(1, 30, 100, "top");
@@ -392,10 +416,13 @@ export default {
     },
 
     lrc_line() {
+      //监听歌词改变
       console.warn("歌词变更");
       $("#music-lrc").shake(1, 20, 100, "top"); //$(this).shake(2,10,400); src:https://www.oschina.net/code/snippet_5189_6334
 
+      // 判断歌词是否超长
       if (parseInt(document.getElementById("music-lrc").offsetWidth) >= 324) {
+        // 超长则滚动
         $("#music-lrc").css(
           "--overflow_width_lrc",
           324 -
@@ -407,16 +434,10 @@ export default {
         $("#music-lrc").removeClass("goScroll");
         $("#music-lrc").css("--overflow_width_lrc", "0px");
       }
-      // $("#music-lrc").css(
-      //   "--overflow_width_lrc",
-      //   parseInt(document.getElementById("music-lrc").offsetWidth) - 324 < 0
-      //     ? "0px"
-      //     : 324 -
-      //         parseInt(document.getElementById("music-lrc").offsetWidth) +
-      //         "px"
-      // );
     },
+
     aboutAuthor() {
+      //计算介绍滚动距离
       $("#aboutAuthor").css(
         "--overflow_time_aboutAuthor",
         parseInt(document.getElementById("aboutAuthor").offsetWidth) * 0.05 +
