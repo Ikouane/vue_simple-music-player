@@ -6,6 +6,9 @@ export default createStore({
   state: {
     _success: false,
     _pid: "",
+    _rid: "",
+    _uuid: "",
+    _ws: null,
     _play: {
       isPlaying: false,
       nowPlaying: 0,
@@ -98,8 +101,13 @@ export default createStore({
       this.commit('updateTitle');
       state._play.msg = "音乐已播放"
     },
-    musicFadeIn() {
+    musicFadeIn(state, needSync = true) {
       this.commit('play');
+      if (needSync && state._ws) state._ws.send(JSON.stringify({
+        type: 'cn',
+        uuid: state._uuid,
+        action: 'musicFadeIn'
+      }));
       //document.getElementById("music").volume = 0;
       let v = document.getElementById("music").volume;
       let int = setInterval(() => {
@@ -112,7 +120,12 @@ export default createStore({
         }
       }, 100);
     },
-    musicFadeOut() {
+    musicFadeOut(state, needSync = true) {
+      if (needSync && state._ws) state._ws.send(JSON.stringify({
+        type: 'cn',
+        uuid: state._uuid,
+        action: 'musicFadeOut'
+      }));
       //document.getElementById("music").volume = 1;
       let v = document.getElementById("music").volume;
       v = 0.8;
@@ -144,7 +157,12 @@ export default createStore({
     updateTitle(state) {
       document.title = state._playlist[state._play.nowPlaying].musicName + " - " + state._playlist[state._play.nowPlaying].musicAuthor;
     },
-    prev(state) {
+    prev(state, needSync = true) {
+      if (needSync && state._ws) state._ws.send(JSON.stringify({
+        type: 'cn',
+        uuid: state._uuid,
+        action: 'prev'
+      }));
       let v = document.getElementById("music").volume;
       let int = setInterval(() => {
         console.log("渐出");
@@ -174,7 +192,18 @@ export default createStore({
       // state._play.isPlaying = true
       this.commit('clearMsg');
     },
-    next(state, hasWrong) {
+    next(state, hasWrong, needSync = true) {
+      if (typeof hasWrong == 'object' && hasWrong.length === 2) {
+        hasWrong = hasWrong[0]
+        needSync = hasWrong[1]
+      }
+
+      if (needSync && state._ws) state._ws.send(JSON.stringify({
+        type: 'cn',
+        uuid: state._uuid,
+        action: 'next',
+        hasWrong
+      }));
       let v = document.getElementById("music").volume;
       v = 0.8;
       let int = setInterval(() => {
@@ -211,7 +240,19 @@ export default createStore({
       // state._play.isPlaying = true
 
     },
-    goPlay(state, desIndex) {
+    goPlay(state, desIndex, needSync = true) {
+      if (typeof desIndex == 'object' && desIndex.length === 2) {
+        desIndex = desIndex[0]
+        needSync = desIndex[1]
+      }
+
+      if (needSync && state._ws) state._ws.send(JSON.stringify({
+        type: 'cn',
+        uuid: state._uuid,
+        action: 'goPlay',
+        desIndex
+      }));
+
       let v = document.getElementById("music").volume;
       v = 0.8;
       let int = setInterval(() => {
@@ -244,7 +285,18 @@ export default createStore({
       // state._play.isPlaying = true
       this.commit('clearMsg');
     },
-    goTime(state, desTime) {
+    goTime(state, desTime, needSync = true) {
+      if (typeof desTime == 'object' && desTime.length === 2) {
+        desTime = desTime[0]
+        needSync = desTime[1]
+      }
+
+      if (needSync && state._ws) state._ws.send(JSON.stringify({
+        type: 'cn',
+        uuid: state._uuid,
+        action: 'goTime',
+        desTime
+      }));
 
       if (desTime < 0) {
         desTime = 0;
@@ -275,7 +327,18 @@ export default createStore({
         state._play.nowPage = "PLAYLIST"
       else state._play.nowPage = "PLAYING NOW"
     },
-    modeSwitch(state, target) {
+    modeSwitch(state, target, needSync = true) {
+      if(typeof target == 'object' && target.length === 2) {
+        target = target[0]
+        needSync = target[1]
+      }
+      if (needSync) state._ws.send(JSON.stringify({
+        type: 'cn',
+        uuid: state._uuid,
+        action: 'modeSwitch',
+        target
+      }));
+
       if (target === "night" || target === "day") {
         state._play.mode = target
         if (state._play.mode === "day") {
@@ -297,7 +360,12 @@ export default createStore({
         }
       }
     },
-    switchLike(state) {
+    switchLike(state, needSync = true) {
+      if (needSync) state._ws.send(JSON.stringify({
+        type: 'cn',
+        uuid: state._uuid,
+        action: 'switchLike'
+      }));
       if (state._playlist[state._play.nowPlaying].isLike) {
         console.log("取消我喜欢")
         state._play.msg = "已移出我喜欢"
@@ -341,9 +409,96 @@ export default createStore({
         _local._play.isPlaying = false
         this.commit('setStore', _local);
       }
+    },
+    setRid(state, dRid) {
+      if (dRid) {
+        state._rid = dRid;
+        state._play.msg = `您已进入${dRid}房间`
+      }
     }
   },
-  actions: {},
+  actions: {
+    playAsyc({commit, rootState}) {
+      console.log("开始进度同步（一起听）")
+        console.log("连接服务器...")
+        var ws = new WebSocket('wss://api.weyoung.tech:23333/');
+        rootState._ws = ws;
+        ws.onopen = () => {
+          console.log('已连接至服务器.')
+          ws.send(JSON.stringify({
+            user: 'ikouane',
+            rid: rootState._rid
+          }));
+        }
+        ws.onmessage = evt => {
+          console.log(`收到服务器消息：${evt.data}`)
+          const res = JSON.parse(evt.data);
+          switch (res.type) {
+            case 's1':
+              rootState._uuid = res.uuid;
+              ws.send(JSON.stringify({
+                type:"c2",
+                uuid: rootState._uuid,
+                user: "ikouane",
+                rid: rootState._rid
+              }))
+              break;
+            case 's2':
+              if (res.firstMan === "true") {
+                console.log('发送播放数据.')
+                ws.send(JSON.stringify({
+                  type:"c3",
+                  uuid: rootState._uuid,
+                  play: rootState._play,
+                  playlist: rootState._playlist,
+                  method: 'post'
+                }))
+              } else {
+                console.log("获取播放数据.")
+                ws.send(JSON.stringify({
+                  type:"c3",
+                  uuid: rootState._uuid,
+                  method: 'get'
+                }))
+              }
+            break;
+            case 'sMsg':  // 系统消息
+            console.log(`[系统消息]: ${res.msg}`)
+              break;
+            case 'mMsg':  // 我发出的消息
+            console.log(`[用户消息]: ${res.msg}`)
+              break;
+            case 'uMsg':  // 用户消息
+              console.log(`[用户消息]: ${res.msg}`)
+              break;
+            case 'roomPlaySyncPush':
+              if (res.action === "setStore") {
+                commit('setStore', res.data);
+              }else if (res.action === "next") {
+                commit('next', [res.hasWrong, false])
+              }else if (res.action === "modeSwitch") {
+                commit('modeSwitch', [res.target, false])
+              }else if (res.action === 'goTime') {
+                commit('goTime', [res.desTime, false])
+              }else if (res.action === 'goPlay') {
+                commit('goPlay', [res.desIndex, false])
+              }
+              else commit(res.action, false);
+              console.log("收到同步命令.")
+              break;
+            case 'roomPlaySyncMsg':
+              console.log(`收到同步结果：${res.msg}`)
+              break;
+            default:
+              break;
+          }
+        }
+  
+        ws.onclose = () => {
+          console.log("与服务器断开连接.")
+        }
+    }
+  },
   getters: {
     getContent(state) {
       return (state._playlist[state._play.nowPlaying].musicName +

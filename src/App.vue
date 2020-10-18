@@ -10,7 +10,7 @@
 // import HelloWorld from "./components/HelloWorld.vue";
 import Main from "./components/Main";
 import "@/assets/index.css";
-import { mapMutations } from "vuex";
+import { mapActions, mapMutations } from "vuex";
 import Axios from "axios";
 
 export default {
@@ -61,12 +61,15 @@ export default {
       "playSwitchFade",
       "modeSwitch",
       "getLocal",
+      "setRid",
     ]),
+    ...mapActions(["playAsyc"]),
   },
   created() {
-    let pid = window.location.search,
-      pidStr = "?pid=";
-    if (pid.substring(pid.indexOf(pidStr) + pidStr.length) == "") {
+    let params = window.location.search,
+      pidStr = "pid=",
+      ridStr = "rid=";
+    if (params.substring(params.indexOf(pidStr) + pidStr.length).length != 4) {
       if (localStorage.getItem("vue_simple-music-player")) {
         console.log("发现本地数据");
         this.getLocal();
@@ -83,6 +86,22 @@ export default {
                   "style",
                   "background-color:var(--dark_main_color)"
                 );
+
+            const pid = params.substring(
+              params.indexOf(pidStr) + pidStr.length
+            );
+            const rid = params.substring(
+              params.indexOf(ridStr) + ridStr.length
+            );
+            if (pid.length != 4) {
+              console.warn("歌单编号格式错误");
+            } else this.setPid(pid);
+            if (rid.length != 4) {
+              console.warn("房间号码格式错误");
+            } else {
+              this.setRid(rid); //alert(`欢迎进入${rid}房间!`);
+              this.playAsyc();
+            }
           })
           .catch(function (error) {
             // 请求失败处理

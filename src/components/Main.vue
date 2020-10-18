@@ -32,7 +32,7 @@ import InfoBlock from "./MusicInfo";
 import PlayBar from "./PlayBar";
 import PlayList from "./PlayList";
 import MusicImage from "./MusicImage";
-import { mapMutations, mapState } from "vuex";
+import { mapActions, mapMutations, mapState } from "vuex";
 import Modal from "./Modal";
 import InputModal from "./InputForm";
 import Axios from "axios";
@@ -64,7 +64,8 @@ export default {
     ...mapState(["_play", "_playlist", "_success", "_pid"]),
   },
   methods: {
-    ...mapMutations(["setStore", "setSuccess", "setPid"]),
+    ...mapMutations(["setStore", "setSuccess", "setPid", "setRid"]),
+    ...mapActions(["playAsyc"]),
     // showInputSwitch() {
     //   this.setSuccess(!this._success);
     // },
@@ -120,9 +121,20 @@ export default {
       }
     });
 
-    let pid = window.location.search,
-      pidStr = "?pid=";
-    this.setPid(pid.substring(pid.indexOf(pidStr) + pidStr.length));
+    // let params = window.location.search,
+    //   pidStr = "pid=",
+    //   ridStr = "rid=";
+    // const pid = params.substring(params.indexOf(pidStr) + pidStr.length);
+    // const rid = params.substring(params.indexOf(ridStr) + ridStr.length);
+    // if (pid.length != 4) {
+    //   console.warn("歌单编号格式错误");
+    // } else this.setPid(pid);
+    // if (rid.length != 4) {
+    //   console.warn("房间号码格式错误");
+    // } else {
+    //   this.setRid(rid); //alert(`欢迎进入${rid}房间!`);
+    //   this.playAsyc();
+    // }
 
     // this.$EventBus.$on("successMsg", (msg) => {
     //   // InputForm发送来的消息
