@@ -473,6 +473,10 @@ $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
 
 .player-middle {
+  @media (max-width: 768px) {
+    margin-bottom: 0.07rem;
+  }
+
   display: flex;
   flex-direction: column;
   text-align: center;
@@ -521,6 +525,10 @@ $dark_border_color: var(--dark_border_color);
   }
 
   .music-author {
+    @media (max-width: 768px) {
+      margin-bottom: 0.02rem;
+    }
+
     color: var(--text_color);
     margin-bottom: 40px;
     font-size: var(--text_size);
@@ -620,6 +628,7 @@ $dark_border_color: var(--dark_border_color);
       @keyframes shine {
       }
 
+      position: absolute;
       width: 10px;
       height: 10px;
       line-height: 10px;
@@ -641,6 +650,10 @@ $dark_border_color: var(--dark_border_color);
   }
 
   .music-lrc {
+    @media (max-width: 768px) {
+      margin-top: 0.02rem;
+    }
+
     margin-top: 16px;
     font-size: 14px;
     line-height: 14px;

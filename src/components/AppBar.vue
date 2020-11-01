@@ -1,8 +1,26 @@
 <template>
   <div class="appbar">
-    <Button size="middle" title="切换主题" :bindtap="mode_switch" type="fa fa-paint-brush" />
-    <div class="title" title="正在播放">{{_play.nowPage}}</div>
-    <Button size="middle" title="播放列表" :bindtap="list_switch" type="fa fa-bars" />
+    <Button
+      size="middle"
+      title="切换主题"
+      :bindtap="mode_switch"
+      type="fa fa-paint-brush"
+    />
+    <div class="title" title="正在播放" @click="if (_rid) $emit('share-room');">
+      {{
+        _rid === ""
+          ? _play.nowPage
+          : _play.nowPage === "PLAYING NOW"
+          ? "PLAYING TOGETHER"
+          : "PLAYLIST"
+      }}
+    </div>
+    <Button
+      size="middle"
+      title="播放列表"
+      :bindtap="list_switch"
+      type="fa fa-bars"
+    />
   </div>
 </template>
 <script>
@@ -15,7 +33,7 @@ export default {
     Button,
   },
   computed: {
-    ...mapState(["_play"]),
+    ...mapState(["_play", "_rid"]),
   },
   methods: {
     ...mapMutations({ list_switch: "listSwitch", mode_switch: "modeSwitch" }),
@@ -53,6 +71,8 @@ $dark_border_color: var(--dark_border_color);
     font-size: $time_size;
     font-weight: bold;
     color: $text_color;
+    cursor: pointer;
+    user-select: none;
   }
 }
 </style>

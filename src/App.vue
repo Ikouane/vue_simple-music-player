@@ -133,6 +133,27 @@ export default {
       .addListener(listeners.light);
   },
 };
+
+window.onload = () => {
+  if (window.innerWidth < 768) {
+    const height = window.innerHeight + "px";
+    document.querySelector("html").style.fontSize = height;
+    document.getElementById("app").style.width =
+      document.documentElement.clientWidth + "px";
+    let timer = null;
+    window.addEventListener("resize", () => {
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        const height = window.innerHeight + "px";
+        document.querySelector("html").style.fontSize = height;
+        document.getElementById("app").style.width =
+          document.documentElement.clientWidth + "px";
+        timer = null;
+        console.log("窗口大小调整");
+      }, 100);
+    });
+  }
+};
 </script>
 <style lang="scss">
 $title_color: var(--title_color);
@@ -153,13 +174,16 @@ $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
 
 // #app {
-//   // font-family: Avenir, Helvetica, Arial, sans-serif;
-//   // -webkit-font-smoothing: antialiased;
-//   // -moz-osx-font-smoothing: grayscale;
-//   // text-align: center;
-//   // color: #2c3e50;
-//   // margin-top: 60px;
+//   font-family: Avenir, Helvetica, Arial, sans-serif;
+//   -webkit-font-smoothing: antialiased;
+//   -moz-osx-font-smoothing: grayscale;
 // }
+
+@media (max-width: 768px) {
+  #app {
+    height: 1rem;
+  }
+}
 
 .helper {
   position: fixed;

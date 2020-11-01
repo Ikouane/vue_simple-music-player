@@ -76,11 +76,13 @@ export default {
     document.getElementById("list").addEventListener("scroll", (e) => {
       if (timer) return;
       timer = setTimeout(() => {
-        $("#list").css("--scrollbar_width", "0px");
+        $("#list").css("--scrollbar_color_light", "transparent");
+        $("#list").css("--scrollbar_color_dark", "transparent");
         timer = null;
       }, 1500);
       console.log(e);
-      $("#list").css("--scrollbar_width", "2px");
+      $("#list").css("--scrollbar_color_light", "#bfbfbf");
+      $("#list").css("--scrollbar_color_dark", " #333");
     });
 
     document.getElementsByClassName("mask")[0].style.top =
@@ -90,7 +92,7 @@ export default {
     var mb = this.myBrowser();
     if ("Chrome" === mb) {
       console.log("检测到Chrome, 开放所有功能");
-      document.getElementsByClassName("mask")[0].style.display = "block";
+      //document.getElementsByClassName("mask")[0].style.display = "block";
     } else console.log("建议使用Chrome, 开放所有功能");
   },
   watch: {
@@ -105,6 +107,8 @@ export default {
 };
 </script>
 <style lang='scss' scoped>
+$dark_player_color: var(--dark_player_color);
+$player_color: var(--player_color);
 div {
   display: none;
 }
@@ -141,6 +145,26 @@ div {
 }
 
 .slide-up {
+  @media (max-width: 768px) {
+    height: calc(1rem - 320px);
+  }
+
+  // background: linear-gradient(
+  //   rgba(#e9f1fc, 0.9) 0%,
+  //   rgba(0, 0, 0, 0) 5%,
+  //   rgba(0, 0, 0, 0) 95%,
+  //   rgba(#e9f1fc, 0.9) 100%
+  // );
+
+  // .dark & {
+  //   background: linear-gradient(
+  //     rgba(#26282b, 1) 0%,
+  //     rgba(0, 0, 0, 0) 5%,
+  //     rgba(0, 0, 0, 0) 95%,
+  //     rgba(black, 1) 100%
+  //   );
+  //}
+
   animation: slide 0.2s ease-in-out forwards;
   display: block;
 
@@ -178,7 +202,7 @@ div {
 
 /*修改滚动条样式*/
 ::-webkit-scrollbar {
-  width: var(--scrollbar_width); //2px;
+  width: 2px;
 }
 
 ::-webkit-scrollbar-track {
@@ -187,11 +211,11 @@ div {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #bfbfbf;
+  background-color: var(--scrollbar_color_light, "#bfbfbf");
   border-radius: 10px;
 
   .dark & {
-    background: #333;
+    background-color: var(--scrollbar_color_dark, "transparent");
   }
 }
 

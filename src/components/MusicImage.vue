@@ -51,9 +51,10 @@
         v-show="size === 'small'"
         size="middle"
         title="从云端还原数据"
-        @click="setSuccess(true)"
+        @click="setMsg('还原功能修复中')"
         type="fas fa-cloud-download-alt"
       />
+      <!-- FIXME: @click="setSuccess(true)" -->
     </div>
   </div>
 </template>
@@ -222,6 +223,12 @@ $dark_border_color: var(--dark_border_color);
 }
 
 .music-image {
+  @media (max-width: 768px) {
+    width: 0.3rem;
+    height: 0.3rem;
+    margin-bottom: 0.05rem;
+  }
+
   margin: auto;
   width: 250px;
   height: 250px;
@@ -274,6 +281,12 @@ $dark_border_color: var(--dark_border_color);
   }
 
   .middle-image {
+    @media (max-width: 768px) {
+      width: 0.3rem;
+      height: 0.3rem;
+    }
+
+    position: absolute;
     width: 250px;
     height: 250px;
     object-fit: cover;

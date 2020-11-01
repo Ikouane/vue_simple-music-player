@@ -35,5 +35,5 @@ body {
     align-items: center;
     justify-content: center;
     transition: all 1s ease;
-    height: 100vh;
+    /* height: 100vh; */
 }

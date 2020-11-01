@@ -3,7 +3,17 @@
     <!-- <transition>
       <InputModal v-if="_success" :isShow="_success" :isWrong="isWrong" />
     </transition>-->
-    <InputModal :isShow="_success" :isWrong="isWrong" />
+    <transition name="MsgBox">
+      <MessageBox
+        v-if="boxShow"
+        title="提示"
+        content="欢迎使用 一起听"
+        :boxShow="boxShow"
+        :qrText="urlText"
+        @share-room="switchBoxShow()"
+      />
+    </transition>
+    <InputModal v-if="false" :isShow="_success" :isWrong="isWrong" />
     <!--v-if="showInput" :isShow="showInput"-->
     <Modal
       :title="
@@ -16,7 +26,7 @@
           _playlist[_play.nowPlaying].musicAuthor
       "
     />
-    <AppBar />
+    <AppBar @share-room="switchBoxShow()" />
     <MusicImage :size="_play.nowPage === 'PLAYLIST' ? 'small' : ''" />
     <!-- v-if="_play.nowPage === 'PLAYLIST'" -->
     <PlayList
@@ -35,6 +45,7 @@ import MusicImage from "./MusicImage";
 import { mapActions, mapMutations, mapState } from "vuex";
 import Modal from "./Modal";
 import InputModal from "./InputForm";
+import MessageBox from "./MessageBox";
 import Axios from "axios";
 
 export default {
@@ -53,15 +64,18 @@ export default {
     MusicImage,
     Modal,
     InputModal,
+    MessageBox,
   },
   data() {
     return {
       showInput: false,
       isWrong: false,
+      urlText: "",
+      boxShow: false,
     };
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_success", "_pid"]),
+    ...mapState(["_play", "_playlist", "_success", "_pid", "_rid"]),
   },
   methods: {
     ...mapMutations(["setStore", "setSuccess", "setPid", "setRid"]),
@@ -69,6 +83,10 @@ export default {
     // showInputSwitch() {
     //   this.setSuccess(!this._success);
     // },
+    switchBoxShow() {
+      console.log("分享房间");
+      this.boxShow = !this.boxShow;
+    },
     saveList() {
       const _this = this;
       let data = new FormData();
@@ -152,6 +170,10 @@ export default {
       console.log(`歌单已变更为${val}`);
       this.getList(val);
     },
+    _rid(val) {
+      console.log(`房间已变更为${val}`);
+      this.urlText = "https://music.weyoung.tech/?rid=" + val;
+    },
   },
 };
 </script>
@@ -169,6 +191,33 @@ export default {
   &.dark {
     background-color: var(--dark_player_color);
     border: 2px solid black;
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    height: 1rem;
+    box-sizing: border-box;
+  }
+
+  @keyframes fade {
+    0% {
+      opacity: 1;
+      transform-origin: 0% 0%;
+      transform: scale(1) translate(-50%, -50%);
+    }
+
+    100% {
+      opacity: 0;
+      transform-origin: 0% 0%;
+      transform: scale(1.2) translate(-50%, -50%);
+    }
+  }
+  .MsgBox-enter-active {
+    animation: 0.3s fade reverse;
+  }
+
+  .MsgBox-leave-active {
+    animation: 0.3s fade;
   }
 }
 </style>

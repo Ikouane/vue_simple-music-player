@@ -1,5 +1,9 @@
 <template>
-  <div :class="'player-button ' + size + (active ?' active': '')" :title="title" @click="bindtap">
+  <div
+    :class="'player-button ' + size + (active ? ' active' : '')"
+    :title="title"
+    @click="bindtap"
+  >
     <i :class="type" aria-hidden="true"></i>
   </div>
 </template>
@@ -52,6 +56,8 @@ $dark_border_color: var(--dark_border_color);
   align-items: center;
   text-align: center;
   transition: all 0.3s ease;
+  outline: none;
+  font-size: 16px;
 
   .dark & {
     border: 2px solid $dark_border_color;

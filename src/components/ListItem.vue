@@ -1,8 +1,8 @@
 <template>
   <div :class="'list-card' + (active ? ' active' : '')" :data-index="listIndex">
     <div class="music-info">
-      <span>{{title}}</span>
-      <span>{{subTitle}}</span>
+      <span>{{ title }}</span>
+      <span>{{ subTitle }}</span>
     </div>
     <Button
       size="small"
@@ -13,7 +13,14 @@
       :data-index="listIndex"
     />
     <!--  :bindtap="pause" :bindtap="play" 事件已代理-->
-    <Button size="small" title="播放" v-else active type="fa fa-play" :data-index="listIndex" />
+    <Button
+      size="small"
+      title="播放"
+      v-else
+      active
+      type="fa fa-play"
+      :data-index="listIndex"
+    />
   </div>
 </template>
 <script>
@@ -43,6 +50,10 @@ export default {
 </script>
 <style lang='scss' scoped>
 .list-card {
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+
   display: flex;
   width: 356px; //100%
   padding: 10px;

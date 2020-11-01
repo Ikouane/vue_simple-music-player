@@ -332,7 +332,7 @@ export default createStore({
         target = target[0]
         needSync = target[1]
       }
-      if (needSync) state._ws.send(JSON.stringify({
+      if (needSync && state._ws) state._ws.send(JSON.stringify({
         type: 'cn',
         uuid: state._uuid,
         action: 'modeSwitch',
@@ -361,7 +361,7 @@ export default createStore({
       }
     },
     switchLike(state, needSync = true) {
-      if (needSync) state._ws.send(JSON.stringify({
+      if (needSync && state._ws) state._ws.send(JSON.stringify({
         type: 'cn',
         uuid: state._uuid,
         action: 'switchLike'
@@ -464,6 +464,7 @@ export default createStore({
             break;
             case 'sMsg':  // 系统消息
             console.log(`[系统消息]: ${res.msg}`)
+            commit('setMsg', res.msg)
               break;
             case 'mMsg':  // 我发出的消息
             console.log(`[用户消息]: ${res.msg}`)
@@ -476,12 +477,18 @@ export default createStore({
                 commit('setStore', res.data);
               }else if (res.action === "next") {
                 commit('next', [res.hasWrong, false])
+                commit('setMsg', `收到同步命令：下一首`)
               }else if (res.action === "modeSwitch") {
                 commit('modeSwitch', [res.target, false])
+                commit('setMsg', `收到同步命令：模式切换`)
               }else if (res.action === 'goTime') {
                 commit('goTime', [res.desTime, false])
+                commit('setMsg', `收到同步命令：进度调整`)
               }else if (res.action === 'goPlay') {
                 commit('goPlay', [res.desIndex, false])
+                commit('setMsg', `收到同步命令：歌曲切换`)
+              }else if (res.action === "prev") {
+                commit('setMsg', `收到同步命令：上一首`)
               }
               else commit(res.action, false);
               console.log("收到同步命令.")
