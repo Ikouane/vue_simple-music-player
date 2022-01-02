@@ -6,6 +6,7 @@
       :title="item.musicName"
       :subTitle="item.musicAuthor"
       :active="i === _play.nowPlaying"
+      :skip="item.skip || false"
       :listIndex="i"
     />
   </div>
@@ -36,14 +37,19 @@ export default {
     ...mapMutations(["playSwitch", "goPlay"]),
     handelClick(e) {
       let index = parseInt(e.target.getAttribute("data-index"));
-      if (!Number.isNaN(index)) {
-        if (this._play.nowPlaying === index) {
-          //当点击的是当前的音乐时切换播放状态
-          this.playSwitch();
-        } else {
-          this.goPlay(index);
-        }
-      } else console.log(index);
+      if (this._playlist[index].skip) {
+        e.preventDefault();
+        console.log("无法播放");
+      } else {
+        if (!Number.isNaN(index)) {
+          if (this._play.nowPlaying === index) {
+            //当点击的是当前的音乐时切换播放状态
+            this.playSwitch();
+          } else {
+            this.goPlay(index);
+          }
+        } else console.log(index);
+      }
     },
 
     myBrowser() {

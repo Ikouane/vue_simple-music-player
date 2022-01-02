@@ -1,6 +1,19 @@
+<!--
+ * @Author: ikouane
+ * @Date: 2020-10-18 22:23:21
+ * @LastEditTime: 2022-01-01 22:04:27
+ * @LastEditors: ikouane
+ * @Description: 
+ * @version: 
+-->
 <template>
   <div class="player-bottom">
-    <Button size="large" title="上一首(↑)" type="fa fa-backward" :bindtap="prev" />
+    <Button
+      size="large"
+      title="上一首(↑)"
+      type="fa fa-backward"
+      :bindtap="prev"
+    />
     <Button
       size="large"
       title="暂停(空格)"
@@ -19,7 +32,12 @@
       :bindtap="musicFadeIn"
       id="playButton"
     />
-    <Button size="large" title="下一首(↓)" type="fa fa-forward" :bindtap="next" />
+    <Button
+      size="large"
+      title="下一首(↓)"
+      type="fa fa-forward"
+      :bindtap="next"
+    />
   </div>
 </template>
 <script>

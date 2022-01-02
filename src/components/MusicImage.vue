@@ -38,6 +38,7 @@
           webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
         }"
       />
+      <!-- <canvas id="wrap" height="275" width="275"></canvas> -->
     </div>
     <div class="flexbox_part">
       <Button
@@ -348,6 +349,10 @@ $dark_border_color: var(--dark_border_color);
         transform: rotate(360deg);
       }
     }
+  }
+
+  canvas#wrap {
+    position: absolute;
   }
 }
 </style>

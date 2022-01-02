@@ -1,26 +1,46 @@
+<!--
+ * @Author: ikouane
+ * @Date: 2020-10-18 22:23:21
+ * @LastEditTime: 2022-01-02 20:35:58
+ * @LastEditors: ikouane
+ * @Description: 
+ * @version: 
+-->
 <template>
-  <div :class="'list-card' + (active ? ' active' : '')" :data-index="listIndex">
+  <div class="list-card" :class="{ active, skip }" :data-index="listIndex">
     <div class="music-info">
       <span>{{ title }}</span>
       <span>{{ subTitle }}</span>
     </div>
     <Button
       size="small"
-      title="暂停"
-      v-if="_play.isPlaying && _play.nowPlaying == listIndex"
+      title="移出播放列表"
+      v-if="skip"
       active
-      type="fa fa-pause"
+      type="fas fa-times"
       :data-index="listIndex"
     />
-    <!--  :bindtap="pause" :bindtap="play" 事件已代理-->
-    <Button
-      size="small"
-      title="播放"
-      v-else
-      active
-      type="fa fa-play"
-      :data-index="listIndex"
-    />
+    <!-- FIXME: 事件代理重写 -->
+    <!-- :bindtap="removeMusic(listIndex)" -->
+    <div v-else>
+      <Button
+        size="small"
+        title="暂停"
+        v-if="_play.isPlaying && _play.nowPlaying == listIndex"
+        active
+        type="fa fa-pause"
+        :data-index="listIndex"
+      />
+      <!--  :bindtap="pause" :bindtap="play" 事件已代理-->
+      <Button
+        size="small"
+        title="播放"
+        v-else
+        active
+        type="fa fa-play"
+        :data-index="listIndex"
+      />
+    </div>
   </div>
 </template>
 <script>
@@ -38,13 +58,17 @@ export default {
       type: Boolean,
       default: false,
     },
+    skip: {
+      type: Boolean,
+      default: false,
+    },
     listIndex: Number,
   },
   computed: {
     ...mapState(["_play", "_playlist"]),
   },
   methods: {
-    ...mapMutations(["play", "pause"]), //B,使用时间代理（冒泡）由父元素处理
+    ...mapMutations(["play", "pause", "removeMusic"]), //B,使用时间代理（冒泡）由父元素处理
   },
 };
 </script>
@@ -75,6 +99,14 @@ export default {
 
     .dark & {
       background-color: rgba(0, 0, 0, 0.2);
+    }
+  }
+
+  &.skip {
+    cursor: not-allowed;
+    filter: grayscale(1);
+
+    .dark & {
     }
   }
 

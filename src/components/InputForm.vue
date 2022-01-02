@@ -1,6 +1,6 @@
 <template>
   <div :class="'inputbox ' + (isShow ? 'inputbox-show' : 'inputbox-hide')">
-    <p>{{(!isWrong) ? "请输入编号" : "未找到数据，请检查编号"}}</p>
+    <p>{{ !isWrong ? "请输入编号" : "未找到数据，请检查编号" }}</p>
     <input
       v-for="(item, i) in 4"
       v-bind:key="i"

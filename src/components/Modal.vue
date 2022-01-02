@@ -1,13 +1,19 @@
 <template>
   <div
-    :class="'modal ' + (isShow ? 'modal-show' : 'modal-hide') + (_play.mode === 'night' ? ' dark': '')"
+    :class="
+      'modal ' +
+      (isShow ? 'modal-show' : 'modal-hide') +
+      (_play.mode === 'night' ? ' dark' : '')
+    "
     @click="handleClose"
   >
-    <label class="modal-title">{{title}}</label>
-    <div class="modal-content">{{content}}</div>
+    <label class="modal-title">{{ title }}</label>
+    <div class="modal-content">{{ content }}</div>
     <div class="modal-button" v-if="okmsg && cancelmsg">
-      <button class="button-ok">{{okmsg}}</button>
-      <button class="button-cancel" @click="handleClose()">{{cancelmsg}}</button>
+      <button class="button-ok">{{ okmsg }}</button>
+      <button class="button-cancel" @click="handleClose()">
+        {{ cancelmsg }}
+      </button>
     </div>
   </div>
 </template>
@@ -45,10 +51,10 @@ export default {
   computed: { ...mapState(["_play"]) },
   watch: {
     content() {
-      //普通的watch监听，小防抖
+      // 普通的watch监听，小防抖
 
       if (this.aod) {
-        //aod开启时不自动消失
+        // aod开启时不自动消失
         if (!this.isShow) this.isShow = true;
       } else {
         if (!this.isShow) this.isShow = true;

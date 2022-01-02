@@ -51,7 +51,8 @@
       id="music"
       :autoplay="_isPlaying"
     ></audio>
-    <!-- :autoplay="_isPlaying ? 'autoplay' : 'false'" -->
+    <!-- :autoplay="_isPlaying ? 'autoplay' : 'false'" 
+      crossOrigin="anonymous"-->
   </div>
 </template>
 <script>
@@ -103,6 +104,8 @@ export default {
       "musicFadeIn",
       "pause",
       "setStore",
+      "skipMusic",
+      "setImageBackground",
     ]),
 
     formatTime(timeNum) {
@@ -225,9 +228,8 @@ export default {
               timeMatch = timeMatch.toString().replace("]", "0]");
             }
 
-            this.lrcFormatArray[timeMatch] = this.lrcArray[index].substring(
-              length
-            );
+            this.lrcFormatArray[timeMatch] =
+              this.lrcArray[index].substring(length);
           } else console.warn(this.timeArray);
         }
 
@@ -342,6 +344,7 @@ export default {
     $music.addEventListener("error", () => {
       console.log("无法播放，已为您跳过。");
       this.next("wrong");
+      this.skipMusic(this._play.nowPlaying);
     });
 
     $music.addEventListener("timeupdate", () => {
@@ -411,8 +414,132 @@ export default {
               "px"
       );
 
+      this.setImageBackground();
+
       this.getLrc();
       this.getAuthor();
+
+      // var url = this._playlist[val].musicUrl;
+      // if (!window.AudioContext) {
+      //   alert("您的浏览器不支持AudioContext");
+      // } else {
+      //   //创建上下文
+      //   var ctx = new AudioContext();
+      //   var source = null;
+      //   //使用Ajax获取音频文件
+
+      //   var request = new XMLHttpRequest();
+      //   request.open("GET", url, true);
+      //   request.responseType = "arraybuffer"; //配置数据的返回类型
+      //   //加载完成
+      //   request.onload = function () {
+      //     var arraybuffer = request.response;
+      //     ctx.decodeAudioData(
+      //       arraybuffer,
+      //       function (buffer) {
+      //         //创建分析器
+      //         var analyser = ctx.createAnalyser();
+      //         source = ctx.createBufferSource();
+      //         //将source与分析器链接
+      //         source.connect(analyser);
+      //         //将分析器与destination链接，这样才能形成到达扬声器的通路
+      //         //analyser.connect(ctx.destination);
+      //         //将解码后的buffer数据复制给source
+      //         source.buffer = buffer;
+      //         //播放
+      //         //source.start(0);
+
+      //         //开始绘制频谱图
+      //         function drawSpectrum() {
+      //           var canvas = document.getElementById("wrap"),
+      //             cwidth = canvas.width,
+      //             cheight = canvas.height - 2,
+      //             meterWidth = 10, //能量条的宽度
+      //             //gap = 2, //能量条的间距
+      //             meterNum = 800 / (10 + 2), //计算当前画布上能画多少条
+      //             ctx = canvas.getContext("2d");
+      //           var capHeight = 2; //
+      //           var array = new Uint8Array(analyser.frequencyBinCount);
+      //           analyser.getByteFrequencyData(array);
+      //           console.info(array.length);
+      //           var step = Math.round(array.length / meterNum); //计算从analyser中的采样步长
+
+      //           //清理画布
+      //           ctx.clearRect(0, 0, cwidth, cheight);
+      //           //定义一个渐变样式用于画图
+      //           var gradient = ctx.createLinearGradient(0, 0, 0, 300);
+      //           gradient.addColorStop(1, "#0f0");
+      //           gradient.addColorStop(0.5, "#ff0");
+      //           gradient.addColorStop(0, "#f00");
+      //           ctx.fillStyle = gradient;
+      //           //对信源数组进行抽样遍历，画出每个频谱条
+      //           for (var i = 0; i < meterNum; i++) {
+      //             var value = array[i * step];
+      //             ctx.fillRect(
+      //               i * 12 /*频谱条的宽度+条间距*/,
+      //               cheight - value + capHeight,
+      //               meterWidth,
+      //               cheight
+      //             );
+      //           }
+      //           requestAnimationFrame(drawSpectrum);
+      //         }
+      //         requestAnimationFrame(drawSpectrum);
+      //       },
+      //       function (e) {
+      //         console.info("处理出错", e);
+      //       }
+      //     );
+      //   };
+      //   request.send();
+      // }
+
+      // var wrap = document.getElementById("wrap");
+      // var cxt = wrap.getContext("2d");
+      // //获取API
+      // var context = new (window.AudioContext || window.webkitAudioContext)();
+      // //加载媒体
+      // var audio = document.getElementById("music");
+      // //创建节点
+      // var source = context.createMediaElementSource(audio);
+      // //source.crossOrigin = "anonymous";
+      // var analyser = context.createAnalyser();
+      // //连接：source → analyser → destination
+      // source.connect(analyser);
+      // analyser.connect(context.destination);
+      // //创建数据
+      // var output = new Uint8Array(360);
+      // (function drawSpectrum() {
+      //   const width =
+      //     document.getElementsByClassName("middle-image")[0].offsetWidth;
+
+      //   analyser.getByteFrequencyData(output); //获取频域数据
+      //   cxt.clearRect(0, 0, wrap.width, wrap.height);
+      //   //画线条
+      //   for (var i = 0; i < 360; i++) {
+      //     var value = output[i] / 8; //<===获取数据
+      //     cxt.beginPath();
+      //     cxt.lineWidth = 2;
+      //     cxt.moveTo(width / 2, width / 2);
+      //     //R * cos (PI/180*一次旋转的角度数) ,-R * sin (PI/180*一次旋转的角度数)
+      //     cxt.lineTo(
+      //       Math.cos(((i * 1) / 180) * Math.PI) * (200 + value) + 300,
+      //       -Math.sin(((i * 1) / 180) * Math.PI) * (200 + value) + 300
+      //     );
+      //     cxt.stroke();
+      //   }
+      //   //画一个小圆，将线条覆盖
+      //   cxt.beginPath();
+      //   cxt.lineWidth = 1;
+      //   wrap.width = width;
+      //   wrap.height = width;
+      //   cxt.arc(width, width, width / 2, 0, 2 * Math.PI, false);
+      //   cxt.fillStyle = "#fff";
+      //   cxt.stroke();
+      //   cxt.fill();
+      //   //请求下一帧
+      //   requestAnimationFrame(drawSpectrum);
+      // })();
     },
 
     lrc_line() {

@@ -138,26 +138,6 @@ export default {
         // this.showInputSwitch();
       }
     });
-
-    // let params = window.location.search,
-    //   pidStr = "pid=",
-    //   ridStr = "rid=";
-    // const pid = params.substring(params.indexOf(pidStr) + pidStr.length);
-    // const rid = params.substring(params.indexOf(ridStr) + ridStr.length);
-    // if (pid.length != 4) {
-    //   console.warn("歌单编号格式错误");
-    // } else this.setPid(pid);
-    // if (rid.length != 4) {
-    //   console.warn("房间号码格式错误");
-    // } else {
-    //   this.setRid(rid); //alert(`欢迎进入${rid}房间!`);
-    //   this.playAsyc();
-    // }
-
-    // this.$EventBus.$on("successMsg", (msg) => {
-    //   // InputForm发送来的消息
-    //   this.showInput = msg;
-    // });
   },
   watch: {
     // _success(val, oldVal) {

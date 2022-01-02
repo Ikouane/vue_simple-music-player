@@ -10,7 +10,7 @@
 // import HelloWorld from "./components/HelloWorld.vue";
 import Main from "./components/Main";
 import "@/assets/index.css";
-import { mapActions, mapMutations } from "vuex";
+import { mapActions, mapMutations, mapState } from "vuex";
 import Axios from "axios";
 
 export default {
@@ -20,35 +20,7 @@ export default {
     Main,
   },
   computed: {
-    // ...mapState(["_play"]),
-  },
-  mounted() {
-    var _this = this;
-    document.onkeydown = function (e) {
-      let key = e.keyCode || window.event.keyCode;
-      if (key == 37) {
-        //== 83 && event.ctrlKey
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击左箭头");
-        _this.minusTime();
-      } else if (key == 39) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击右箭头");
-        _this.addTime();
-      } else if (key == 32) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击空格");
-        _this.playSwitchFade();
-      } else if (key == 38) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击上箭头");
-        _this.prev();
-      } else if (key == 40) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击下箭头");
-        _this.next();
-      }
-    };
+    ...mapState(["_play", "_playlist"]),
   },
   methods: {
     ...mapMutations([
@@ -62,6 +34,7 @@ export default {
       "modeSwitch",
       "getLocal",
       "setRid",
+      "setVolume",
     ]),
     ...mapActions(["playAsyc"]),
   },
@@ -132,6 +105,45 @@ export default {
       .matchMedia("(prefers-color-scheme: light)")
       .addListener(listeners.light);
   },
+
+  mounted() {
+    var _this = this;
+    document.onkeydown = function (e) {
+      let key = e.keyCode || window.event.keyCode;
+      if (key == 37) {
+        //== 83 && event.ctrlKey
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击左箭头");
+        _this.minusTime();
+      } else if (key == 39) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击右箭头");
+        _this.addTime();
+      } else if (key == 32) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击空格");
+        _this.playSwitchFade();
+      } else if (key == 38 && e.altKey) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击Alt + 上箭头");
+        _this.prev();
+      } else if (key == 40 && e.altKey) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击Alt + 点击下箭头");
+        _this.next();
+      } else if (key == 38) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击上箭头");
+        _this.setVolume("up");
+        // _this.prev();
+      } else if (key == 40) {
+        window.event.preventDefault(); //关闭浏览器快捷键
+        console.log("点击下箭头");
+        _this.setVolume("down");
+        // _this.next();
+      }
+    };
+  },
 };
 
 window.onload = () => {
@@ -178,6 +190,17 @@ $dark_border_color: var(--dark_border_color);
 //   -webkit-font-smoothing: antialiased;
 //   -moz-osx-font-smoothing: grayscale;
 // }
+
+body {
+  min-height: 100vh;
+
+  &.imgBg {
+    background-image: var(--backgroundImage);
+    background-repeat: no-repeat;
+    background-size: cover;
+    backdrop-filter: saturate(180%) blur(20px) brightness(50%);
+  }
+}
 
 @media (max-width: 768px) {
   #app {
