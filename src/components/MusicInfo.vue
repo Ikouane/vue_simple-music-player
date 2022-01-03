@@ -246,7 +246,6 @@ export default {
     //获取歌词（byid）
     getLrc() {
       const _this = this;
-      console.log(_this._playlist[_this._play.nowPlaying].musicId);
       Axios.get(
         "https://api.weyoung.tech/vue_simple-music-player/get.php?method=lrc&id=" +
           _this._playlist[_this._play.nowPlaying].musicId

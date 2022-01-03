@@ -7,6 +7,7 @@ export default createStore({
     _rid: "",
     _uuid: "",
     _ws: null,
+    _singleMusicMode: false,
     _play: {
       isPlaying: false,
       nowPlaying: 0,
@@ -243,10 +244,18 @@ export default createStore({
         v -= 0.1;
         if (v <= 0) {
           state._play.isPlaying = false;
-          if ((state._play.nowPlaying += 1) > state._playlist.length - 1)
-            state._play.nowPlaying = 0;
-          state._play.isPlaying = true;
-          this.commit("updateTitle");
+          if (state._singleMusicMode) {
+            console.log("重新播放");
+            document.getElementById("music").currentTime = 0;
+            document.getElementById("music").play();
+            state._play.isPlaying = true;
+            this.commit("updateTitle");
+          } else {
+            if ((state._play.nowPlaying += 1) > state._playlist.length - 1)
+              state._play.nowPlaying = 0;
+            state._play.isPlaying = true;
+            this.commit("updateTitle");
+          }
           let v2 = document.getElementById("music").volume;
           let int2 = setInterval(() => {
             console.log("渐入");
@@ -488,7 +497,6 @@ export default createStore({
       }
     },
     setImageBackground(state) {
-      console.log(state._playlist[state._play.nowPlaying].musicImage);
       if (state._playlist[state._play.nowPlaying].musicImage) {
         document
           .querySelector("body")
@@ -523,6 +531,11 @@ export default createStore({
       document.querySelector("audio").volume = (
         state._play.volume / 100
       ).toFixed(2);
+    },
+
+    // 设置单音乐模式
+    setSingleMusicMode(state) {
+      state._singleMusicMode = true;
     },
   },
   actions: {

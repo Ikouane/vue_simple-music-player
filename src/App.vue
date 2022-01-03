@@ -1,7 +1,5 @@
 <template>
   <div id="app">
-    <!-- <img alt="Vue logo" src="./assets/logo.png" /> -->
-    <!-- <HelloWorld msg="Welcome to Your Vue.js App"/> -->
     <Main />
   </div>
 </template>
@@ -35,54 +33,83 @@ export default {
       "getLocal",
       "setRid",
       "setVolume",
+      "setSingleMusicMode",
     ]),
     ...mapActions(["playAsyc"]),
   },
   created() {
-    let params = window.location.search,
-      pidStr = "pid=",
-      ridStr = "rid=";
-    if (params.substring(params.indexOf(pidStr) + pidStr.length).length != 4) {
-      if (localStorage.getItem("vue_simple-music-player")) {
-        console.log("发现本地数据");
-        this.getLocal();
-      } else {
-        const _this = this;
-        Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
-          .then((response) => {
-            console.log(response.data);
-            _this.setStore(response.data);
-            if (response.data._play.mode === "night")
-              document
-                .querySelector("body")
-                .setAttribute(
-                  "style",
-                  "background-color:var(--dark_main_color)"
-                );
-
-            const pid = params.substring(
-              params.indexOf(pidStr) + pidStr.length
-            );
-            const rid = params.substring(
-              params.indexOf(ridStr) + ridStr.length
-            );
-            if (pid.length != 4) {
-              console.warn("歌单编号格式错误");
-            } else this.setPid(pid);
-            if (rid.length != 4) {
-              console.warn("房间号码格式错误");
-            } else {
-              this.setRid(rid); //alert(`欢迎进入${rid}房间!`);
-              this.playAsyc();
-            }
-          })
-          .catch(function (error) {
-            // 请求失败处理
-            console.log(error);
-          });
+    function getQueryVariable(variable) {
+      var query = window.location.search.substring(1);
+      var vars = query.split("&");
+      for (var i = 0; i < vars.length; i++) {
+        var pair = vars[i].split("=");
+        if (pair[0] == variable) {
+          return pair[1];
+        }
       }
+      return false;
+    }
+
+    let pid = getQueryVariable("pid"),
+      rid = getQueryVariable("rid"),
+      mid = getQueryVariable("mid");
+
+    if (mid) {
+      console.log("单音乐模式");
+      const _this = this;
+      Axios.get(
+        `https://api.weyoung.tech/vue_simple-music-player/get.php?mid=${mid}`
+      )
+        .then((response) => {
+          console.log(response.data);
+          _this.setStore(response.data);
+          _this.setSingleMusicMode();
+          if (response.data._play.mode === "night")
+            document
+              .querySelector("body")
+              .setAttribute("style", "background-color:var(--dark_main_color)");
+        })
+        .catch(function (error) {
+          // 请求失败处理
+          console.log(error);
+        });
     } else {
-      console.log("获取目标歌单");
+      if (pid.length != 4) {
+        if (localStorage.getItem("vue_simple-music-player")) {
+          console.log("发现本地数据");
+          this.getLocal();
+        } else {
+          const _this = this;
+          Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
+            .then((response) => {
+              console.log(response.data);
+              _this.setStore(response.data);
+              if (response.data._play.mode === "night")
+                document
+                  .querySelector("body")
+                  .setAttribute(
+                    "style",
+                    "background-color:var(--dark_main_color)"
+                  );
+
+              if (pid.length != 4) {
+                console.warn("歌单编号格式错误");
+              } else this.setPid(pid);
+              if (rid.length != 4) {
+                console.warn("房间号码格式错误");
+              } else {
+                this.setRid(rid); //alert(`欢迎进入${rid}房间!`);
+                this.playAsyc();
+              }
+            })
+            .catch(function (error) {
+              // 请求失败处理
+              console.log(error);
+            });
+        }
+      } else {
+        console.log("获取目标歌单");
+      }
     }
 
     let listeners = {

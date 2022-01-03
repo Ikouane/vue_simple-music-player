@@ -1,8 +1,15 @@
 <template>
   <div
-    :class="'player-button ' + size + (active ? ' active' : '')"
+    class="player-button"
+    :class="{
+      active,
+      disabled,
+      small: size == 'small',
+      middle: size == 'middle',
+      large: size == 'large',
+    }"
     :title="title"
-    @click="bindtap"
+    @click="handelClick"
   >
     <i :class="type" aria-hidden="true"></i>
   </div>
@@ -21,6 +28,15 @@ export default {
     active: {
       type: Boolean,
       default: false,
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+  },
+  methods: {
+    handelClick() {
+      if (!this.disabled) this.bindtap();
     },
   },
 };
@@ -59,6 +75,14 @@ $dark_border_color: var(--dark_border_color);
   outline: none;
   font-size: 16px;
 
+  &.disabled {
+    cursor: not-allowed;
+    filter: grayscale(1);
+
+    .dark & {
+    }
+  }
+
   .dark & {
     border: 2px solid $dark_border_color;
     background: linear-gradient(145deg, #2a2e33, #23272b);
@@ -68,12 +92,14 @@ $dark_border_color: var(--dark_border_color);
       box-shadow: 2px 2px 4px #212529, -2px -2px 4px #2d3137;
     }
 
-    &:hover,
-    &.active {
-      background: var(--dark_active_color) !important;
-      box-shadow: clear;
-      border: 2px solid var(--dark_active_color);
-      box-shadow: inset 6px 6px 12px #c9460e, inset -6px -6px 12px #ff5e12;
+    &:not(.disabled) {
+      &:hover,
+      &.active {
+        background: var(--dark_active_color) !important;
+        box-shadow: clear;
+        border: 2px solid var(--dark_active_color);
+        box-shadow: inset 6px 6px 12px #c9460e, inset -6px -6px 12px #ff5e12;
+      }
     }
   }
 
@@ -101,15 +127,17 @@ $dark_border_color: var(--dark_border_color);
     width: 60px;
   }
 
-  &:hover,
-  &.active {
-    background: var(--active_color) !important;
-    box-shadow: clear;
-    border: 2px solid var(--active_color);
-    box-shadow: inset 6px 6px 12px #708bd9, inset -6px -6px 12px #98bdff;
+  &:not(.disabled) {
+    &:hover,
+    &.active {
+      background: var(--active_color) !important;
+      box-shadow: clear;
+      border: 2px solid var(--active_color);
+      box-shadow: inset 6px 6px 12px #708bd9, inset -6px -6px 12px #98bdff;
 
-    i {
-      color: white;
+      i {
+        color: white;
+      }
     }
   }
 

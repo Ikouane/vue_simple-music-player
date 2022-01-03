@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-01 22:04:27
+ * @LastEditTime: 2022-01-03 23:30:44
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -9,6 +9,7 @@
 <template>
   <div class="player-bottom">
     <Button
+      :disabled="_playlist.length <= 1"
       size="large"
       title="上一首(↑)"
       type="fa fa-backward"
@@ -33,6 +34,7 @@
       id="playButton"
     />
     <Button
+      :disabled="_playlist.length <= 1"
       size="large"
       title="下一首(↓)"
       type="fa fa-forward"

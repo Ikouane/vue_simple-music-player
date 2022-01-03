@@ -4,15 +4,7 @@
     <p class="content" v-if="content">{{ content }}</p>
     <div id="qrcode"></div>
     <!-- 创建一个div，并设置id为qrcode -->
-    <button
-      class="button"
-      @click="
-        hideBox();
-        $emit('share-room');
-      "
-    >
-      确认
-    </button>
+    <button class="button" @click="$emit('share-room')">确认</button>
   </div>
 </template>
 <script>
@@ -51,6 +43,7 @@ export default {
     };
 
     onMounted(() => {
+      document.getElementById("qrcode").innerHTML = "";
       if (isShow.value)
         new QRCode("qrcode", {
           width: 175,
