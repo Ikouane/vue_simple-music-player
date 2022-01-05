@@ -31,9 +31,11 @@ export default {
       "playSwitchFade",
       "modeSwitch",
       "getLocal",
+      "setPid",
       "setRid",
       "setVolume",
       "setSingleMusicMode",
+      "setMsg",
     ]),
     ...mapActions(["playSync"]),
   },
@@ -91,10 +93,8 @@ export default {
                     "style",
                     "background-color:var(--dark_main_color)"
                   );
+              console.warn("歌单编号格式错误");
 
-              if (pid.length != 4) {
-                console.warn("歌单编号格式错误");
-              } else this.setPid(pid);
               if (rid.length != 4) {
                 console.warn("房间号码格式错误");
               } else {
@@ -108,7 +108,22 @@ export default {
             });
         }
       } else {
+        // FIXME: this.setPid(pid);
+        // FIXME: 多条消息同时发出时，后面的消息如何稍后出现
         console.log("获取目标歌单");
+        const _this = this;
+        Axios.get(
+          `https://api.weyoung.tech/vue_simple-music-player/get.php?pid=${pid}`
+        )
+          .then((response) => {
+            console.log(response.data);
+            if (response.data.status == "wrong") this.setMsg("歌单不存在");
+            else _this.setStore(response.data);
+          })
+          .catch(function (error) {
+            // 请求失败处理
+            console.log(error);
+          });
       }
     }
 
