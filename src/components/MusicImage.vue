@@ -52,7 +52,7 @@
         v-show="size === 'small'"
         size="middle"
         title="从云端还原数据"
-        @click="setMsg('还原功能修复中')"
+        @click="setSuccess(true)"
         type="fas fa-cloud-download-alt"
       />
       <!-- FIXME: @click="setSuccess(true)" -->

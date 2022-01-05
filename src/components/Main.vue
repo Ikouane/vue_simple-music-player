@@ -1,8 +1,8 @@
 <template>
   <div :class="'mplayer' + (_play.mode === 'day' ? '' : ' dark')">
-    <!-- <transition>
+    <transition>
       <InputModal v-if="_success" :isShow="_success" :isWrong="isWrong" />
-    </transition>-->
+    </transition>
     <transition name="MsgBox">
       <MessageBox
         v-if="boxShow"
@@ -13,17 +13,23 @@
         @share-room="switchBoxShow()"
       />
     </transition>
-    <InputModal v-if="false" :isShow="_success" :isWrong="isWrong" />
+    <!-- <InputModal v-if="showInput" :isShow="showInput" :isWrong="isWrong" /> -->
+    <!-- <InputModal v-if="false" :isShow="_success" :isWrong="isWrong" /> -->
     <!--v-if="showInput" :isShow="showInput"-->
     <transition name="Modal">
       <Modal
-        v-if="_play.showMessage"
+        v-if="_play.message.show"
         :title="
-          _play.msg ? '通知' : _play.isPlaying ? '正在播放' : '已同步上次播放'
+          _play.message.content
+            ? '通知'
+            : _play.isPlaying
+            ? '正在播放'
+            : '已同步上次播放'
         "
+        :aod="_play.message.duration == 0"
         :time="getNowTime()"
         :content="
-          _play.msg ||
+          _play.message.content ||
           _playlist[_play.nowPlaying].musicName +
             ' - ' +
             _playlist[_play.nowPlaying].musicAuthor

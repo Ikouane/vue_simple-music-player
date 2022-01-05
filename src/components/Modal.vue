@@ -41,6 +41,7 @@ export default {
   computed: { ...mapState(["_play"]) },
   methods: {
     handleClose() {
+      this.clearMsg();
       this.isShow = false;
     },
     ...mapMutations(["clearMsg"]),
@@ -65,7 +66,7 @@ export default {
         this.isShow = false;
         clearTimeout(this.timer);
         this.timer = null;
-      }, 3000);
+      }, this._play.message.duration);
     }
   },
   // watch: {

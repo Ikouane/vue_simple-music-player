@@ -85,7 +85,7 @@ export default {
     });
   },
   methods: {
-    ...mapMutations(["setStore", "setSuccess"]),
+    ...mapMutations(["setStore", "setSuccess", "pause"]),
     saveList() {
       const _this = this;
       let data = new FormData();
@@ -116,6 +116,13 @@ export default {
         .then((response) => {
           //console.log(response.data);
           if (response.data._playlist) {
+            if (
+              !document.getElementById("music").paused &&
+              this._play.isPlaying
+            )
+              this.pause(false);
+            else console.log("音乐未加载，无须暂停");
+
             _this.setStore(response.data);
             _this.isWrong = false;
             _this.setSuccess(false);

@@ -14,8 +14,12 @@ export default createStore({
       playTime: 0,
       mode: "day", //Or "night"
       nowPage: "PLAYING NOW", //Or "PLAYLIST", "musicLrc"
-      showMessage: true,
-      msg: "数据请求中", //出于隐私保护，请手动播放
+      message: {
+        show: true,
+        title: "通知",
+        content: "数据请求中",
+        duration: 0,
+      },
       volume: 100, //音量
     },
     _playlist: [
@@ -84,8 +88,6 @@ export default createStore({
       return result;
     },
     setStore(state, o_Play) {
-      if (document.getElementById("music")) this.commit("pause");
-      else console.log("音乐未加载，无须暂停");
       // state._play = {}
       // state._playlist = [
       state._play = o_Play._play;
@@ -105,10 +107,10 @@ export default createStore({
 
       console.log("数据已更新");
     },
-    pause(state) {
+    pause(state, showMsg = true) {
       state._play.isPlaying = false;
       document.getElementById("music").pause();
-      this.commit("setMsg", "音乐已暂停");
+      if (showMsg) this.commit("setMsg", "音乐已暂停");
     },
     play(state) {
       if (state._play.playTime > 0) {
@@ -440,13 +442,16 @@ export default createStore({
       ].isLike;
     },
     clearMsg(state) {
-      state._play.showMessage = false;
-      state._play.msg = null;
+      state._play.message.show = false;
+      state._play.message.content = null;
     },
     setMsg(state, message) {
       this.commit("clearMsg");
-      state._play.showMessage = true;
-      state._play.msg = message;
+      setTimeout(() => {
+        state._play.message.show = true;
+        state._play.message.duration = 3000;
+        state._play.message.content = message;
+      }, 0);
     },
     addMore(state, o_PlayList) {
       state._playlist = state._playlist.concat(o_PlayList);
