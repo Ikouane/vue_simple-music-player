@@ -18,17 +18,18 @@
   </div>
 </template>
 <script>
-import { mapActions, mapState } from "vuex";
+import { mapActions, mapMutations, mapState } from "vuex";
 export default {
   name: "Modal",
   data() {
     return {
-      isShow: false,
+      isShow: true,
       timer: Object,
     };
   },
   props: {
     title: String,
+    time: Number,
     content: String,
     okmsg: String,
     cancelmsg: String,
@@ -37,10 +38,12 @@ export default {
       default: false,
     },
   },
+  computed: { ...mapState(["_play"]) },
   methods: {
     handleClose() {
-      this.isShow = !this.isShow;
+      this.isShow = false;
     },
+    ...mapMutations(["clearMsg"]),
     ...mapActions(["getContent"]),
   },
   created() {
@@ -48,27 +51,43 @@ export default {
       this.isShow = true;
     }, 0);
   },
-  computed: { ...mapState(["_play"]) },
-  watch: {
-    content() {
-      // 普通的watch监听，小防抖
+  mounted() {
+    if (this.aod) {
+      // aod开启时不自动消失
+      if (!this.isShow) this.isShow = true;
+    } else {
+      if (!this.isShow) this.isShow = true;
+      if (this.timer) clearTimeout(this.timer);
 
-      if (this.aod) {
-        // aod开启时不自动消失
-        if (!this.isShow) this.isShow = true;
-      } else {
-        if (!this.isShow) this.isShow = true;
-        if (this.timer) clearTimeout(this.timer);
-
-        this.timer = setTimeout(() => {
-          //console.log("时间到" + this.isShow);
-          this.isShow = false;
-          clearTimeout(this.timer);
-          this.timer = null;
-        }, 3000);
-      }
-    },
+      this.timer = setTimeout(() => {
+        //console.log("时间到" + this.isShow);
+        this.clearMsg();
+        this.isShow = false;
+        clearTimeout(this.timer);
+        this.timer = null;
+      }, 3000);
+    }
   },
+  // watch: {
+  //   time() {
+  //     // 普通的watch监听，小防抖
+
+  //     if (this.aod) {
+  //       // aod开启时不自动消失
+  //       if (!this.isShow) this.isShow = true;
+  //     } else {
+  //       if (!this.isShow) this.isShow = true;
+  //       if (this.timer) clearTimeout(this.timer);
+
+  //       this.timer = setTimeout(() => {
+  //         //console.log("时间到" + this.isShow);
+  //         this.isShow = false;
+  //         clearTimeout(this.timer);
+  //         this.timer = null;
+  //       }, 3000);
+  //     }
+  //   },
+  // },
 };
 </script>
 <style lang='scss' scoped>

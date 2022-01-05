@@ -14,6 +14,7 @@ export default createStore({
       playTime: 0,
       mode: "day", //Or "night"
       nowPage: "PLAYING NOW", //Or "PLAYLIST", "musicLrc"
+      showMessage: true,
       msg: "数据请求中", //出于隐私保护，请手动播放
       volume: 100, //音量
     },
@@ -100,15 +101,14 @@ export default createStore({
       // state._play = this.commit('deepClone', o_Play._play)
       // state._playlist = this.commit('deepClone', o_Play._playlist)
       // this.commit('clearMsg');
-      // state._play.msg = "数据已更新";
+      // this.commit("setMsg", "数据已更新");
 
       console.log("数据已更新");
     },
     pause(state) {
       state._play.isPlaying = false;
       document.getElementById("music").pause();
-      this.commit("clearMsg");
-      state._play.msg = "音乐已暂停";
+      this.commit("setMsg", "音乐已暂停");
     },
     play(state) {
       if (state._play.playTime > 0) {
@@ -116,9 +116,8 @@ export default createStore({
       }
       state._play.isPlaying = true;
       document.getElementById("music").play();
-      this.commit("clearMsg");
       this.commit("updateTitle");
-      state._play.msg = "音乐已播放";
+      this.commit("setMsg", "音乐已播放");
     },
     musicFadeIn(state, needSync = true) {
       this.commit("play");
@@ -221,7 +220,6 @@ export default createStore({
 
       // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
       // state._play.isPlaying = true
-      this.commit("clearMsg");
     },
     next(state, hasWrong, needSync = true) {
       if (typeof hasWrong == "object" && hasWrong.length === 2) {
@@ -272,10 +270,8 @@ export default createStore({
         }
       }, 75);
 
-      this.commit("clearMsg");
-
       if (hasWrong === "wrong") {
-        state._play.msg = "播放出错，已为您跳过";
+        this.commit("setMsg", "播放出错，已为您跳过");
       }
 
       // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
@@ -331,7 +327,6 @@ export default createStore({
         // state._play.isPlaying = false
         // state._play.nowPlaying = desIndex
         // state._play.isPlaying = true
-        this.commit("clearMsg");
       }
     },
     goTime(state, desTime, needSync = true) {
@@ -401,9 +396,9 @@ export default createStore({
           document
             .querySelector("body")
             .setAttribute("style", "background-color:var(--main_color)");
-          state._play.msg = "已切换至日间模式";
+          this.commit("setMsg", "已切换至日间模式");
         } else {
-          state._play.msg = "已切换至夜间模式";
+          this.commit("setMsg", "已切换至夜间模式");
           document
             .querySelector("body")
             .setAttribute("style", "background-color:var(--dark_main_color)");
@@ -411,7 +406,7 @@ export default createStore({
       } else {
         if (state._play.mode === "day") {
           state._play.mode = "night";
-          state._play.msg = "已切换至夜间模式";
+          this.commit("setMsg", "已切换至夜间模式");
           document
             .querySelector("body")
             .setAttribute("style", "background-color:var(--dark_main_color)");
@@ -420,7 +415,7 @@ export default createStore({
             .querySelector("body")
             .setAttribute("style", "background-color:var(--main_color)");
           state._play.mode = "day";
-          state._play.msg = "已切换至日间模式";
+          this.commit("setMsg", "已切换至日间模式");
         }
       }
     },
@@ -435,26 +430,27 @@ export default createStore({
         );
       if (state._playlist[state._play.nowPlaying].isLike) {
         console.log("取消我喜欢");
-        state._play.msg = "已移出我喜欢";
+        this.commit("setMsg", "已移出我喜欢");
       } else {
         console.log("我喜欢");
-        state._play.msg = "已添加至我喜欢";
+        this.commit("setMsg", "已添加至我喜欢");
       }
       state._playlist[state._play.nowPlaying].isLike = !state._playlist[
         state._play.nowPlaying
       ].isLike;
     },
     clearMsg(state) {
+      state._play.showMessage = false;
       state._play.msg = null;
     },
     setMsg(state, message) {
       this.commit("clearMsg");
+      state._play.showMessage = true;
       state._play.msg = message;
     },
     addMore(state, o_PlayList) {
       state._playlist = state._playlist.concat(o_PlayList);
-      this.commit("clearMsg");
-      state._play.msg = "已加载更多歌曲";
+      this.commit("setMsg", "已加载更多歌曲");
     },
     // 将歌曲移出播放列表（播放出错时）
     removeMusic(state, musicIndex) {
@@ -470,7 +466,7 @@ export default createStore({
     setPid(state, dPid) {
       if (dPid) {
         state._pid = dPid;
-        state._play.msg = `当前歌单编号为：${dPid}`;
+        this.commit("setMsg", `当前歌单编号为：${dPid}`);
       }
     },
     setLocal(state) {
@@ -493,7 +489,7 @@ export default createStore({
     setRid(state, dRid) {
       if (dRid) {
         state._rid = dRid;
-        state._play.msg = `您已进入${dRid}房间`;
+        this.commit("setMsg", `您已进入${dRid}房间`);
       }
     },
     setImageBackground(state) {

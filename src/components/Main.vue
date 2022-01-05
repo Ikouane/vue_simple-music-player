@@ -15,17 +15,21 @@
     </transition>
     <InputModal v-if="false" :isShow="_success" :isWrong="isWrong" />
     <!--v-if="showInput" :isShow="showInput"-->
-    <Modal
-      :title="
-        _play.msg ? '通知' : _play.isPlaying ? '正在播放' : '已同步上次播放'
-      "
-      :content="
-        _play.msg ||
-        _playlist[_play.nowPlaying].musicName +
-          ' - ' +
-          _playlist[_play.nowPlaying].musicAuthor
-      "
-    />
+    <transition name="Modal">
+      <Modal
+        v-if="_play.showMessage"
+        :title="
+          _play.msg ? '通知' : _play.isPlaying ? '正在播放' : '已同步上次播放'
+        "
+        :time="getNowTime()"
+        :content="
+          _play.msg ||
+          _playlist[_play.nowPlaying].musicName +
+            ' - ' +
+            _playlist[_play.nowPlaying].musicAuthor
+        "
+      />
+    </transition>
     <AppBar @share-room="switchBoxShow()" />
     <MusicImage :size="_play.nowPage === 'PLAYLIST' ? 'small' : ''" />
     <!-- v-if="_play.nowPage === 'PLAYLIST'" -->
@@ -126,6 +130,9 @@ export default {
           console.log(error);
         });
     },
+    getNowTime() {
+      return new Date().valueOf();
+    },
   },
   mounted() {
     document.addEventListener("keydown", (e) => {
@@ -198,6 +205,27 @@ export default {
 
   .MsgBox-leave-active {
     animation: 0.3s fade;
+  }
+
+  @keyframes slide {
+    0% {
+      top: -100%;
+    }
+
+    100% {
+      top: 0;
+    }
+  }
+
+  .Modal-enter-active {
+    transition: all 0.5s ease;
+    animation: 0.3s slide;
+  }
+
+  .Modal-leave-active {
+    top: -100%;
+    transform: translate(-50%, 100%);
+    transition: all 0.5s ease;
   }
 }
 </style>
