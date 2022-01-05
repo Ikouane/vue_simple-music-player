@@ -79,7 +79,7 @@ export default {
   },
   methods: {
     ...mapMutations(["setStore", "setSuccess", "setPid", "setRid"]),
-    ...mapActions(["playAsyc"]),
+    ...mapActions(["playSync"]),
     // showInputSwitch() {
     //   this.setSuccess(!this._success);
     // },

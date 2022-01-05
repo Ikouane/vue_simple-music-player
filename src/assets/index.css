@@ -1,5 +1,3 @@
-@import url(https://fonts.font.im/css?family=Ubuntu);
-
 :root {
     --title_color: #6d7b94;
     --text_color: #a1b1c9;
@@ -19,6 +17,13 @@
     --dark_border_color: #202428;
 
     --scrollbar_width: 0px;
+}
+
+@font-face {
+    font-family: 'Ubuntu';
+    font-style: normal;
+    font-weight: 400;
+    src: url(4iCs6KVjbNBYlgoKfw7z.ttf) format('truetype');
 }
 
 * {

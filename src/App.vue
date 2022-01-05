@@ -35,7 +35,7 @@ export default {
       "setVolume",
       "setSingleMusicMode",
     ]),
-    ...mapActions(["playAsyc"]),
+    ...mapActions(["playSync"]),
   },
   created() {
     function getQueryVariable(variable) {
@@ -99,7 +99,7 @@ export default {
                 console.warn("房间号码格式错误");
               } else {
                 this.setRid(rid); //alert(`欢迎进入${rid}房间!`);
-                this.playAsyc();
+                this.playSync();
               }
             })
             .catch(function (error) {

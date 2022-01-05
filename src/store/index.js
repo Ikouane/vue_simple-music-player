@@ -539,7 +539,7 @@ export default createStore({
     },
   },
   actions: {
-    playAsyc({ commit, rootState }) {
+    playSync({ commit, rootState }) {
       console.log("开始进度同步（一起听）");
       console.log("连接服务器...");
       var ws = new WebSocket("wss://api.weyoung.tech:23333/");

@@ -10,6 +10,7 @@
     "deploy": "npm run build && npm run upload"
   },
   "dependencies": {
+    "@fortawesome/fontawesome-free": "5.15.3",
     "axios": "^0.20.0",
     "core-js": "^3.6.5",
     "css-loader": "^4.2.2",

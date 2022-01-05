@@ -15,6 +15,8 @@
   </div>
 </template>
 <script>
+import "@fortawesome/fontawesome-free/css/all.css";
+import "@fortawesome/fontawesome-free/js/all";
 export default {
   name: "Button",
   props: {
@@ -42,8 +44,6 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-@import url(https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.13.1/css/all.min.css);
-
 $title_color: var(--title_color);
 $text_color: var(--text_color);
 $main_color: var(--main_color);
@@ -108,7 +108,7 @@ $dark_border_color: var(--dark_border_color);
     width: 30px;
     box-shadow: 2px 2px 4px #c6cdd6, -2px -2px 4px #ffffff;
 
-    i {
+    svg {
       transform: scale(0.66);
     }
   }
@@ -117,7 +117,7 @@ $dark_border_color: var(--dark_border_color);
     height: 45px;
     width: 45px;
 
-    i {
+    svg {
       transform: scale(0.88);
     }
   }
@@ -135,13 +135,13 @@ $dark_border_color: var(--dark_border_color);
       border: 2px solid var(--active_color);
       box-shadow: inset 6px 6px 12px #708bd9, inset -6px -6px 12px #98bdff;
 
-      i {
+      svg {
         color: white;
       }
     }
   }
 
-  i {
+  svg {
     color: $text_color;
     pointer-events: none; //点击穿透
   }
