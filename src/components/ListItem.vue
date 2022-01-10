@@ -1,13 +1,21 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-02 20:35:58
+ * @LastEditTime: 2022-01-10 15:19:20
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
 -->
 <template>
-  <div class="list-card" :class="{ active, skip }" :data-index="listIndex">
+  <div
+    class="list-card"
+    :class="{ active, skip }"
+    :data-index="listIndex"
+    v-mouse-menu="{
+      params: listIndex,
+      ...options,
+    }"
+  >
     <div class="music-info">
       <span>{{ title }}</span>
       <span>{{ subTitle }}</span>
@@ -46,6 +54,7 @@
 <script>
 import { mapState, mapMutations } from "vuex";
 import Button from "./Button";
+import { MouseMenuDirective } from "@howdyjs/mouse-menu";
 export default {
   name: "ListItem",
   components: {
@@ -68,7 +77,44 @@ export default {
     ...mapState(["_play", "_playlist"]),
   },
   methods: {
-    ...mapMutations(["play", "pause", "removeMusic"]), //B,使用时间代理（冒泡）由父元素处理
+    ...mapMutations(["play", "pause", "removeMusic", "shareSingleMusic"]), //B,使用时间代理（冒泡）由父元素处理
+  },
+  directives: {
+    MouseMenu: MouseMenuDirective,
+  },
+  setup() {
+    return {
+      isMobile: "ontouchstart" in window,
+      options: {
+        useLongPressInMobile: true,
+        menuList: [
+          {
+            label: "分享",
+            tips: "Share This Song",
+            fn: (params, currentEl, bindingEl, e) =>
+              console.log("share", params, currentEl, bindingEl, e),
+          },
+          {
+            label: "精准空降",
+            tips: "Share This Moment",
+            fn: (params, currentEl, bindingEl, e) =>
+              console.log("share this moment", params, currentEl, bindingEl, e),
+          },
+          // {
+          //   label: "删除",
+          //   tips: "Delete",
+          //   fn: (params, currentEl, bindingEl, e) =>
+          //     console.log("delete", params, currentEl, bindingEl, e),
+          // },
+          // {
+          //   label: "重命名",
+          //   tips: "Rename",
+          //   fn: (params, currentEl, bindingEl, e) =>
+          //     console.log("rename", params, currentEl, bindingEl, e),
+          // },
+        ],
+      },
+    };
   },
 };
 </script>

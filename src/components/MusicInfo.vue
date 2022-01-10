@@ -45,6 +45,7 @@
     </div>
     <div class="music-lrc">
       <span id="music-lrc">{{ lrc_line }}</span>
+      <span id="music-tlrc">{{ tlrc_line }}</span>
     </div>
     <audio
       :src="_playlist[_play.nowPlaying].musicUrl"
@@ -76,6 +77,10 @@ export default {
       lrc_line: "", //当前歌词
       lrcArray: [], //歌词数组
       lrcFormatArray: [], //歌词数组（格式化）
+      tlrc: "", //歌词（翻译）
+      tlrc_line: "", //当前歌词（翻译）
+      tlrcArray: [], //歌词数组（翻译）
+      tlrcFormatArray: [], //歌词数组（格式化、翻译）
       timeArray: [], //歌词时间数组
       aboutAuthor: "", //作者介绍
     };
@@ -209,7 +214,7 @@ export default {
     },
 
     //将歌词JSON转化为数组
-    transToArray(lrc) {
+    transToArray(lrc, tlrc = null) {
       //歌词数组
       this.lrcArray = [];
       //格式化歌词数组
@@ -217,8 +222,14 @@ export default {
       //时间数组
       this.timeArray = [];
 
+      // 歌词数组（翻译）
+      this.tlrcArray = [];
+      //格式化歌词数组
+      this.tlrcFormatArray = [];
+
       if (lrc) {
         this.lrcArray = lrc.split("\n").sort(); //先进行排序
+
         var pattern = /^[\\[]\d.{5,10}?]/; //提取时间
         for (let index = 0; index < this.lrcArray.length; index++) {
           let timeMatch = pattern.exec(this.lrcArray[index]);
@@ -233,11 +244,25 @@ export default {
           } else console.warn(this.timeArray);
         }
 
+        if (tlrc) this.tlrcArray = tlrc.split("\n").sort();
+        for (let index = 0; index < this.tlrcArray.length; index++) {
+          let timeMatch = pattern.exec(this.tlrcArray[index]);
+          if (timeMatch) {
+            let length = timeMatch.toString().length;
+            if (timeMatch.toString().length < 11) {
+              timeMatch = timeMatch.toString().replace("]", "0]");
+            }
+
+            this.tlrcFormatArray[timeMatch] =
+              this.tlrcArray[index].substring(length);
+          } else console.warn(this.timeArray);
+        }
+
         for (const key in this.lrcFormatArray) {
           this.timeArray.push(key);
         }
 
-        return this.lrcFormatArray;
+        // return this.lrcFormatArray;
       } else {
         this.getLrc();
       }
@@ -254,8 +279,11 @@ export default {
           //console.log(response.data);
           if (response.data.nolyric) {
             _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
-          } else _this.lrc = response.data.lyric;
-          this.transToArray(_this.lrc); //Fix
+          } else {
+            _this.lrc = response.data.lrc.lyric;
+            _this.tlrc = response.data.tlyric.lyric;
+          }
+          this.transToArray(_this.lrc, _this.tlrc); //Fix
         })
         .catch(function (error) {
           // 请求失败处理
@@ -273,6 +301,22 @@ export default {
         }
         if (time >= this.timeArray[this.timeArray.length - 1]) {
           return this.lrcFormatArray[this.timeArray[this.timeArray.length - 1]]; //最后一句歌词处理
+        } else return "";
+      }
+    },
+
+    //获取此时歌词（bytime）
+    getTLrc_line(time) {
+      if (time) {
+        for (let index = 0; index < this.timeArray.length; index++) {
+          if (time < this.timeArray[index]) {
+            return this.tlrcFormatArray[this.timeArray[index - 1]];
+          }
+        }
+        if (time >= this.timeArray[this.timeArray.length - 1]) {
+          return this.tlrcFormatArray[
+            this.timeArray[this.timeArray.length - 1]
+          ]; //最后一句歌词处理
         } else return "";
       }
     },
@@ -350,6 +394,20 @@ export default {
       //TODO:防抖准备
 
       this.lrc_line = this.getLrc_line(
+        `[${
+          this.formatTime(parseInt($music.currentTime / 60)) +
+          ":" +
+          this.formatTime(parseInt($music.currentTime % 60)) +
+          "." +
+          this.formatNumber(
+            parseFloat(
+              $music.currentTime - parseInt($music.currentTime)
+            ).toFixed(3) * 1000
+          )
+        }]`
+      );
+
+      this.tlrc_line = this.getTLrc_line(
         `[${
           this.formatTime(parseInt($music.currentTime / 60)) +
           ":" +
@@ -543,23 +601,51 @@ export default {
 
     lrc_line() {
       //监听歌词改变
-      console.warn("歌词变更");
-      $("#music-lrc").shake(1, 20, 100, "top"); //$(this).shake(2,10,400); src:https://www.oschina.net/code/snippet_5189_6334
+      const el_music_lrc = document.querySelector("#music-lrc");
 
-      // 判断歌词是否超长
-      if (parseInt(document.getElementById("music-lrc").offsetWidth) >= 324) {
-        // 超长则滚动
-        $("#music-lrc").css(
-          "--overflow_width_lrc",
-          324 -
-            parseInt(document.getElementById("music-lrc").offsetWidth) +
-            "px"
-        );
-        $("#music-lrc").addClass("goScroll");
-      } else {
-        $("#music-lrc").removeClass("goScroll");
-        $("#music-lrc").css("--overflow_width_lrc", "0px");
-      }
+      $(".music-lrc").shake(1, 20, 100, "top"); //$(this).shake(2,10,400); src:https://www.oschina.net/code/snippet_5189_6334
+
+      setTimeout(() => {
+        console.warn("歌词变更");
+
+        // 判断歌词是否超长
+        if (parseInt(el_music_lrc.offsetWidth) >= 324) {
+          // 超长则滚动
+          el_music_lrc.style.setProperty(
+            "--overflow_width_lrc",
+            `${324 - parseInt(el_music_lrc.offsetWidth)}px`
+          );
+          $("#music-lrc").css(
+            "--overflow_width_lrc",
+            324 - parseInt(el_music_lrc.offsetWidth) + "px"
+          );
+          el_music_lrc.classList.add("goScroll");
+        } else {
+          el_music_lrc.classList.remove("goScroll");
+          el_music_lrc.style.setProperty("--overflow_width_lrc", `0px`);
+        }
+      }, 0);
+    },
+
+    tlrc_line() {
+      setTimeout(() => {
+        // 判断歌词是否超长
+        if (
+          parseInt(document.getElementById("music-tlrc").offsetWidth) >= 324
+        ) {
+          // 超长则滚动
+          $("#music-tlrc").css(
+            "--overflow_width_lrc",
+            324 -
+              parseInt(document.getElementById("music-tlrc").offsetWidth) +
+              "px"
+          );
+          $("#music-tlrc").addClass("goScroll");
+        } else {
+          $("#music-tlrc").removeClass("goScroll");
+          $("#music-tlrc").css("--overflow_width_lrc", "0px");
+        }
+      });
     },
 
     aboutAuthor() {
@@ -608,7 +694,7 @@ $dark_border_color: var(--dark_border_color);
   text-align: center;
   justify-content: center;
   align-items: center;
-  margin-bottom: 70px; //100px
+  margin-bottom: 40px; //100px
   color: $text_color;
 
   p {
@@ -783,9 +869,13 @@ $dark_border_color: var(--dark_border_color);
     margin-top: 16px;
     font-size: 14px;
     line-height: 14px;
-    height: 20px;
-    color: var(--text_color);
+    height: 50px;
+    color: var(--title_color);
     width: 324px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     overflow: hidden;
 
     span {
@@ -809,10 +899,19 @@ $dark_border_color: var(--dark_border_color);
         }
         animation: gothrough_lrc 2s ease-in-out infinite;
       }
-    }
 
-    .dark & {
-      color: var(--dark_text_color);
+      &:last-child {
+        margin-top: 4px;
+        color: var(--text_color);
+      }
+
+      .dark & {
+        color: var(--dark_title_color);
+
+        &:last-child {
+          color: var(--dark_text_color);
+        }
+      }
     }
   }
 }

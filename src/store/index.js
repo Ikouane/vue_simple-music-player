@@ -437,9 +437,8 @@ export default createStore({
         console.log("我喜欢");
         this.commit("setMsg", "已添加至我喜欢");
       }
-      state._playlist[state._play.nowPlaying].isLike = !state._playlist[
-        state._play.nowPlaying
-      ].isLike;
+      state._playlist[state._play.nowPlaying].isLike =
+        !state._playlist[state._play.nowPlaying].isLike;
     },
     clearMsg(state) {
       state._play.message.show = false;
@@ -537,6 +536,11 @@ export default createStore({
     // 设置单音乐模式
     setSingleMusicMode(state) {
       state._singleMusicMode = true;
+    },
+
+    // 分享单曲
+    shareSingleMusic(state) {
+      console.log(state._play.nowPlaying);
     },
   },
   actions: {
