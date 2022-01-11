@@ -36,6 +36,7 @@ export default {
       "setVolume",
       "setSingleMusicMode",
       "setMsg",
+      "goTime",
     ]),
     ...mapActions(["playSync"]),
   },
@@ -54,7 +55,8 @@ export default {
 
     let pid = getQueryVariable("pid"),
       rid = getQueryVariable("rid"),
-      mid = getQueryVariable("mid");
+      mid = getQueryVariable("mid"),
+      startTime = getQueryVariable("st");
 
     if (mid) {
       console.log("单音乐模式");
@@ -70,6 +72,11 @@ export default {
             document
               .querySelector("body")
               .setAttribute("style", "background-color:var(--dark_main_color)");
+
+          if (startTime) {
+            console.log("精准空降", startTime);
+            _this.goTime(startTime);
+          }
         })
         .catch(function (error) {
           // 请求失败处理

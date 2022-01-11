@@ -24,7 +24,6 @@ export default {
   data() {
     return {
       isShow: true,
-      timer: Object,
     };
   },
   props: {
@@ -38,13 +37,13 @@ export default {
       default: false,
     },
   },
-  computed: { ...mapState(["_play"]) },
+  computed: { ...mapState(["_play", "_timer"]) },
   methods: {
     handleClose() {
       this.clearMsg();
       this.isShow = false;
     },
-    ...mapMutations(["clearMsg"]),
+    ...mapMutations(["clearMsg", "set_Timer"]),
     ...mapActions(["getContent"]),
   },
   created() {
@@ -58,15 +57,16 @@ export default {
       if (!this.isShow) this.isShow = true;
     } else {
       if (!this.isShow) this.isShow = true;
-      if (this.timer) clearTimeout(this.timer);
-
-      this.timer = setTimeout(() => {
-        //console.log("时间到" + this.isShow);
-        this.clearMsg();
-        this.isShow = false;
-        clearTimeout(this.timer);
-        this.timer = null;
-      }, this._play.message.duration);
+      if (this._timer) clearTimeout(this._timer);
+      this.set_Timer(
+        setTimeout(() => {
+          console.log("时间到" + this.isShow);
+          this.clearMsg();
+          this.isShow = false;
+          clearTimeout(this._timer);
+          this.set_Timer(null);
+        }, this._play.message.duration)
+      );
     }
   },
   // watch: {
@@ -78,13 +78,13 @@ export default {
   //       if (!this.isShow) this.isShow = true;
   //     } else {
   //       if (!this.isShow) this.isShow = true;
-  //       if (this.timer) clearTimeout(this.timer);
+  //       if (this._timer) clearTimeout(this._timer);
 
-  //       this.timer = setTimeout(() => {
+  //       this._timer = setTimeout(() => {
   //         //console.log("时间到" + this.isShow);
   //         this.isShow = false;
-  //         clearTimeout(this.timer);
-  //         this.timer = null;
+  //         clearTimeout(this._timer);
+  //         this._timer = null;
   //       }, 3000);
   //     }
   //   },

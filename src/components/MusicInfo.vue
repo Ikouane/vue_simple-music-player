@@ -379,10 +379,10 @@ export default {
     this.intPlaying = setInterval(() => {
       if (this._isPlaying) {
         this.nowLength = this.nowLengthCal($music);
-        this.setTime(parseInt($music.currentTime));
+        this.setTime($music.currentTime);
         //console.log(document.getElementById("music").currentTime);
       }
-    }, 1000);
+    }, 100);
 
     $music.addEventListener("error", () => {
       console.log("无法播放，已为您跳过。");

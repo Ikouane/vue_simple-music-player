@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-10 15:19:20
+ * @LastEditTime: 2022-01-11 18:02:56
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -52,9 +52,10 @@
   </div>
 </template>
 <script>
-import { mapState, mapMutations } from "vuex";
+import { mapState, mapMutations, useStore } from "vuex";
 import Button from "./Button";
 import { MouseMenuDirective } from "@howdyjs/mouse-menu";
+import useClipboard from "vue-clipboard3";
 export default {
   name: "ListItem",
   components: {
@@ -77,12 +78,28 @@ export default {
     ...mapState(["_play", "_playlist"]),
   },
   methods: {
-    ...mapMutations(["play", "pause", "removeMusic", "shareSingleMusic"]), //B,使用时间代理（冒泡）由父元素处理
+    ...mapMutations(["play", "pause", "removeMusic", "setMsg"]), //B,使用时间代理（冒泡）由父元素处理
   },
   directives: {
     MouseMenu: MouseMenuDirective,
   },
   setup() {
+    const store = useStore();
+
+    const { toClipboard } = useClipboard();
+    const copy = async (Msg) => {
+      try {
+        //复制
+        await toClipboard(Msg);
+        store.commit("setMsg", `分享链接已复制到剪贴板`);
+        //下面可以设置复制成功的提示框等操作
+        //...
+      } catch (e) {
+        //复制失败
+        console.error(e);
+      }
+    };
+
     return {
       isMobile: "ontouchstart" in window,
       options: {
@@ -91,14 +108,18 @@ export default {
           {
             label: "分享",
             tips: "Share This Song",
-            fn: (params, currentEl, bindingEl, e) =>
-              console.log("share", params, currentEl, bindingEl, e),
+            fn: (params, currentEl, bindingEl, e) => {
+              copy(store.getters.getMusicIdByIndex(params));
+              console.log("share", params, currentEl, bindingEl, e);
+            },
           },
           {
             label: "精准空降",
             tips: "Share This Moment",
-            fn: (params, currentEl, bindingEl, e) =>
-              console.log("share this moment", params, currentEl, bindingEl, e),
+            fn: (params, currentEl, bindingEl, e) => {
+              copy(store.getters.getThisMoment);
+              console.log("share this moment", params, currentEl, bindingEl, e);
+            },
           },
           // {
           //   label: "删除",

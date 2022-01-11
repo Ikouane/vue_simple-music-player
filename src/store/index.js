@@ -8,10 +8,11 @@ export default createStore({
     _uuid: "",
     _ws: null,
     _singleMusicMode: false,
+    _timer: null,
     _play: {
       isPlaying: false,
       nowPlaying: 0,
-      playTime: 0,
+      playTime: 0, //ms
       mode: "day", //Or "night"
       nowPage: "PLAYING NOW", //Or "PLAYLIST", "musicLrc"
       message: {
@@ -538,9 +539,9 @@ export default createStore({
       state._singleMusicMode = true;
     },
 
-    // 分享单曲
-    shareSingleMusic(state) {
-      console.log(state._play.nowPlaying);
+    // 设置定时器
+    set_Timer(state, value) {
+      state._timer = value;
     },
   },
   actions: {
@@ -646,6 +647,15 @@ export default createStore({
         " - " +
         state._playlist[state._play.nowPlaying].musicAuthor
       );
+    },
+    // 精准空降
+    getThisMoment(state) {
+      return `https://music.weyoung.tech?mid=${
+        state._playlist[state._play.nowPlaying].musicId
+      }&st=${state._play.playTime}`;
+    },
+    getMusicIdByIndex: (state) => (id) => {
+      return `https://music.weyoung.tech?mid=${state._playlist[id].musicId}`;
     },
   },
   modules: {},
