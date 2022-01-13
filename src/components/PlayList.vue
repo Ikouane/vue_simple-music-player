@@ -2,12 +2,13 @@
   <div @click="handelClick($event)" :class="slide" id="list">
     <ListItem
       v-for="(item, i) in _playlist"
-      v-bind:key="i"
+      :key="item.musicId"
       :title="item.musicName"
       :subTitle="item.musicAuthor"
       :active="i === _play.nowPlaying"
       :skip="item.skip || false"
       :listIndex="i"
+      :label="item.recommendReason"
     />
   </div>
   <div class="mask"></div>
@@ -34,20 +35,20 @@ export default {
     ListItem,
   },
   methods: {
-    ...mapMutations(["playSwitch", "goPlay"]),
+    ...mapMutations(["playSwitch", "goPlay", "setMsg"]),
     handelClick(e) {
       let index = parseInt(e.target.getAttribute("data-index"));
       if (this._playlist[index]) {
         if (this._playlist[index].skip) {
           e.preventDefault();
-          console.log("无法播放");
+          this.setMsg("该歌曲无法播放");
         } else {
           if (!Number.isNaN(index)) {
             if (this._play.nowPlaying === index) {
               //当点击的是当前的音乐时切换播放状态
               this.playSwitch();
             } else {
-              this.goPlay(index);
+              this.goPlay({ desIndex: index });
             }
           } else console.log(index);
         }

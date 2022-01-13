@@ -18,7 +18,7 @@ export default {
     Main,
   },
   computed: {
-    ...mapState(["_play", "_playlist"]),
+    ...mapState(["_play", "_playlist", "_dailyMode"]),
   },
   methods: {
     ...mapMutations([
@@ -37,6 +37,7 @@ export default {
       "setSingleMusicMode",
       "setMsg",
       "goTime",
+      "setDailyMode",
     ]),
     ...mapActions(["playSync"]),
   },
@@ -56,7 +57,8 @@ export default {
     let pid = getQueryVariable("pid"),
       rid = getQueryVariable("rid"),
       mid = getQueryVariable("mid"),
-      startTime = getQueryVariable("st");
+      startTime = getQueryVariable("st"),
+      dailyMode = getQueryVariable("daily");
 
     if (mid) {
       console.log("单音乐模式");
@@ -65,7 +67,7 @@ export default {
         `https://api.weyoung.tech/vue_simple-music-player/get.php?mid=${mid}`
       )
         .then((response) => {
-          console.log(response.data);
+          // console.log(response.data);
           _this.setStore(response.data);
           _this.setSingleMusicMode();
           if (response.data._play.mode === "night")
@@ -75,7 +77,7 @@ export default {
 
           if (startTime) {
             console.log("精准空降", startTime);
-            _this.goTime(startTime);
+            _this.goTime({ desTime: startTime });
           }
         })
         .catch(function (error) {
@@ -88,10 +90,16 @@ export default {
           console.log("发现本地数据");
           this.getLocal();
         } else {
+          let url = "https://api.weyoung.tech/vue_simple-music-player/get.php";
+          if (dailyMode) {
+            this.setDailyMode();
+            url =
+              "https://api.weyoung.tech/vue_simple-music-player/get.php?method=daily_recommend_songs";
+          }
           const _this = this;
-          Axios.get("https://api.weyoung.tech/vue_simple-music-player/get.php")
+          Axios.get(url)
             .then((response) => {
-              console.log(response.data);
+              // console.log(response.data);
               _this.setStore(response.data);
               if (response.data._play.mode === "night")
                 document
@@ -115,15 +123,14 @@ export default {
             });
         }
       } else {
-        // FIXME: this.setPid(pid);
-        // FIXME: 多条消息同时发出时，后面的消息如何稍后出现
+        this.setPid(pid);
         console.log("获取目标歌单");
         const _this = this;
         Axios.get(
           `https://api.weyoung.tech/vue_simple-music-player/get.php?pid=${pid}`
         )
           .then((response) => {
-            console.log(response.data);
+            // console.log(response.data);
             if (response.data.status == "wrong") this.setMsg("歌单不存在");
             else _this.setStore(response.data);
           })
@@ -137,12 +144,12 @@ export default {
     let listeners = {
       dark: (mediaQueryList) => {
         if (mediaQueryList.matches) {
-          this.modeSwitch("night");
+          this.modeSwitch({ target: "night" });
         }
       },
       light: (mediaQueryList) => {
         if (mediaQueryList.matches) {
-          this.modeSwitch("day");
+          this.modeSwitch({ target: "day" });
         }
       },
     };
@@ -239,6 +246,14 @@ $dark_border_color: var(--dark_border_color);
 //   -webkit-font-smoothing: antialiased;
 //   -moz-osx-font-smoothing: grayscale;
 // }
+
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img {
+  user-select: none;
+}
 
 body {
   min-height: 100vh;

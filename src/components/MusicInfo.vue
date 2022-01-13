@@ -147,13 +147,13 @@ export default {
           (event.clientX - otimebar_in.getBoundingClientRect().left) +
           "px"
       );
-      this.goTime(
-        parseInt(
+      this.goTime({
+        desTime: parseInt(
           ((event.clientX - otimebar_in.getBoundingClientRect().left) /
             otimebar_out.offsetWidth) *
             music.duration
-        )
-      ); //不能使用 offsetLeft 代替 jq.offset().left
+        ),
+      }); //不能使用 offsetLeft 代替 jq.offset().left
       this.nowLength = this.nowLengthCal(music);
     },
 
@@ -203,9 +203,11 @@ export default {
           console.log("未发生拖拽");
         } else {
           console.log("拖拽结束");
-          this.goTime(
-            parseInt((this.left / otimebar_out.offsetWidth) * music.duration)
-          );
+          this.goTime({
+            desTime: parseInt(
+              (this.left / otimebar_out.offsetWidth) * music.duration
+            ),
+          });
           this.nowLength = this.nowLengthCal(document.getElementById("music"));
           this.left = null;
           this.drag = false;
@@ -386,7 +388,7 @@ export default {
 
     $music.addEventListener("error", () => {
       console.log("无法播放，已为您跳过。");
-      this.next("wrong");
+      this.next({ hasWrong: "wrong" });
       this.skipMusic(this._play.nowPlaying);
     });
 
@@ -462,14 +464,23 @@ export default {
       $("#music-name").shake(1, 40, 100, "top");
       $(".music-author").shake(1, 30, 100, "top");
 
-      $("#music-name").css(
-        "--overflow_width",
-        parseInt(document.getElementById("music-name").offsetWidth) - 360 < 0
-          ? "0px"
-          : 360 -
-              parseInt(document.getElementById("music-name").offsetWidth) +
-              "px"
-      );
+      const el_music_name = document.getElementById("music-name");
+
+      setTimeout(() => {
+        // 判断歌名是否超长
+        if (parseInt(el_music_name.offsetWidth) >= 324) {
+          // 超长则滚动
+          el_music_name.classList.add("animation");
+          el_music_name.style.setProperty(
+            "--overflow_width_name",
+            `${
+              parseInt(el_music_name.offsetWidth) - 360 < 0
+                ? "0"
+                : 360 - parseInt(el_music_name.offsetWidth)
+            }px`
+          );
+        } else el_music_name.classList.remove("animation");
+      }, 0);
 
       this.setImageBackground();
 
@@ -719,7 +730,7 @@ $dark_border_color: var(--dark_border_color);
           transform: translateX(0%);
         }
         50% {
-          transform: translateX(var(--overflow_width));
+          transform: translateX(var(--overflow_width_name));
         }
         100% {
           transform: translateX(0%);
@@ -728,7 +739,10 @@ $dark_border_color: var(--dark_border_color);
 
       display: inline-block;
       white-space: nowrap;
-      animation: gothrough 10s ease-in-out infinite;
+
+      &.animation {
+        animation: gothrough 10s ease-in-out 3;
+      }
     }
 
     .dark & {

@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-01 22:03:57
+ * @LastEditTime: 2022-01-13 14:21:35
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -11,10 +11,20 @@
     <Button
       size="middle"
       title="切换主题"
-      :bindtap="mode_switch"
+      :bindtap="modeSwitch"
       type="fa fa-paint-brush"
     />
-    <div class="title" title="正在播放" @click="if (_rid) $emit('share-room');">
+    <div
+      class="title"
+      :class="{
+        signal_icon: _rid !== '' && _play.nowPage != 'PLAYLIST',
+        green: _signalColor === 'green',
+        yellow: _signalColor === 'yellow',
+        red: _signalColor === 'red',
+      }"
+      title="正在播放"
+      @click="if (_rid) $emit('share-room');"
+    >
       {{
         _rid === ""
           ? _play.nowPage
@@ -26,7 +36,7 @@
     <Button
       size="middle"
       title="播放列表"
-      :bindtap="list_switch"
+      :bindtap="listSwitch"
       type="fa fa-bars"
     />
   </div>
@@ -41,10 +51,10 @@ export default {
     Button,
   },
   computed: {
-    ...mapState(["_play", "_rid"]),
+    ...mapState(["_play", "_rid", "_signalColor"]),
   },
   methods: {
-    ...mapMutations({ list_switch: "listSwitch", mode_switch: "modeSwitch" }),
+    ...mapMutations(["listSwitch", "modeSwitch"]),
   },
 };
 </script>
@@ -81,6 +91,30 @@ $dark_border_color: var(--dark_border_color);
     color: $text_color;
     cursor: pointer;
     user-select: none;
+    position: relative;
+
+    &.signal_icon::before {
+      position: absolute;
+      left: -10px;
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      top: 50%;
+      transform: translateY(-50%);
+    }
+
+    &.green::before {
+      background-color: #2ecc71;
+    }
+
+    &.yellow::before {
+      background-color: #f1c40f;
+    }
+
+    &.red::before {
+      background-color: #e74c3c;
+    }
   }
 }
 </style>

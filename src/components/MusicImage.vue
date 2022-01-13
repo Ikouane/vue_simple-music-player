@@ -20,6 +20,9 @@
         v-show="size === 'small'"
         size="middle"
         title="更多"
+        :disabled="
+          _dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
+        "
         :bindtap="getMore"
         type="fa fa-ellipsis-h"
       />
@@ -45,6 +48,7 @@
         v-show="size === 'small'"
         size="middle"
         title="备份数据到云端"
+        :disabled="Boolean(_pid)"
         :bindtap="saveList"
         type="fas fa-cloud-upload-alt"
       />
@@ -84,7 +88,15 @@ export default {
     },
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_success"]),
+    ...mapState([
+      "_play",
+      "_playlist",
+      "_success",
+      "_dailyMode",
+      "_rid",
+      "_pid",
+      "_mid",
+    ]),
   },
   methods: {
     ...mapMutations([

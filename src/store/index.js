@@ -1,11 +1,15 @@
 import { createStore } from "vuex";
+import useClipboard from "vue-clipboard3";
 
 export default createStore({
   state: {
     _success: false,
-    _pid: "",
-    _rid: "",
-    _uuid: "",
+    _pid: null,
+    _rid: null,
+    _uid: null,
+    _uuid: null,
+    _dailyMode: false,
+    _signalColor: null,
     _ws: null,
     _singleMusicMode: false,
     _timer: null,
@@ -224,19 +228,14 @@ export default createStore({
       // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
       // state._play.isPlaying = true
     },
-    next(state, hasWrong, needSync = true) {
-      if (typeof hasWrong == "object" && hasWrong.length === 2) {
-        hasWrong = hasWrong[0];
-        needSync = hasWrong[1];
-      }
-
-      if (needSync && state._ws)
+    next(state, args = { hasWrong: false, needSync: true }) {
+      if (args.needSync && state._ws)
         state._ws.send(
           JSON.stringify({
             type: "cn",
             uuid: state._uuid,
             action: "next",
-            hasWrong,
+            hasWrong: args.hasWrong,
           })
         );
       let v = document.getElementById("music").volume;
@@ -273,19 +272,14 @@ export default createStore({
         }
       }, 75);
 
-      if (hasWrong === "wrong") {
+      if (args.hasWrong === "wrong") {
         this.commit("setMsg", "播放出错，已为您跳过");
       }
 
       // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
       // state._play.isPlaying = true
     },
-    goPlay(state, desIndex, needSync = true) {
-      if (typeof desIndex == "object" && desIndex.length === 2) {
-        desIndex = desIndex[0];
-        needSync = desIndex[1];
-      }
-
+    goPlay(state, { desIndex, needSync = true }) {
       if (state._playlist[desIndex].skip) {
         // 跳过歌曲时处理
         console.log("该歌曲无法播放，已为您播放下一首");
@@ -332,12 +326,7 @@ export default createStore({
         // state._play.isPlaying = true
       }
     },
-    goTime(state, desTime, needSync = true) {
-      if (typeof desTime == "object" && desTime.length === 2) {
-        desTime = desTime[0];
-        needSync = desTime[1];
-      }
-
+    goTime(state, { desTime, needSync = true }) {
       if (needSync && state._ws)
         state._ws.send(
           JSON.stringify({
@@ -358,10 +347,14 @@ export default createStore({
       if (!state._play.isPlaying) document.getElementById("music").pause(); //当音乐没播放时，调整进度会直接播放音乐，已修复
     },
     addTime() {
-      this.commit("goTime", document.getElementById("music").currentTime + 10);
+      this.commit("goTime", {
+        desTime: document.getElementById("music").currentTime + 10,
+      });
     },
     minusTime() {
-      this.commit("goTime", document.getElementById("music").currentTime - 10);
+      this.commit("goTime", {
+        desTime: document.getElementById("music").currentTime - 10,
+      });
     },
     setTime(state, time) {
       state._play.playTime = time;
@@ -377,24 +370,11 @@ export default createStore({
         state._play.nowPage = "PLAYLIST";
       else state._play.nowPage = "PLAYING NOW";
     },
-    modeSwitch(state, target, needSync = true) {
+    modeSwitch(state, args = { target: null, needSync: true }) {
       document.querySelector("body").classList.remove("imgBg");
-      if (typeof target == "object" && target.length === 2) {
-        target = target[0];
-        needSync = target[1];
-      }
-      if (needSync && state._ws)
-        state._ws.send(
-          JSON.stringify({
-            type: "cn",
-            uuid: state._uuid,
-            action: "modeSwitch",
-            target,
-          })
-        );
 
-      if (target === "night" || target === "day") {
-        state._play.mode = target;
+      if (args.target === "night" || args.target === "day") {
+        state._play.mode = args.target;
         if (state._play.mode === "day") {
           document
             .querySelector("body")
@@ -421,6 +401,16 @@ export default createStore({
           this.commit("setMsg", "已切换至日间模式");
         }
       }
+
+      if (args.needSync && state._ws)
+        state._ws.send(
+          JSON.stringify({
+            type: "cn",
+            uuid: state._uuid,
+            action: "modeSwitch",
+            target: state._play.mode,
+          })
+        );
     },
     switchLike(state, needSync = true) {
       if (needSync && state._ws)
@@ -543,6 +533,31 @@ export default createStore({
     set_Timer(state, value) {
       state._timer = value;
     },
+
+    // 复制文本到剪贴板
+    async copyToClipBoard(state, text) {
+      const { toClipboard } = useClipboard();
+      try {
+        //复制
+        await toClipboard(text);
+        this.commit("setMsg", `分享链接已复制到剪贴板`);
+        //下面可以设置复制成功的提示框等操作
+        //...
+      } catch (e) {
+        //复制失败
+        console.error(e);
+      }
+    },
+
+    // 设置每日推荐模式
+    setDailyMode(state) {
+      state._dailyMode = true;
+    },
+
+    // 设置通知灯颜色
+    setSignalColor(state, desColor) {
+      state._signalColor = desColor;
+    },
   },
   actions: {
     playSync({ commit, rootState }) {
@@ -552,6 +567,7 @@ export default createStore({
       rootState._ws = ws;
       ws.onopen = () => {
         console.log("已连接至服务器.");
+        commit("setSignalColor", "green");
         ws.send(
           JSON.stringify({
             user: "ikouane",
@@ -569,7 +585,7 @@ export default createStore({
               JSON.stringify({
                 type: "c2",
                 uuid: rootState._uuid,
-                user: "ikouane",
+                user: rootState._uid,
                 rid: rootState._rid,
               })
             );
@@ -608,27 +624,32 @@ export default createStore({
             console.log(`[用户消息]: ${res.msg}`);
             break;
           case "roomPlaySyncPush":
+            commit("setSignalColor", "yellow");
             if (res.action === "setStore") {
               commit("setStore", res.data);
             } else if (res.action === "next") {
               commit("next", [res.hasWrong, false]);
               commit("setMsg", `收到同步命令：下一首`);
             } else if (res.action === "modeSwitch") {
-              commit("modeSwitch", [res.target, false]);
+              commit("modeSwitch", { target: res.target, needSync: false });
               commit("setMsg", `收到同步命令：模式切换`);
             } else if (res.action === "goTime") {
-              commit("goTime", [res.desTime, false]);
+              commit("goTime", { desTime: res.desTime, needSync: false });
               commit("setMsg", `收到同步命令：进度调整`);
             } else if (res.action === "goPlay") {
-              commit("goPlay", [res.desIndex, false]);
+              commit("goPlay", { desIndex: res.desIndex, needSync: false });
               commit("setMsg", `收到同步命令：歌曲切换`);
             } else if (res.action === "prev") {
               commit("setMsg", `收到同步命令：上一首`);
-            } else commit(res.action, false);
-            console.log("收到同步命令.");
+            } else {
+              commit(res.action, false);
+              console.log("收到同步命令.");
+              commit("setSignalColor", "green");
+            }
             break;
           case "roomPlaySyncMsg":
             console.log(`收到同步结果：${res.msg}`);
+            commit("setSignalColor", "green");
             break;
           default:
             break;
@@ -641,6 +662,7 @@ export default createStore({
     },
   },
   getters: {
+    // 获取音乐 - 艺术家 名称
     getContent(state) {
       return (
         state._playlist[state._play.nowPlaying].musicName +
@@ -654,8 +676,14 @@ export default createStore({
         state._playlist[state._play.nowPlaying].musicId
       }&st=${state._play.playTime}`;
     },
+    // 根据 Index 获取 Id
     getMusicIdByIndex: (state) => (id) => {
       return `https://music.weyoung.tech?mid=${state._playlist[id].musicId}`;
+    },
+
+    // 获取显示模式
+    getMode(state) {
+      return state._play.mode;
     },
   },
   modules: {},

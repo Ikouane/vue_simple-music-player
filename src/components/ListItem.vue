@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-11 18:02:56
+ * @LastEditTime: 2022-01-13 17:23:16
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -15,9 +15,13 @@
       params: listIndex,
       ...options,
     }"
+    :title="label"
   >
     <div class="music-info">
-      <span>{{ title }}</span>
+      <div class="title__wrapper">
+        <span class="label" v-if="label">{{ formatLabel(label) }}</span>
+        <span>{{ title }}</span>
+      </div>
       <span>{{ subTitle }}</span>
     </div>
     <Button
@@ -29,7 +33,6 @@
       :data-index="listIndex"
     />
     <!-- FIXME: 事件代理重写 -->
-    <!-- :bindtap="removeMusic(listIndex)" -->
     <div v-else>
       <Button
         size="small"
@@ -55,7 +58,7 @@
 import { mapState, mapMutations, useStore } from "vuex";
 import Button from "./Button";
 import { MouseMenuDirective } from "@howdyjs/mouse-menu";
-import useClipboard from "vue-clipboard3";
+
 export default {
   name: "ListItem",
   components: {
@@ -64,6 +67,10 @@ export default {
   props: {
     title: String,
     subTitle: String,
+    label: {
+      type: String,
+      default: "",
+    },
     active: {
       type: Boolean,
       default: false,
@@ -78,27 +85,20 @@ export default {
     ...mapState(["_play", "_playlist"]),
   },
   methods: {
-    ...mapMutations(["play", "pause", "removeMusic", "setMsg"]), //B,使用时间代理（冒泡）由父元素处理
+    ...mapMutations(["play", "pause", "setMsg"]), //B,使用时间代理（冒泡）由父元素处理
+
+    formatLabel(label) {
+      if (label == "根据你的口味") {
+        return "推";
+      }
+      return "猜";
+    },
   },
   directives: {
     MouseMenu: MouseMenuDirective,
   },
   setup() {
     const store = useStore();
-
-    const { toClipboard } = useClipboard();
-    const copy = async (Msg) => {
-      try {
-        //复制
-        await toClipboard(Msg);
-        store.commit("setMsg", `分享链接已复制到剪贴板`);
-        //下面可以设置复制成功的提示框等操作
-        //...
-      } catch (e) {
-        //复制失败
-        console.error(e);
-      }
-    };
 
     return {
       isMobile: "ontouchstart" in window,
@@ -109,7 +109,10 @@ export default {
             label: "分享",
             tips: "Share This Song",
             fn: (params, currentEl, bindingEl, e) => {
-              copy(store.getters.getMusicIdByIndex(params));
+              store.commit(
+                "copyToClipBoard",
+                store.getters.getMusicIdByIndex(params)
+              );
               console.log("share", params, currentEl, bindingEl, e);
             },
           },
@@ -117,9 +120,25 @@ export default {
             label: "精准空降",
             tips: "Share This Moment",
             fn: (params, currentEl, bindingEl, e) => {
-              copy(store.getters.getThisMoment);
+              store.commit("copyToClipBoard", store.getters.getThisMoment);
               console.log("share this moment", params, currentEl, bindingEl, e);
             },
+          },
+          {
+            label: "*移除歌单",
+            tips: "Remove This Song",
+            fn: (params, currentEl, bindingEl, e) => {
+              store.commit("removeMusic", params);
+              console.log("remove", params, currentEl, bindingEl, e);
+            },
+            disabled: () => {
+              if (store.state._dailyMode) return true;
+              return false;
+            },
+          },
+          {
+            label: "*为实验功能*",
+            disabled: () => true,
           },
           // {
           //   label: "删除",
@@ -159,7 +178,8 @@ export default {
 
   //Feature text-shadow: 0 0 1px #ccc;
 
-  &.active {
+  &.active,
+  &:hover {
     background-color: rgba(#84a4ff, 0.1);
     box-shadow: 0 0 1px 2px rgba(0, 0, 0, 0.01) inset;
     border-radius: 10px;
@@ -185,10 +205,34 @@ export default {
     pointer-events: none;
     line-height: 20px;
 
-    & span:nth-child(1) {
-      color: var(--title_color);
-      font-weight: bold;
-      margin-bottom: 3px;
+    .title__wrapper {
+      display: flex;
+      align-items: center;
+
+      span {
+        color: var(--title_color);
+        font-weight: bold;
+        margin-bottom: 3px;
+      }
+
+      .label {
+        background-color: var(--active_color);
+        padding: 4px;
+        line-height: 100%;
+        box-sizing: border-box;
+        margin-right: 5px;
+        color: #ffffff;
+        display: inline-block;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        transform: scale(0.9);
+
+        .dark & {
+          background-color: var(--dark_active_color);
+        }
+      }
     }
 
     & span:nth-child(2) {

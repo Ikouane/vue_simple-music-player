@@ -60,7 +60,6 @@ export default {
       if (this._timer) clearTimeout(this._timer);
       this.set_Timer(
         setTimeout(() => {
-          console.log("时间到" + this.isShow);
           this.clearMsg();
           this.isShow = false;
           clearTimeout(this._timer);
