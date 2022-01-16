@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-13 17:23:16
+ * @LastEditTime: 2022-01-16 13:53:27
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -101,9 +101,9 @@ export default {
     const store = useStore();
 
     return {
-      isMobile: "ontouchstart" in window,
+      // isMobile: "ontouchstart" in window,
       options: {
-        useLongPressInMobile: true,
+        // useLongPressInMobile: true,
         menuList: [
           {
             label: "分享",
@@ -218,6 +218,8 @@ export default {
       .label {
         background-color: var(--active_color);
         padding: 4px;
+        min-height: 22px;
+        min-width: 22px;
         line-height: 100%;
         box-sizing: border-box;
         margin-right: 5px;
@@ -228,6 +230,7 @@ export default {
         justify-content: center;
         align-items: center;
         transform: scale(0.9);
+        user-select: none;
 
         .dark & {
           background-color: var(--dark_active_color);
