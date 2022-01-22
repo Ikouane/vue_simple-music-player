@@ -111,6 +111,7 @@ export default {
       "setStore",
       "skipMusic",
       "setImageBackground",
+      "setMsg",
     ]),
 
     formatTime(timeNum) {
@@ -388,7 +389,10 @@ export default {
 
     $music.addEventListener("error", () => {
       console.log("无法播放，已为您跳过。");
-      this.next({ hasWrong: "wrong" });
+      if (this._playlist.length == 1) {
+        this.pause(false);
+        this.setMsg(`播放出错，已为您暂停`);
+      } else this.next({ hasWrong: "wrong" });
       this.skipMusic(this._play.nowPlaying);
     });
 

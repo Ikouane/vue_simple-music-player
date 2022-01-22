@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-13 14:21:35
+ * @LastEditTime: 2022-01-22 15:34:41
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -17,7 +17,7 @@
     <div
       class="title"
       :class="{
-        signal_icon: _rid !== '' && _play.nowPage != 'PLAYLIST',
+        signal_icon: _rid !== null && _play.nowPage != 'PLAYLIST',
         green: _signalColor === 'green',
         yellow: _signalColor === 'yellow',
         red: _signalColor === 'red',
@@ -26,7 +26,7 @@
       @click="if (_rid) $emit('share-room');"
     >
       {{
-        _rid === ""
+        _rid === null
           ? _play.nowPage
           : _play.nowPage === "PLAYING NOW"
           ? "PLAYING TOGETHER"

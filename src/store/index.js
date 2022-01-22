@@ -558,6 +558,13 @@ export default createStore({
     setSignalColor(state, desColor) {
       state._signalColor = desColor;
     },
+
+    // 替换音乐源（游客无法播放时）
+    replaceMusicUrl(state, { musicIndex, musicUrl }) {
+      state._playlist[musicIndex].musicUrl = musicUrl;
+      state._playlist[musicIndex].skip = false;
+      this.commit("goPlay", { desIndex: musicIndex });
+    },
   },
   actions: {
     playSync({ commit, rootState }) {
@@ -670,12 +677,14 @@ export default createStore({
         state._playlist[state._play.nowPlaying].musicAuthor
       );
     },
+
     // 精准空降
     getThisMoment(state) {
       return `https://music.weyoung.tech?mid=${
         state._playlist[state._play.nowPlaying].musicId
       }&st=${state._play.playTime}`;
     },
+
     // 根据 Index 获取 Id
     getMusicIdByIndex: (state) => (id) => {
       return `https://music.weyoung.tech?mid=${state._playlist[id].musicId}`;

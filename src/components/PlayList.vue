@@ -18,6 +18,7 @@
 import ListItem from "./ListItem";
 import { mapState, mapMutations } from "vuex";
 import $ from "jquery";
+import Axios from "axios";
 import "@/assets/index.css";
 export default {
   name: "PlayList",
@@ -35,13 +36,30 @@ export default {
     ListItem,
   },
   methods: {
-    ...mapMutations(["playSwitch", "goPlay", "setMsg"]),
+    ...mapMutations(["playSwitch", "goPlay", "setMsg", "replaceMusicUrl"]),
     handelClick(e) {
       let index = parseInt(e.target.getAttribute("data-index"));
       if (this._playlist[index]) {
         if (this._playlist[index].skip) {
           e.preventDefault();
-          this.setMsg("该歌曲无法播放");
+          this.setMsg(`该歌曲无法播放，将再次尝试`);
+          // FIXME: 目前重试只能在列表中点击进行，需要修改至全局
+          const _this = this;
+          Axios.get(
+            `https://api.weyoung.tech/vue_simple-music-player/get.php?sid=${this._playlist[index].musicId}`
+          )
+            .then((response) => {
+              _this.replaceMusicUrl({
+                musicIndex: index,
+                musicId: response.data.musicId,
+                musicUrl: response.data.musicUrl,
+              });
+              _this.setMsg(`歌曲已播放`);
+            })
+            .catch(function (error) {
+              // 请求失败处理
+              console.log(error);
+            });
         } else {
           if (!Number.isNaN(index)) {
             if (this._play.nowPlaying === index) {
