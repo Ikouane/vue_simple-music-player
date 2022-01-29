@@ -1,5 +1,6 @@
 import { createStore } from "vuex";
 import useClipboard from "vue-clipboard3";
+import Axios from "axios";
 
 export default createStore({
   state: {
@@ -413,6 +414,7 @@ export default createStore({
         );
     },
     switchLike(state, needSync = true) {
+      let _this = this;
       if (needSync && state._ws)
         state._ws.send(
           JSON.stringify({
@@ -423,11 +425,30 @@ export default createStore({
         );
       if (state._playlist[state._play.nowPlaying].isLike) {
         console.log("取消我喜欢");
-        this.commit("setMsg", "已移出我喜欢");
       } else {
         console.log("我喜欢");
-        this.commit("setMsg", "已添加至我喜欢");
       }
+
+      Axios.get(
+        `https://api.weyoung.tech/vue_simple-music-player/get.php?method=like&mid=${
+          state._playlist[state._play.nowPlaying].musicId
+        }&like=${!state._playlist[state._play.nowPlaying].isLike}`
+      )
+        .then((response) => {
+          if (response.data.status == 200) {
+            if (state._playlist[state._play.nowPlaying].isLike)
+              _this.commit("setMsg", "已移出我喜欢，并同步至网易云");
+            else _this.commit("setMsg", "已添加至我喜欢，并同步至网易云");
+          } else {
+            if (state._playlist[state._play.nowPlaying].isLike)
+              _this.commit("setMsg", "已移出我喜欢，同步网易云失败");
+            else _this.commit("setMsg", "已添加至我喜欢，同步网易云失败");
+          }
+        })
+        .catch(function (error) {
+          // 请求失败处理
+          console.log(error);
+        });
       state._playlist[state._play.nowPlaying].isLike =
         !state._playlist[state._play.nowPlaying].isLike;
     },
