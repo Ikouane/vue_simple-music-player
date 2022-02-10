@@ -126,7 +126,9 @@ export default {
     saveList() {
       if (!this.hasChange) {
         console.log("数据未改变");
-        this.setMsg("距上次备份，数据未发生改变");
+        this.setMsg({
+          message: "距上次备份，数据未发生改变",
+        });
       } else {
         const _this = this;
         let data = new FormData();

@@ -42,7 +42,9 @@ export default {
       if (this._playlist[index]) {
         if (this._playlist[index].skip) {
           e.preventDefault();
-          this.setMsg(`该歌曲无法播放，将再次尝试`);
+          this.setMsg({
+            message: `该歌曲无法播放，将再次尝试`,
+          });
           // FIXME: 目前重试只能在列表中点击进行，需要修改至全局
           const _this = this;
           Axios.get(
@@ -54,7 +56,9 @@ export default {
                 musicId: response.data.musicId,
                 musicUrl: response.data.musicUrl,
               });
-              _this.setMsg(`歌曲已播放`);
+              _this.setMsg({
+                message: `歌曲已播放`,
+              });
             })
             .catch(function (error) {
               // 请求失败处理

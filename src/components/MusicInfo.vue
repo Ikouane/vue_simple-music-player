@@ -143,6 +143,12 @@ export default {
       const music = document.getElementById("music"),
         otimebar_out = document.getElementsByClassName("timebar_out")[0],
         otimebar_in = document.getElementsByClassName("timebar_in")[0];
+      if (this._playlist[this._nowPlaying].playEndTime) {
+        this.setMsg({
+          message: "您调整了进度，区间播放已取消",
+        });
+        this._playlist[this._nowPlaying].playEndTime = null;
+      }
       console.log(
         "调整进度条" +
           (event.clientX - otimebar_in.getBoundingClientRect().left) +
@@ -391,12 +397,23 @@ export default {
       console.log("无法播放，已为您跳过。");
       if (this._playlist.length == 1) {
         this.pause(false);
-        this.setMsg(`播放出错，已为您暂停`);
+        this.setMsg({
+          message: `播放出错，已为您暂停`,
+        });
       } else this.next({ hasWrong: "wrong" });
       this.skipMusic(this._play.nowPlaying);
     });
 
     $music.addEventListener("timeupdate", () => {
+      if (
+        this._playlist[this._nowPlaying].playEndTime &&
+        $music.currentTime >= this._playlist[this._nowPlaying].playEndTime
+      ) {
+        this.goTime({
+          desTime: this._playlist[this._nowPlaying].playStartTime,
+        });
+      }
+
       //TODO:防抖准备
 
       this.lrc_line = this.getLrc_line(

@@ -58,6 +58,7 @@ export default {
       rid = getQueryVariable("rid"),
       mid = getQueryVariable("mid"),
       startTime = getQueryVariable("st"),
+      endTime = getQueryVariable("et"),
       dailyMode = getQueryVariable("daily");
 
     if (mid) {
@@ -78,6 +79,15 @@ export default {
           if (startTime) {
             console.log("精准空降", startTime);
             _this.goTime({ desTime: startTime });
+            _this._playlist[0].playStartTime = startTime;
+
+            if (endTime) {
+              _this._playlist[0].playEndTime = endTime;
+              _this.setMsg({
+                message: "已进入区间播放模式，拖动进度条即可退出",
+                duration: 0,
+              });
+            }
           }
         })
         .catch(function (error) {
@@ -131,7 +141,10 @@ export default {
         )
           .then((response) => {
             // console.log(response.data);
-            if (response.data.status == "wrong") this.setMsg("歌单不存在");
+            if (response.data.status == "wrong")
+              this.setMsg({
+                message: "歌单不存在",
+              });
             else _this.setStore(response.data);
           })
           .catch(function (error) {

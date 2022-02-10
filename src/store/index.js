@@ -116,7 +116,10 @@ export default createStore({
     pause(state, showMsg = true) {
       state._play.isPlaying = false;
       document.getElementById("music").pause();
-      if (showMsg) this.commit("setMsg", "音乐已暂停");
+      if (showMsg)
+        this.commit("setMsg", {
+          message: "音乐已暂停",
+        });
     },
     play(state) {
       if (state._play.playTime > 0) {
@@ -125,7 +128,9 @@ export default createStore({
       state._play.isPlaying = true;
       document.getElementById("music").play();
       this.commit("updateTitle");
-      this.commit("setMsg", "音乐已播放");
+      this.commit("setMsg", {
+        message: "音乐已播放",
+      });
     },
     musicFadeIn(state, needSync = true) {
       this.commit("play");
@@ -274,7 +279,9 @@ export default createStore({
       }, 75);
 
       if (args.hasWrong === "wrong") {
-        this.commit("setMsg", "播放出错，已为您跳过");
+        this.commit("setMsg", {
+          message: "播放出错，已为您跳过",
+        });
       }
 
       // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
@@ -380,9 +387,13 @@ export default createStore({
           document
             .querySelector("body")
             .setAttribute("style", "background-color:var(--main_color)");
-          this.commit("setMsg", "已切换至日间模式");
+          this.commit("setMsg", {
+            message: "已切换至日间模式",
+          });
         } else {
-          this.commit("setMsg", "已切换至夜间模式");
+          this.commit("setMsg", {
+            message: "已切换至夜间模式",
+          });
           document
             .querySelector("body")
             .setAttribute("style", "background-color:var(--dark_main_color)");
@@ -390,7 +401,9 @@ export default createStore({
       } else {
         if (state._play.mode === "day") {
           state._play.mode = "night";
-          this.commit("setMsg", "已切换至夜间模式");
+          this.commit("setMsg", {
+            message: "已切换至夜间模式",
+          });
           document
             .querySelector("body")
             .setAttribute("style", "background-color:var(--dark_main_color)");
@@ -399,7 +412,9 @@ export default createStore({
             .querySelector("body")
             .setAttribute("style", "background-color:var(--main_color)");
           state._play.mode = "day";
-          this.commit("setMsg", "已切换至日间模式");
+          this.commit("setMsg", {
+            message: "已切换至日间模式",
+          });
         }
       }
 
@@ -437,36 +452,49 @@ export default createStore({
         .then((response) => {
           if (response.data.status == 200) {
             if (state._playlist[state._play.nowPlaying].isLike)
-              _this.commit("setMsg", "已移出我喜欢，并同步至网易云");
-            else _this.commit("setMsg", "已添加至我喜欢，并同步至网易云");
+              _this.commit("setMsg", {
+                message: "已移出我喜欢，并同步至网易云",
+              });
+            else
+              _this.commit("setMsg", {
+                message: "已添加至我喜欢，并同步至网易云",
+              });
           } else {
             if (state._playlist[state._play.nowPlaying].isLike)
-              _this.commit("setMsg", "已移出我喜欢，同步网易云失败");
-            else _this.commit("setMsg", "已添加至我喜欢，同步网易云失败");
+              _this.commit("setMsg", {
+                message: "已移出我喜欢，同步网易云失败",
+              });
+            else
+              _this.commit("setMsg", {
+                message: "已添加至我喜欢，同步网易云失败",
+              });
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           // 请求失败处理
           console.log(error);
         });
-      state._playlist[state._play.nowPlaying].isLike =
-        !state._playlist[state._play.nowPlaying].isLike;
+      state._playlist[state._play.nowPlaying].isLike = !state._playlist[
+        state._play.nowPlaying
+      ].isLike;
     },
     clearMsg(state) {
       state._play.message.show = false;
       state._play.message.content = null;
     },
-    setMsg(state, message) {
+    setMsg(state, { message, duration = 3000 }) {
       this.commit("clearMsg");
       setTimeout(() => {
         state._play.message.show = true;
-        state._play.message.duration = 3000;
+        state._play.message.duration = duration;
         state._play.message.content = message;
       }, 0);
     },
     addMore(state, o_PlayList) {
       state._playlist = state._playlist.concat(o_PlayList);
-      this.commit("setMsg", "已加载更多歌曲");
+      this.commit("setMsg", {
+        message: "已加载更多歌曲",
+      });
     },
     // 将歌曲移出播放列表（播放出错时）
     removeMusic(state, musicIndex) {
@@ -482,7 +510,9 @@ export default createStore({
     setPid(state, dPid) {
       if (dPid) {
         state._pid = dPid;
-        this.commit("setMsg", `当前歌单编号为：${dPid}`);
+        this.commit("setMsg", {
+          message: `当前歌单编号为：${dPid}`,
+        });
       }
     },
     setLocal(state) {
@@ -505,7 +535,9 @@ export default createStore({
     setRid(state, dRid) {
       if (dRid) {
         state._rid = dRid;
-        this.commit("setMsg", `您已进入${dRid}房间`);
+        this.commit("setMsg", {
+          message: `您已进入${dRid}房间`,
+        });
       }
     },
     setImageBackground(state) {
@@ -533,10 +565,14 @@ export default createStore({
           break;
       }
       if (state._play.volume == 0) {
-        this.commit("setMsg", `已静音`);
+        this.commit("setMsg", {
+          message: `已静音`,
+        });
         document.querySelector("audio").muted = true;
       } else {
-        this.commit("setMsg", `音量已调整至${state._play.volume}%`);
+        this.commit("setMsg", {
+          message: `音量已调整至${state._play.volume}%`,
+        });
         document.querySelector("audio").muted = false;
       }
 
@@ -561,7 +597,9 @@ export default createStore({
       try {
         //复制
         await toClipboard(text);
-        this.commit("setMsg", `分享链接已复制到剪贴板`);
+        this.commit("setMsg", {
+          message: `分享链接已复制到剪贴板`,
+        });
         //下面可以设置复制成功的提示框等操作
         //...
       } catch (e) {
@@ -643,7 +681,9 @@ export default createStore({
             break;
           case "sMsg": // 系统消息
             console.log(`[系统消息]: ${res.msg}`);
-            commit("setMsg", res.msg);
+            commit("setMsg", {
+              message: res.msg,
+            });
             break;
           case "mMsg": // 我发出的消息
             console.log(`[用户消息]: ${res.msg}`);
@@ -657,18 +697,28 @@ export default createStore({
               commit("setStore", res.data);
             } else if (res.action === "next") {
               commit("next", [res.hasWrong, false]);
-              commit("setMsg", `收到同步命令：下一首`);
+              commit("setMsg", {
+                message: `收到同步命令：下一首`,
+              });
             } else if (res.action === "modeSwitch") {
               commit("modeSwitch", { target: res.target, needSync: false });
-              commit("setMsg", `收到同步命令：模式切换`);
+              commit("setMsg", {
+                message: `收到同步命令：模式切换`,
+              });
             } else if (res.action === "goTime") {
               commit("goTime", { desTime: res.desTime, needSync: false });
-              commit("setMsg", `收到同步命令：进度调整`);
+              commit("setMsg", {
+                message: `收到同步命令：进度调整`,
+              });
             } else if (res.action === "goPlay") {
               commit("goPlay", { desIndex: res.desIndex, needSync: false });
-              commit("setMsg", `收到同步命令：歌曲切换`);
+              commit("setMsg", {
+                message: `收到同步命令：歌曲切换`,
+              });
             } else if (res.action === "prev") {
-              commit("setMsg", `收到同步命令：上一首`);
+              commit("setMsg", {
+                message: `收到同步命令：上一首`,
+              });
             } else {
               commit(res.action, false);
               console.log("收到同步命令.");
