@@ -1,6 +1,9 @@
 import { createStore } from "vuex";
 import useClipboard from "vue-clipboard3";
 import Axios from "axios";
+import wx from "weixin-js-sdk";
+
+console.log(wx);
 
 export default createStore({
   state: {
@@ -470,13 +473,12 @@ export default createStore({
               });
           }
         })
-        .catch(function(error) {
+        .catch(function (error) {
           // 请求失败处理
           console.log(error);
         });
-      state._playlist[state._play.nowPlaying].isLike = !state._playlist[
-        state._play.nowPlaying
-      ].isLike;
+      state._playlist[state._play.nowPlaying].isLike =
+        !state._playlist[state._play.nowPlaying].isLike;
     },
     clearMsg(state) {
       state._play.message.show = false;

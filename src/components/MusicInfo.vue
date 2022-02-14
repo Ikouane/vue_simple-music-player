@@ -412,6 +412,7 @@ export default {
         this.goTime({
           desTime: this._playlist[this._nowPlaying].playStartTime,
         });
+        this.setMsg({ message: "已回到区间起始点" });
       }
 
       //TODO:防抖准备
