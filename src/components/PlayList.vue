@@ -177,7 +177,7 @@ div {
 
 .slide-up {
   @media (max-width: 768px) {
-    height: calc(1rem - 320px);
+    max-height: calc(1rem - 320px);
   }
 
   // background: linear-gradient(
@@ -201,8 +201,8 @@ div {
 
   overflow: hidden;
   overflow-y: scroll;
-  height: 470px;
-  //height: 435px;
+  height: auto;
+  max-height: 470px;
   padding: 0 2px 0 0;
 }
 

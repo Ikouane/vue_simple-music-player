@@ -10,6 +10,7 @@ import Main from "./components/Main";
 import "@/assets/index.css";
 import { mapActions, mapMutations, mapState } from "vuex";
 import Axios from "axios";
+// import wx from "weixin-js-sdk";
 
 export default {
   name: "App",
@@ -212,6 +213,39 @@ export default {
         // _this.next();
       }
     };
+
+    // Axios.get(
+    //   `https://wechat.weyoung.tech:18518/activityWxShare?url=${encodeURIComponent(
+    //     window.location.href.split("#")[0]
+    //   )}`
+    // )
+    //   .then(function (response) {
+    //     var data = response.data;
+    //     wx.config({
+    //       debug: false, // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+    //       appId: data.appID, // 必填，公众号的唯一标识
+    //       timestamp: data.timestamp, // 必填，生成签名的时间戳
+    //       nonceStr: data.nonceStr, // 必填，生成签名的随机串
+    //       signature: data.signature, // 必填，签名，见附录1
+    //       jsApiList: ["updateAppMessageShareData", "updateTimelineShareData"],
+    //     });
+    //     wx.ready(function () {
+    //       //需在用户可能点击分享按钮前就先调用
+    //       wx.updateAppMessageShareData({
+    //         title: "未央宫", // 分享标题
+    //         desc: "未央宫", // 分享描述
+    //         link: window.location.href,
+    //         imgUrl: "", // 分享图标
+    //         success: function () {
+    //           // 设置成功
+    //           console.log("success");
+    //         },
+    //       });
+    //     });
+    //   })
+    //   .catch(function (error) {
+    //     console.error(error);
+    //   });
   },
 };
 

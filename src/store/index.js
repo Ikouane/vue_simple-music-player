@@ -1,9 +1,6 @@
 import { createStore } from "vuex";
 import useClipboard from "vue-clipboard3";
 import Axios from "axios";
-import wx from "weixin-js-sdk";
-
-console.log(wx);
 
 export default createStore({
   state: {
