@@ -911,12 +911,12 @@ $dark_border_color: var(--dark_border_color);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start;
     overflow: hidden;
 
     span {
+      min-width: 100%;
       line-height: 20px;
-
       display: inline-block;
       white-space: nowrap;
       //animation: gothrough_lrc 2s ease-in-out infinite;
