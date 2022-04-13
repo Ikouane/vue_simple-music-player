@@ -1,6 +1,7 @@
 import { createStore } from "vuex";
 import useClipboard from "vue-clipboard3";
 import Axios from "axios";
+import { nextTick } from "vue";
 
 export default createStore({
   state: {
@@ -14,6 +15,7 @@ export default createStore({
     _ws: null,
     _singleMusicMode: false,
     _timer: null,
+    _userTouch: false,
     _play: {
       isPlaying: false,
       nowPlaying: 0,
@@ -149,9 +151,9 @@ export default createStore({
         v += 0.1;
         if (v >= (state._play.volume / 100).toFixed(2)) {
           clearInterval(int);
-        } else {
-          document.getElementById("music").volume = v;
+          v = (state._play.volume / 100).toFixed(2);
         }
+        document.getElementById("music").volume = v;
       }, 100);
     },
     musicFadeOut(state, needSync = true) {
@@ -287,7 +289,7 @@ export default createStore({
       // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
       // state._play.isPlaying = true
     },
-    goPlay(state, { desIndex, needSync = true }) {
+    goPlay(state, { desIndex, needSync = true, needPlay = true }) {
       if (state._playlist[desIndex].skip) {
         // 跳过歌曲时处理
         console.log("该歌曲无法播放，已为您播放下一首");
@@ -302,36 +304,37 @@ export default createStore({
               desIndex,
             })
           );
-
-        let v = document.getElementById("music").volume;
-        let int = setInterval(() => {
-          console.log("渐出");
-          v -= 0.1;
-          if (v <= 0) {
-            state._play.isPlaying = false;
-            //this.commit('pause');
-            state._play.nowPlaying = desIndex;
-            //this.commit('play');
-            state._play.isPlaying = true;
-            this.commit("updateTitle");
-            let v2 = document.getElementById("music").volume;
-            let int2 = setInterval(() => {
-              console.log("渐入");
-              v2 += 0.1;
-              if (v2 >= (state._play.volume / 100).toFixed(2)) {
-                clearInterval(int2);
-              } else {
-                document.getElementById("music").volume = v2;
+        const musicEl = document.getElementById("music");
+        nextTick(() => {
+          let v = musicEl.volume;
+          let int = setInterval(() => {
+            console.log("渐出");
+            v -= 0.1;
+            if (v <= 0) {
+              // state._play.isPlaying = false;
+              // this.commit("pause");
+              state._play.nowPlaying = desIndex;
+              if (needPlay) {
+                this.commit("play");
+                state._play.isPlaying = true;
               }
-            }, 100);
-            clearInterval(int);
-          } else {
-            document.getElementById("music").volume = v;
-          }
-        }, 50);
-        // state._play.isPlaying = false
-        // state._play.nowPlaying = desIndex
-        // state._play.isPlaying = true
+              this.commit("updateTitle");
+              let v2 = musicEl.volume;
+              let int2 = setInterval(() => {
+                console.log("渐入");
+                v2 += 0.1;
+                if (v2 >= (state._play.volume / 100).toFixed(2)) {
+                  clearInterval(int2);
+                } else {
+                  musicEl.volume = v2;
+                }
+              }, 100);
+              clearInterval(int);
+            } else {
+              musicEl.volume = v;
+            }
+          }, 50);
+        });
       }
     },
     goTime(state, { desTime, needSync = true }) {
@@ -352,7 +355,10 @@ export default createStore({
       }
       document.getElementById("music").currentTime = desTime;
       state._play.playTime = desTime;
-      if (!state._play.isPlaying) document.getElementById("music").pause(); //当音乐没播放时，调整进度会直接播放音乐，已修复
+      //当音乐没播放时，调整进度会直接播放音乐，已修复
+      if (state._play.isPlaying) {
+        //
+      } else document.getElementById("music").pause();
     },
     addTime() {
       this.commit("goTime", {
@@ -618,10 +624,15 @@ export default createStore({
     },
 
     // 替换音乐源（游客无法播放时）
-    replaceMusicUrl(state, { musicIndex, musicUrl }) {
+    replaceMusicUrl(state, { musicIndex, musicUrl, needPlay }) {
       state._playlist[musicIndex].musicUrl = musicUrl;
       state._playlist[musicIndex].skip = false;
-      this.commit("goPlay", { desIndex: musicIndex });
+      this.commit("goPlay", { desIndex: musicIndex, needPlay });
+    },
+
+    // 设置已触碰
+    setAlreadyTouch(state) {
+      state._userTouch = true;
     },
   },
   actions: {
@@ -736,6 +747,33 @@ export default createStore({
       ws.onclose = () => {
         console.log("与服务器断开连接.");
       };
+    },
+
+    retryAfterPlayFail({ commit, rootState }, { index = 0, needPlay = true }) {
+      Axios.get(
+        `https://api.weyoung.tech/vue_simple-music-player/get.php?sid=${rootState._playlist[index].musicId}`
+      )
+        .then((response) => {
+          commit("replaceMusicUrl", {
+            musicIndex: index,
+            musicId: response.data.musicId,
+            musicUrl: response.data.musicUrl,
+            needPlay,
+          });
+          if (needPlay) {
+            commit("setMsg", {
+              message: `歌曲已播放`,
+            });
+          } else {
+            commit("setMsg", {
+              message: `处于隐私安全，请手动播放`,
+            });
+          }
+        })
+        .catch(function (error) {
+          // 请求失败处理
+          console.log(error);
+        });
     },
   },
   getters: {

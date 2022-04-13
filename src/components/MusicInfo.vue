@@ -57,7 +57,7 @@
   </div>
 </template>
 <script>
-import { mapState, mapMutations } from "vuex";
+import { mapState, mapMutations, mapActions } from "vuex";
 import Axios from "axios";
 import $ from "jquery";
 export default {
@@ -83,6 +83,7 @@ export default {
       tlrcFormatArray: [], //歌词数组（格式化、翻译）
       timeArray: [], //歌词时间数组
       aboutAuthor: "", //作者介绍
+      musicId: null, // 音乐id
     };
   },
   props: {
@@ -92,7 +93,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(["_play", "_playlist"]),
+    ...mapState(["_play", "_playlist", "_userTouch"]),
     _nowPlaying() {
       return this._play.nowPlaying;
     },
@@ -113,6 +114,8 @@ export default {
       "setImageBackground",
       "setMsg",
     ]),
+
+    ...mapActions(["retryAfterPlayFail"]),
 
     formatTime(timeNum) {
       //补0，格式化数字
@@ -280,24 +283,30 @@ export default {
     //获取歌词（byid）
     getLrc() {
       const _this = this;
-      Axios.get(
-        "https://api.weyoung.tech/vue_simple-music-player/get.php?method=lrc&id=" +
-          _this._playlist[_this._play.nowPlaying].musicId
-      )
-        .then((response) => {
-          //console.log(response.data);
-          if (response.data.nolyric) {
-            _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
-          } else {
-            _this.lrc = response.data.lrc.lyric;
-            _this.tlrc = response.data.tlyric.lyric;
-          }
-          this.transToArray(_this.lrc, _this.tlrc); //Fix
-        })
-        .catch(function (error) {
-          // 请求失败处理
-          console.log(error);
-        });
+
+      if (this.musicId != _this._playlist[_this._play.nowPlaying].musicId) {
+        this.musicId = _this._playlist[_this._play.nowPlaying].musicId;
+        Axios.get(
+          "https://api.weyoung.tech/vue_simple-music-player/get.php?method=lrc&id=" +
+            _this._playlist[_this._play.nowPlaying].musicId
+        )
+          .then((response) => {
+            //console.log(response.data);
+            if (response.data.nolyric) {
+              _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
+            } else {
+              _this.lrc = response.data.lrc.lyric;
+              _this.tlrc = response.data.tlyric.lyric;
+            }
+            _this.transToArray(_this.lrc, _this.tlrc); //Fix
+          })
+          .catch(function (error) {
+            // 请求失败处理
+            console.log(error);
+          });
+      } else {
+        console.log("无需重复获取");
+      }
     },
 
     //获取此时歌词（bytime）
@@ -400,6 +409,7 @@ export default {
         this.setMsg({
           message: `播放出错，已为您暂停`,
         });
+        this.retryAfterPlayFail({ index: 0, needPlay: this._userTouch });
       } else this.next({ hasWrong: "wrong" });
       this.skipMusic(this._play.nowPlaying);
     });

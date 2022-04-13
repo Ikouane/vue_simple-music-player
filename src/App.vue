@@ -19,7 +19,7 @@ export default {
     Main,
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_dailyMode"]),
+    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch"]),
   },
   methods: {
     ...mapMutations([
@@ -39,6 +39,7 @@ export default {
       "setMsg",
       "goTime",
       "setDailyMode",
+      "setAlreadyTouch",
     ]),
     ...mapActions(["playSync"]),
   },
@@ -213,6 +214,13 @@ export default {
         // _this.next();
       }
     };
+
+    const setDocumentTouch = () => {
+      _this.setAlreadyTouch();
+      document.removeEventListener("click", setDocumentTouch);
+    };
+
+    document.addEventListener("click", setDocumentTouch);
 
     // Axios.get(
     //   `https://wechat.weyoung.tech:18518/activityWxShare?url=${encodeURIComponent(
