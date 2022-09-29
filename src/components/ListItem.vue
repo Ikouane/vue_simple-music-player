@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-16 13:53:27
+ * @LastEditTime: 2022-06-27 23:50:01
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -160,12 +160,8 @@ export default {
 </script>
 <style lang='scss' scoped>
 .list-card {
-  @media (max-width: 768px) {
-    width: 100%;
-  }
-
   display: flex;
-  width: 356px; //100%
+  width: 100%;
   padding: 10px;
   box-sizing: border-box;
   justify-content: space-between;

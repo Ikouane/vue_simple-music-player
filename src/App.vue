@@ -259,7 +259,7 @@ export default {
 
 window.onload = () => {
   if (window.innerWidth < 768) {
-    const height = window.innerHeight + "px";
+    const height = screen.availHeight + "px";
     document.querySelector("html").style.fontSize = height;
     document.getElementById("app").style.width =
       document.documentElement.clientWidth + "px";
@@ -267,7 +267,7 @@ window.onload = () => {
     window.addEventListener("resize", () => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        const height = window.innerHeight + "px";
+        const height = screen.availHeight + "px";
         document.querySelector("html").style.fontSize = height;
         document.getElementById("app").style.width =
           document.documentElement.clientWidth + "px";
@@ -321,9 +321,23 @@ body {
   }
 }
 
+#app {
+  width: 100%;
+  max-width: 80vw;
+
+  .mplayer {
+    width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   #app {
+    width: initial;
+    max-width: initial;
     height: 1rem;
+
+    .mplayer {
+    }
   }
 }
 

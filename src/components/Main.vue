@@ -177,9 +177,11 @@ export default {
   padding: 25px;
   border-radius: 36px;
   border: 2px solid white;
-  height: 735px; //715px
+  // height: 735px; //715px
+  height: 821.65px;
   overflow: hidden;
   position: relative;
+  box-sizing: border-box;
 
   &.dark {
     background-color: var(--dark_player_color);

@@ -476,12 +476,13 @@ export default createStore({
               });
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           // 请求失败处理
           console.log(error);
         });
-      state._playlist[state._play.nowPlaying].isLike =
-        !state._playlist[state._play.nowPlaying].isLike;
+      state._playlist[state._play.nowPlaying].isLike = !state._playlist[
+        state._play.nowPlaying
+      ].isLike;
     },
     clearMsg(state) {
       state._play.message.show = false;
@@ -639,7 +640,7 @@ export default createStore({
     playSync({ commit, rootState }) {
       console.log("开始进度同步（一起听）");
       console.log("连接服务器...");
-      var ws = new WebSocket("wss://api.weyoung.tech:23333/");
+      let ws = new WebSocket("wss://api.weyoung.tech/ws/");
       rootState._ws = ws;
       ws.onopen = () => {
         console.log("已连接至服务器.");
@@ -746,6 +747,9 @@ export default createStore({
 
       ws.onclose = () => {
         console.log("与服务器断开连接.");
+        commit("setMsg", {
+          message: `与服务器断开连接.`,
+        });
       };
     },
 
@@ -770,7 +774,7 @@ export default createStore({
             });
           }
         })
-        .catch(function (error) {
+        .catch(function(error) {
           // 请求失败处理
           console.log(error);
         });
