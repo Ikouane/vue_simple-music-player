@@ -387,13 +387,17 @@ export default {
           artwork: [{ src: artwork.replace("http:", "") }],
         });
 
+        window.navigator.mediaSession.setActionHandler("play", () => {
+          this.musicFadeIn();
+        });
+        window.navigator.mediaSession.setActionHandler("pause", () => {
+          this.musicFadeOut();
+        });
         window.navigator.mediaSession.setActionHandler("previoustrack", () => {
           this.prev();
-          /* Code excerpted. */
         });
         window.navigator.mediaSession.setActionHandler("nexttrack", () => {
           this.next();
-          /* Code excerpted. */
         });
       }
 
