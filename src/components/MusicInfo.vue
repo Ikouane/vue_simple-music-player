@@ -103,6 +103,7 @@ export default {
   },
   methods: {
     ...mapMutations([
+      "prev",
       "next",
       "goTime",
       "setTime",
@@ -369,6 +370,32 @@ export default {
     $music.addEventListener("canplay", () => {
       this.musicLength = this.musicLengthCal($music); //音频加载完成后，获取时长
       this.musicDuration = $music.duration;
+
+      // NOTE: 添加metadata信息
+
+      if ("mediaSession" in window.navigator) {
+        let {
+          musicName: title,
+          musicAuthor: artist,
+          musicImage: artwork,
+        } = this._playlist[this._nowPlaying];
+
+        window.navigator.mediaSession.metadata = new window.MediaMetadata({
+          title,
+          artist,
+          album: "Podcast Name",
+          artwork: [{ src: artwork.replace("http:", "") }],
+        });
+
+        window.navigator.mediaSession.setActionHandler("previoustrack", () => {
+          this.prev();
+          /* Code excerpted. */
+        });
+        window.navigator.mediaSession.setActionHandler("nexttrack", () => {
+          this.next();
+          /* Code excerpted. */
+        });
+      }
 
       this.getLrc();
     });
