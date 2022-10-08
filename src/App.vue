@@ -323,7 +323,7 @@ body {
 
 #app {
   width: 100%;
-  max-width: 80vw;
+  max-width: min(1400px, 80vw);
 
   .mplayer {
     width: 100%;

@@ -43,9 +43,30 @@
         </div>
       </div>
     </div>
-    <div class="music-lrc">
-      <span id="music-lrc">{{ lrc_line }}</span>
-      <span id="music-tlrc">{{ tlrc_line }}</span>
+    <div class="music-lrc" ref="music-lrc__wrapper">
+      <label
+        class="lrc_wrapper"
+        :data-before="lrc_line__prev"
+        :data-after="lrc_line__next"
+        :class="{ animate: shouldAnimate }"
+        @animationend="animationEnded"
+      >
+        <span id="music-lrc" ref="music-lrc">
+          {{ lrc_line.now }}
+        </span>
+      </label>
+      <label
+        v-if="
+          tlrc_line.prev != '' || tlrc_line.now != '' || tlrc_line.next != ''
+        "
+        class="lrc_wrapper"
+        :data-before="tlrc_line__prev"
+        :data-after="tlrc_line__next"
+        :class="{ animate: shouldAnimate }"
+        @animationend="animationEnded"
+      >
+        <span id="music-tlrc" ref="music-tlrc">{{ tlrc_line.now }}</span>
+      </label>
     </div>
     <audio
       :src="_playlist[_play.nowPlaying].musicUrl"
@@ -84,6 +105,11 @@ export default {
       timeArray: [], //歌词时间数组
       aboutAuthor: "", //作者介绍
       musicId: null, // 音乐id
+      shouldAnimate: false,
+      lrc_line__prev: "",
+      lrc_line__next: "",
+      tlrc_line__prev: "",
+      tlrc_line__next: "",
     };
   },
   props: {
@@ -315,11 +341,23 @@ export default {
       if (time) {
         for (let index = 0; index < this.timeArray.length; index++) {
           if (time < this.timeArray[index]) {
-            return this.lrcFormatArray[this.timeArray[index - 1]];
+            return {
+              prev: this.lrcFormatArray[this.timeArray[index - 2]] || "",
+              now: this.lrcFormatArray[this.timeArray[index - 1]] || "",
+              next: this.lrcFormatArray[this.timeArray[index]] || "",
+            };
           }
         }
         if (time >= this.timeArray[this.timeArray.length - 1]) {
-          return this.lrcFormatArray[this.timeArray[this.timeArray.length - 1]]; //最后一句歌词处理
+          return {
+            prev:
+              this.lrcFormatArray[this.timeArray[this.timeArray.length - 2]] ||
+              "",
+            now:
+              this.lrcFormatArray[this.timeArray[this.timeArray.length - 1]] ||
+              "",
+            next: "",
+          }; //最后一句歌词处理
         } else return "";
       }
     },
@@ -329,13 +367,23 @@ export default {
       if (time) {
         for (let index = 0; index < this.timeArray.length; index++) {
           if (time < this.timeArray[index]) {
-            return this.tlrcFormatArray[this.timeArray[index - 1]];
+            return {
+              prev: this.tlrcFormatArray[this.timeArray[index - 2]] || "",
+              now: this.tlrcFormatArray[this.timeArray[index - 1]] || "",
+              next: this.tlrcFormatArray[this.timeArray[index]] || "",
+            };
           }
         }
         if (time >= this.timeArray[this.timeArray.length - 1]) {
-          return this.tlrcFormatArray[
-            this.timeArray[this.timeArray.length - 1]
-          ]; //最后一句歌词处理
+          return {
+            prev:
+              this.tlrcFormatArray[this.timeArray[this.timeArray.length - 2]] ||
+              "",
+            now:
+              this.tlrcFormatArray[this.timeArray[this.timeArray.length - 1]] ||
+              "",
+            next: "",
+          }; //最后一句歌词处理
         } else return "";
       }
     },
@@ -360,6 +408,10 @@ export default {
           }
         })
         .catch((error) => console.log(error));
+    },
+
+    animationEnded() {
+      this.shouldAnimate = false;
     },
   },
 
@@ -486,64 +538,40 @@ export default {
         }]`
       );
     });
-
-    // 切换歌曲动画：
-    $.fn.shake = function (
-      intShakes /*Amount of shakes*/,
-      intDistance /*Shake distance*/,
-      intDuration /*Time duration*/,
-      intDirection /* Shake direction, new Addtion*/
-    ) {
-      this.each(function () {
-        var jqNode = $(this);
-        jqNode.css({ position: "relative" });
-        for (var x = 1; x <= intShakes; x++) {
-          switch (intDirection) {
-            case "top":
-              jqNode
-                .animate({ top: intDistance * -1 }, intDuration / intShakes / 4)
-                .animate({ top: intDistance }, intDuration / intShakes / 2)
-                .animate({ top: 0 }, intDuration / intShakes / 4);
-              break;
-            case "left":
-              jqNode
-                .animate(
-                  { left: intDistance * -1 },
-                  intDuration / intShakes / 4
-                )
-                .animate({ left: intDistance }, intDuration / intShakes / 2)
-                .animate({ left: 0 }, intDuration / intShakes / 4);
-              break;
-          }
-        }
-      });
-      return this;
-    };
   },
   watch: {
     _nowPlaying(val, oldVal) {
       //监听歌曲改变
       console.log("nowPlaying: " + val, oldVal);
-      $("#music-name").shake(1, 40, 100, "top");
-      $(".music-author").shake(1, 30, 100, "top");
 
-      const el_music_name = document.getElementById("music-name");
+      let el_music_name = null;
 
-      setTimeout(() => {
+      this.$nextTick(() => {
+        el_music_name = document.getElementById("music-name");
+
         // 判断歌名是否超长
-        if (parseInt(el_music_name.offsetWidth) >= 324) {
+        if (
+          parseInt(el_music_name.offsetWidth) >=
+          this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+        ) {
           // 超长则滚动
           el_music_name.classList.add("animation");
           el_music_name.style.setProperty(
             "--overflow_width_name",
             `${
-              parseInt(el_music_name.offsetWidth) - 360 < 0
+              parseInt(el_music_name.offsetWidth) -
+                this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
+                36 <
+              0
                 ? "0"
-                : 360 - parseInt(el_music_name.offsetWidth)
+                : this.$refs["music-lrc__wrapper"].getBoundingClientRect()
+                    .width +
+                  36 -
+                  parseInt(el_music_name.offsetWidth)
             }px`
           );
         } else el_music_name.classList.remove("animation");
-      }, 0);
+      });
 
       this.setImageBackground();
 
@@ -673,51 +701,55 @@ export default {
       // })();
     },
 
-    lrc_line() {
+    "lrc_line.now"() {
+      let el_music_lrc = null,
+        el_music_tlrc = null;
       //监听歌词改变
-      const el_music_lrc = document.querySelector("#music-lrc");
+      this.$nextTick(() => {
+        if (this.$refs["music-lrc"]) el_music_lrc = this.$refs["music-lrc"];
+        if (this.$refs["music-tlrc"]) el_music_tlrc = this.$refs["music-tlrc"];
+        if (el_music_lrc) el_music_lrc.style.opacity = 0;
+        if (el_music_tlrc) el_music_tlrc.style.opacity = 0;
 
-      $(".music-lrc").shake(1, 20, 100, "top"); //$(this).shake(2,10,400); src:https://www.oschina.net/code/snippet_5189_6334
+        setTimeout(() => {
+          if (el_music_lrc) el_music_lrc.style.opacity = 1;
+          if (el_music_tlrc) el_music_tlrc.style.opacity = 1;
+        }, 250);
 
-      setTimeout(() => {
         console.warn("歌词变更");
 
+        this.lrc_line__prev = this.lrc_line.prev;
+        this.lrc_line__next = this.lrc_line.now;
+        this.tlrc_line__prev = this.tlrc_line.prev;
+        this.tlrc_line__next = this.tlrc_line.now;
+
+        this.shouldAnimate = true;
+
         // 判断歌词是否超长
-        if (parseInt(el_music_lrc.offsetWidth) >= 324) {
+        if (
+          parseInt(el_music_lrc.offsetWidth) >=
+          this.$refs["music-lrc__wrapper"].getBoundingClientRect().width + 36
+        ) {
           // 超长则滚动
           el_music_lrc.style.setProperty(
             "--overflow_width_lrc",
-            `${324 - parseInt(el_music_lrc.offsetWidth)}px`
+            `${
+              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
+              36 -
+              parseInt(el_music_lrc.offsetWidth)
+            }px`
           );
           $("#music-lrc").css(
             "--overflow_width_lrc",
-            324 - parseInt(el_music_lrc.offsetWidth) + "px"
+            this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
+              36 -
+              parseInt(el_music_lrc.offsetWidth) +
+              "px"
           );
           el_music_lrc.classList.add("goScroll");
         } else {
           el_music_lrc.classList.remove("goScroll");
           el_music_lrc.style.setProperty("--overflow_width_lrc", `0px`);
-        }
-      }, 0);
-    },
-
-    tlrc_line() {
-      setTimeout(() => {
-        // 判断歌词是否超长
-        if (
-          parseInt(document.getElementById("music-tlrc").offsetWidth) >= 324
-        ) {
-          // 超长则滚动
-          $("#music-tlrc").css(
-            "--overflow_width_lrc",
-            324 -
-              parseInt(document.getElementById("music-tlrc").offsetWidth) +
-              "px"
-          );
-          $("#music-tlrc").addClass("goScroll");
-        } else {
-          $("#music-tlrc").removeClass("goScroll");
-          $("#music-tlrc").css("--overflow_width_lrc", "0px");
         }
       });
     },
@@ -731,7 +763,8 @@ export default {
       );
       $("#aboutAuthor").css(
         "--overflow_width_aboutAuthor",
-        -324 -
+        -this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
+          36 -
           20 -
           parseInt(document.getElementById("aboutAuthor").offsetWidth) +
           "px"
@@ -824,7 +857,7 @@ $dark_border_color: var(--dark_border_color);
     line-height: var(--title_size);
     overflow: hidden;
     height: 60px;
-    width: 324px;
+    width: 100%;
 
     span {
       font-size: 12px;
@@ -943,24 +976,89 @@ $dark_border_color: var(--dark_border_color);
       margin-top: 0.02rem;
     }
 
+    .lrc_wrapper {
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      white-space: nowrap;
+      height: 50%;
+    }
+
+    .lrc_wrapper::before,
+    .lrc_wrapper::after {
+      display: block;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: inherit;
+      box-sizing: border-box;
+      white-space: nowrap;
+      line-height: 20px;
+      margin-top: 4px;
+      opacity: 0;
+      color: var(--text_color);
+    }
+
+    .lrc_wrapper::before {
+      content: attr(data-before);
+    }
+
+    .lrc_wrapper::after {
+      content: attr(data-after);
+    }
+
+    @keyframes placeholder-before {
+      0% {
+        transform: translateX(-50%) translateY(0%);
+        opacity: 1;
+      }
+      100% {
+        transform: translateX(-50%) translateY(-100%);
+        opacity: 0;
+      }
+    }
+    @keyframes placeholder-after {
+      0% {
+        transform: translateX(-50%) translateY(100%);
+        opacity: 0;
+      }
+      100% {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+      }
+    }
+    .animate::before {
+      animation: 0.25s placeholder-before ease-in-out;
+    }
+    .animate::after {
+      animation: 0.25s placeholder-after ease-in-out;
+    }
+    .animate::before,
+    .animate::after {
+      animation-fill-mode: forwards;
+    }
+
     margin-top: 16px;
     font-size: 14px;
     line-height: 14px;
     height: 50px;
     color: var(--title_color);
-    width: 324px;
+    width: 100%;
+    overflow: hidden;
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: flex-start;
-    overflow: hidden;
+    align-items: center;
 
     span {
       min-width: 100%;
       line-height: 20px;
       display: inline-block;
       white-space: nowrap;
-      //animation: gothrough_lrc 2s ease-in-out infinite;
+      color: var(--text_color) !important;
 
       &.goScroll {
         @keyframes gothrough_lrc {
@@ -974,7 +1072,7 @@ $dark_border_color: var(--dark_border_color);
             transform: translateX(0%);
           }
         }
-        animation: gothrough_lrc 2s ease-in-out infinite;
+        animation: gothrough_lrc 2s ease-in-out infinite 0.2s;
       }
 
       &:last-child {
