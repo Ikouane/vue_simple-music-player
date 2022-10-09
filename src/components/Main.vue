@@ -177,7 +177,7 @@ export default {
   padding: 25px;
   border-radius: 36px;
   border: 2px solid white;
-  // height: 735px; //715px
+  height: 842px;
 
   overflow: hidden;
   position: relative;

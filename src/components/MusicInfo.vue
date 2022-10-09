@@ -1,6 +1,6 @@
 <template>
   <div class="player-middle" v-show="show">
-    <p class="music-name">
+    <p class="music-name" ref="music-name__wrapper">
       <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
       <span class="alia" id="music-alia">{{
         _playlist[_play.nowPlaying].musicAlia
@@ -554,23 +554,19 @@ export default {
 
         // 判断歌名是否超长
         if (
-          parseInt(el_music_name.offsetWidth) >=
-          this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+          parseInt(
+            el_music_name.offsetWidth -
+              this.$refs["music-name__wrapper"].getBoundingClientRect().width
+          ) > 0
         ) {
           // 超长则滚动
           el_music_name.classList.add("animation");
           el_music_name.style.setProperty(
             "--overflow_width_name",
             `${
-              parseInt(el_music_name.offsetWidth) -
-                this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
-                36 <
-              0
-                ? "0"
-                : this.$refs["music-lrc__wrapper"].getBoundingClientRect()
-                    .width +
-                  36 -
-                  parseInt(el_music_name.offsetWidth)
+              parseInt(
+                this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+              ) - parseInt(el_music_name.offsetWidth)
             }px`
           );
         } else el_music_name.classList.remove("animation");
@@ -736,33 +732,52 @@ export default {
 
         // 判断歌词是否超长
         if (
-          parseInt(el_music_lrc.offsetWidth) >=
-          this.$refs["music-lrc__wrapper"].getBoundingClientRect().width + 36
+          el_music_lrc &&
+          parseInt(
+            el_music_lrc.offsetWidth -
+              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+          )
         ) {
           // 超长则滚动
           el_music_lrc.style.setProperty(
             "--overflow_width_lrc",
             `${
-              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
-              36 -
-              parseInt(el_music_lrc.offsetWidth)
+              parseInt(
+                this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+              ) - parseInt(el_music_lrc.offsetWidth)
             }px`
-          );
-          $("#music-lrc").css(
-            "--overflow_width_lrc",
-            this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
-              36 -
-              parseInt(el_music_lrc.offsetWidth) +
-              "px"
           );
           el_music_lrc.classList.add("goScroll");
         } else {
-          el_music_lrc.classList.remove("goScroll");
-          el_music_lrc.style.setProperty("--overflow_width_lrc", `0px`);
+          el_music_lrc?.classList.remove("goScroll");
+          el_music_lrc?.style.setProperty("--overflow_width_lrc", `0px`);
+        }
+
+        if (
+          el_music_tlrc &&
+          parseInt(
+            el_music_tlrc.offsetWidth -
+              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+          )
+        ) {
+          // 超长则滚动
+          el_music_tlrc.style.setProperty(
+            "--overflow_width_lrc",
+            `${
+              parseInt(
+                this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+              ) - parseInt(el_music_tlrc.offsetWidth)
+            }px`
+          );
+          el_music_tlrc.classList.add("goScroll");
+        } else {
+          el_music_tlrc?.classList.remove("goScroll");
+          el_music_tlrc?.style.setProperty("--overflow_width_lrc", `0px`);
         }
       });
     },
 
+    // TODO: 修复scroll计算不准的问题
     aboutAuthor() {
       //计算介绍滚动距离
       $("#aboutAuthor").css(
@@ -810,8 +825,10 @@ $dark_border_color: var(--dark_border_color);
   text-align: center;
   justify-content: center;
   align-items: center;
+  margin: auto;
   margin-bottom: 40px; //100px
   color: $text_color;
+  width: 90%;
 
   p {
     margin: 0;
@@ -832,21 +849,25 @@ $dark_border_color: var(--dark_border_color);
         display: block;
         font-size: var(--text_size);
         line-height: 20px;
-        color: var(--text_color);
         font-weight: normal;
       }
 
       line-height: 40px;
 
       @keyframes gothrough {
-        0% {
-          transform: translateX(0%);
+        0%,
+        10% {
+          transform: translateX(5px);
         }
-        50% {
-          transform: translateX(var(--overflow_width_name));
+
+        50%,
+        60% {
+          transform: translateX(calc(var(--overflow_width_name) - 5px));
         }
+
+        70%,
         100% {
-          transform: translateX(0%);
+          transform: translateX(5px);
         }
       }
 
@@ -854,7 +875,7 @@ $dark_border_color: var(--dark_border_color);
       white-space: nowrap;
 
       &.animation {
-        animation: gothrough 10s ease-in-out 3;
+        animation: gothrough 10s ease-in-out infinite;
       }
     }
 
@@ -874,7 +895,6 @@ $dark_border_color: var(--dark_border_color);
     line-height: var(--title_size);
     overflow: hidden;
     height: 60px;
-    width: 100%;
 
     span {
       font-size: 12px;
@@ -924,7 +944,7 @@ $dark_border_color: var(--dark_border_color);
     align-items: center;
 
     .timetext {
-      width: 90%;
+      width: 100%;
       margin-left: auto;
       margin-right: auto;
       display: flex;
@@ -935,7 +955,7 @@ $dark_border_color: var(--dark_border_color);
 
     .timebar_out {
       height: 6px;
-      width: 90%;
+      width: 100%;
       background-color: #7fa3ff;
       border-radius: 4px;
       box-shadow: inset 3px 3px 0px #d6e1ed, inset -3px -3px 0px #e8f3ff;
@@ -998,11 +1018,12 @@ $dark_border_color: var(--dark_border_color);
       display: flex;
       flex-direction: column;
       justify-content: center;
-      align-items: center;
+      // align-items: center;
       // NOTE: 单行动画
       // overflow: hidden;
       white-space: nowrap;
       height: 50%;
+      width: 100%;
     }
 
     .lrc_wrapper::before,
@@ -1018,6 +1039,7 @@ $dark_border_color: var(--dark_border_color);
       margin-top: 4px;
       opacity: 0;
       color: var(--text_color);
+      width: 100%;
     }
 
     .lrc_wrapper::before {
@@ -1072,6 +1094,7 @@ $dark_border_color: var(--dark_border_color);
     align-items: center;
 
     span {
+      width: fit-content;
       min-width: 100%;
       line-height: 20px;
       display: inline-block;
@@ -1081,13 +1104,13 @@ $dark_border_color: var(--dark_border_color);
       &.goScroll {
         @keyframes gothrough_lrc {
           0% {
-            transform: translateX(0%);
+            transform: translateX(5px);
           }
           80% {
-            transform: translateX(var(--overflow_width_lrc));
+            transform: translateX(calc(var(--overflow_width_lrc) - 5px));
           }
           100% {
-            transform: translateX(0%);
+            transform: translateX(5px);
           }
         }
         animation: gothrough_lrc 2s ease-in-out infinite 0.2s;
