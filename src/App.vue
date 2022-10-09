@@ -59,6 +59,7 @@ export default {
     let pid = getQueryVariable("pid"),
       rid = getQueryVariable("rid"),
       mid = getQueryVariable("mid"),
+      lid = getQueryVariable("lid"),
       startTime = getQueryVariable("st"),
       endTime = getQueryVariable("et"),
       dailyMode = getQueryVariable("daily");
@@ -91,6 +92,24 @@ export default {
               });
             }
           }
+        })
+        .catch(function (error) {
+          // 请求失败处理
+          console.log(error);
+        });
+    } else if (lid) {
+      console.log("歌单模式");
+      const _this = this;
+      Axios.get(
+        `https://api.weyoung.tech/vue_simple-music-player/get.php?lid=${lid}`
+      )
+        .then((response) => {
+          // console.log(response.data);
+          _this.setStore(response.data);
+          if (response.data._play.mode === "night")
+            document
+              .querySelector("body")
+              .setAttribute("style", "background-color:var(--dark_main_color)");
         })
         .catch(function (error) {
           // 请求失败处理

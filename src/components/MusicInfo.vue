@@ -2,6 +2,9 @@
   <div class="player-middle" v-show="show">
     <p class="music-name">
       <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
+      <span class="alia" id="music-alia">{{
+        _playlist[_play.nowPlaying].musicAlia
+      }}</span>
     </p>
     <p class="music-author">
       {{ _playlist[_play.nowPlaying].musicAuthor }}
@@ -711,9 +714,15 @@ export default {
         if (el_music_lrc) el_music_lrc.style.opacity = 0;
         if (el_music_tlrc) el_music_tlrc.style.opacity = 0;
 
-        setTimeout(() => {
+        if (this.time1) {
+          clearTimeout(this.time1);
+          console.log("防抖");
+        }
+
+        this.time1 = setTimeout(() => {
           if (el_music_lrc) el_music_lrc.style.opacity = 1;
           if (el_music_tlrc) el_music_tlrc.style.opacity = 1;
+          this.time1 = null;
         }, 250);
 
         console.warn("歌词变更");
@@ -819,6 +828,14 @@ $dark_border_color: var(--dark_border_color);
     width: 100%;
 
     span {
+      &.alia {
+        display: block;
+        font-size: var(--text_size);
+        line-height: 20px;
+        color: var(--text_color);
+        font-weight: normal;
+      }
+
       line-height: 40px;
 
       @keyframes gothrough {
@@ -982,7 +999,8 @@ $dark_border_color: var(--dark_border_color);
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      overflow: hidden;
+      // NOTE: 单行动画
+      // overflow: hidden;
       white-space: nowrap;
       height: 50%;
     }

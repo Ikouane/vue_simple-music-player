@@ -178,7 +178,7 @@ export default {
   border-radius: 36px;
   border: 2px solid white;
   // height: 735px; //715px
-  height: 821.65px;
+
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
