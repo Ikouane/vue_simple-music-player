@@ -476,23 +476,23 @@ export default createStore({
               });
           }
         })
-        .catch(function(error) {
+        .catch(function (error) {
           // 请求失败处理
           console.log(error);
         });
-      state._playlist[state._play.nowPlaying].isLike = !state._playlist[
-        state._play.nowPlaying
-      ].isLike;
+      state._playlist[state._play.nowPlaying].isLike =
+        !state._playlist[state._play.nowPlaying].isLike;
     },
     clearMsg(state) {
       state._play.message.show = false;
       state._play.message.content = null;
     },
-    setMsg(state, { message, duration = 3000 }) {
+    setMsg(state, { message, duration = 3000, title = "通知" }) {
       this.commit("clearMsg");
       setTimeout(() => {
         state._play.message.show = true;
         state._play.message.duration = duration;
+        state._play.message.title = title;
         state._play.message.content = message;
       }, 0);
     },
@@ -635,6 +635,18 @@ export default createStore({
     setAlreadyTouch(state) {
       state._userTouch = true;
     },
+
+    // 发送房间广播消息
+    sendMessage(state, { msg, needSync = true }) {
+      if (needSync && state._ws)
+        state._ws.send(
+          JSON.stringify({
+            type: "msg",
+            uuid: state._uuid,
+            msg,
+          })
+        );
+    },
   },
   actions: {
     playSync({ commit, rootState }) {
@@ -693,14 +705,26 @@ export default createStore({
           case "sMsg": // 系统消息
             console.log(`[系统消息]: ${res.msg}`);
             commit("setMsg", {
+              title: "系统消息",
               message: res.msg,
+              duration: 0,
             });
             break;
           case "mMsg": // 我发出的消息
             console.log(`[用户消息]: ${res.msg}`);
+            commit("setMsg", {
+              title: "消息发送成功",
+              message: res.msg,
+              duration: 5000,
+            });
             break;
           case "uMsg": // 用户消息
             console.log(`[用户消息]: ${res.msg}`);
+            commit("setMsg", {
+              title: "收到用户消息",
+              message: res.msg,
+              duration: 5000,
+            });
             break;
           case "roomPlaySyncPush":
             commit("setSignalColor", "yellow");
@@ -774,7 +798,7 @@ export default createStore({
             });
           }
         })
-        .catch(function(error) {
+        .catch(function (error) {
           // 请求失败处理
           console.log(error);
         });

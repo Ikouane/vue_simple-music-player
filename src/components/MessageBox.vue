@@ -1,17 +1,36 @@
 <template>
   <div class="container" v-if="isShow">
     <p class="title">{{ title }}</p>
-    <p class="content" v-if="content">{{ content }}</p>
-    <div id="qrcode"></div>
-    <!-- 创建一个div，并设置id为qrcode -->
-    <button class="button" @click="$emit('share-room')">确认</button>
+    <template v-if="type != 'more'">
+      <p class="content" v-if="content">{{ content }}</p>
+      <div id="qrcode"></div>
+      <button class="button" @click="$emit('click-action')">确认</button>
+    </template>
+    <div class="flex__wrapper" v-else>
+      <Button
+        size="middle"
+        title="发送消息"
+        :bindtap="showSendMessageBox"
+        type="fa fa-paper-plane"
+      />
+      <Button
+        size="middle"
+        title="登录"
+        :bindtap="showLoginBox"
+        type="fa fa-user"
+      />
+    </div>
   </div>
 </template>
 <script>
 import { onMounted, ref } from "vue";
 import QRCode from "qrcodejs2";
+import Button from "./Button.vue";
 export default {
   name: "MessageBox",
+  components: {
+    Button,
+  },
   props: {
     title: {
       type: String,
@@ -29,6 +48,10 @@ export default {
       type: Boolean,
       default: true,
     },
+    type: {
+      type: String,
+      default: "",
+    },
   },
   setup(props) {
     let isShow = ref(props.boxShow);
@@ -42,20 +65,32 @@ export default {
       if (!isShow.value) isShow.value = !isShow.value;
     };
 
+    const showSendMessageBox = () => {
+      console.log("显示发送消息弹窗");
+    };
+
+    const showLoginBox = () => {
+      console.log("显示登录二维码弹窗");
+    };
+
     onMounted(() => {
-      document.getElementById("qrcode").innerHTML = "";
-      if (isShow.value)
-        new QRCode("qrcode", {
-          width: 175,
-          height: 175,
-          text: props.qrText,
-        });
+      if (props.qrText) {
+        document.getElementById("qrcode").innerHTML = "";
+        if (isShow.value)
+          new QRCode("qrcode", {
+            width: 175,
+            height: 175,
+            text: props.qrText,
+          });
+      }
     });
 
     return {
       hideBox,
       showBox,
       isShow,
+      showSendMessageBox,
+      showLoginBox,
     };
   },
 };
@@ -102,6 +137,11 @@ export default {
     font-weight: bold;
     margin: 15px 0 5px 0;
     padding: 0 5px;
+  }
+
+  .flex__wrapper {
+    display: flex;
+    justify-content: space-around;
   }
 
   .content {

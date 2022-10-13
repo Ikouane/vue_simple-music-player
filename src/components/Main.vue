@@ -10,7 +10,16 @@
         content="欢迎使用 一起听"
         :boxShow="boxShow"
         :qrText="urlText"
-        @share-room="switchBoxShow()"
+        @click-action="switchBoxShow()"
+      />
+    </transition>
+    <transition name="MsgBox">
+      <MessageBox
+        v-if="moreActionShow"
+        title="更多功能"
+        type="more"
+        :boxShow="moreActionShow"
+        @click-action="switchMoreActionShow()"
       />
     </transition>
     <!-- <InputModal v-if="showInput" :isShow="showInput" :isWrong="isWrong" /> -->
@@ -36,7 +45,10 @@
         "
       />
     </transition>
-    <AppBar @share-room="switchBoxShow()" />
+    <AppBar
+      @rid-click-action="switchBoxShow()"
+      @more-click-action="switchMoreActionShow()"
+    />
     <MusicImage :size="_play.nowPage === 'PLAYLIST' ? 'small' : ''" />
     <!-- v-if="_play.nowPage === 'PLAYLIST'" -->
     <PlayList
@@ -82,6 +94,7 @@ export default {
       isWrong: false,
       urlText: "",
       boxShow: false,
+      moreActionShow: false,
     };
   },
   computed: {
@@ -96,6 +109,10 @@ export default {
     switchBoxShow() {
       console.log("分享房间");
       this.boxShow = !this.boxShow;
+    },
+    switchMoreActionShow() {
+      console.log("显示更多功能");
+      this.moreActionShow = !this.moreActionShow;
     },
     saveList() {
       const _this = this;

@@ -1,13 +1,14 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-01-22 15:34:41
+ * @LastEditTime: 2022-10-13 23:04:24
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
 -->
 <template>
   <div class="appbar">
+    <div class="top_more" @click="$emit('more-click-action')">...</div>
     <Button
       size="middle"
       title="切换主题"
@@ -23,7 +24,7 @@
         red: _signalColor === 'red',
       }"
       title="正在播放"
-      @click="if (_rid) $emit('share-room');"
+      @click="if (_rid) $emit('rid-click-action');"
     >
       {{
         _rid === null
@@ -84,6 +85,15 @@ $dark_border_color: var(--dark_border_color);
   margin-bottom: 40px;
   color: $title_color;
   font-size: $text_size;
+
+  .top_more {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translate(-50%);
+    letter-spacing: 2px;
+    cursor: pointer;
+  }
 
   .title {
     font-size: $time_size;
