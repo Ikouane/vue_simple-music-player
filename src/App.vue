@@ -42,6 +42,14 @@ export default {
       "setAlreadyTouch",
     ]),
     ...mapActions(["playSync"]),
+    initScreen() {
+      if (window.innerWidth < 768) {
+        const height = window.innerHeight + "px";
+        document.querySelector("html").style.fontSize = height;
+        document.getElementById("app").style.width =
+          document.documentElement.clientWidth + "px";
+      }
+    }
   },
   created() {
     function getQueryVariable(variable) {
@@ -273,28 +281,19 @@ export default {
     //   .catch(function (error) {
     //     console.error(error);
     //   });
-  },
-};
 
-window.onload = () => {
-  if (window.innerWidth < 768) {
-    const height = screen.availHeight + "px";
-    document.querySelector("html").style.fontSize = height;
-    document.getElementById("app").style.width =
-      document.documentElement.clientWidth + "px";
+    this.initScreen();
+
     let timer = null;
     window.addEventListener("resize", () => {
       if (timer) clearTimeout(timer);
       timer = setTimeout(() => {
-        const height = screen.availHeight + "px";
-        document.querySelector("html").style.fontSize = height;
-        document.getElementById("app").style.width =
-          document.documentElement.clientWidth + "px";
+        this.initScreen();
         timer = null;
         console.log("窗口大小调整");
       }, 100);
     });
-  }
+  },
 };
 </script>
 <style lang="scss">
@@ -353,10 +352,9 @@ body {
   #app {
     width: initial;
     max-width: initial;
-    height: 1rem;
+    height: 100%;
 
-    .mplayer {
-    }
+    .mplayer {}
   }
 }
 

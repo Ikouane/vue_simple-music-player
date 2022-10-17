@@ -3,7 +3,7 @@
     <p class="music-name" ref="music-name__wrapper">
       <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
       <span class="alia" id="music-alia">{{
-        _playlist[_play.nowPlaying].musicAlia
+      _playlist[_play.nowPlaying].musicAlia
       }}</span>
     </p>
     <p class="music-author">
@@ -14,68 +14,41 @@
       <div class="timetext">
         <span id="now">
           {{
-            drag
-              ? nowTime
-              : formatTime(parseInt(_play.playTime / 60)) +
-                ":" +
-                formatTime(parseInt(_play.playTime % 60))
+          drag
+          ? nowTime
+          : formatTime(parseInt(_play.playTime / 60)) +
+          ":" +
+          formatTime(parseInt(_play.playTime % 60))
           }}
         </span>
         <span id="length">{{ musicLength }}</span>
       </div>
-      <div
-        class="timebar_out"
-        @click="changeTime($event)"
-        title="点击调整进度(←,→)"
-      >
-        <div
-          class="timebar_in"
-          :style="{
-            width: drag
-              ? nowTimeLength + 'px'
-              : Math.floor((_play.playTime / musicDuration) * 100) + '%',
-            transition: drag ? 'clear' : 'all 0.2s ease-out',
-          }"
-        >
-          <span
-            class="bar_point"
-            id="bar_point"
-            @mousedown="handelMouseDrag($event)"
-            title="拖动进度"
-          ></span>
+      <div class="timebar_out" @click="changeTime($event)" title="点击调整进度(←,→)">
+        <div class="timebar_in" :style="{
+          width: drag
+            ? nowTimeLength + 'px'
+            : Math.floor((_play.playTime / musicDuration) * 100) + '%',
+          transition: drag ? 'clear' : 'all 0.2s ease-out',
+        }">
+          <span class="bar_point" id="bar_point" @mousedown="handelMouseDrag($event)" title="拖动进度"></span>
         </div>
       </div>
     </div>
     <div class="music-lrc" ref="music-lrc__wrapper">
-      <label
-        class="lrc_wrapper"
-        :data-before="lrc_line__prev"
-        :data-after="lrc_line__next"
-        :class="{ animate: shouldAnimate }"
-        @animationend="animationEnded"
-      >
+      <label class="lrc_wrapper" :data-before="lrc_line__prev" :data-after="lrc_line__next"
+        :class="{ animate: shouldAnimate }" @animationend="animationEnded">
         <span id="music-lrc" ref="music-lrc">
           {{ lrc_line.now }}
         </span>
       </label>
-      <label
-        v-if="
-          tlrc_line.prev != '' || tlrc_line.now != '' || tlrc_line.next != ''
-        "
-        class="lrc_wrapper"
-        :data-before="tlrc_line__prev"
-        :data-after="tlrc_line__next"
-        :class="{ animate: shouldAnimate }"
-        @animationend="animationEnded"
-      >
+      <label v-if="
+        tlrc_line.prev != '' || tlrc_line.now != '' || tlrc_line.next != ''
+      " class="lrc_wrapper" :data-before="tlrc_line__prev" :data-after="tlrc_line__next"
+        :class="{ animate: shouldAnimate }" @animationend="animationEnded">
         <span id="music-tlrc" ref="music-tlrc">{{ tlrc_line.now }}</span>
       </label>
     </div>
-    <audio
-      :src="_playlist[_play.nowPlaying].musicUrl"
-      id="music"
-      :autoplay="_isPlaying"
-    ></audio>
+    <audio :src="_playlist[_play.nowPlaying].musicUrl" id="music" :autoplay="_isPlaying"></audio>
     <!-- :autoplay="_isPlaying ? 'autoplay' : 'false'" 
       crossOrigin="anonymous"-->
   </div>
@@ -184,14 +157,14 @@ export default {
       }
       console.log(
         "调整进度条" +
-          (event.clientX - otimebar_in.getBoundingClientRect().left) +
-          "px"
+        (event.clientX - otimebar_in.getBoundingClientRect().left) +
+        "px"
       );
       this.goTime({
         desTime: parseInt(
           ((event.clientX - otimebar_in.getBoundingClientRect().left) /
             otimebar_out.offsetWidth) *
-            music.duration
+          music.duration
         ),
       }); //不能使用 offsetLeft 代替 jq.offset().left
       this.nowLength = this.nowLengthCal(music);
@@ -318,7 +291,7 @@ export default {
         this.musicId = _this._playlist[_this._play.nowPlaying].musicId;
         Axios.get(
           "https://api.weyoung.tech/vue_simple-music-player/get.php?method=lrc&id=" +
-            _this._playlist[_this._play.nowPlaying].musicId
+          _this._playlist[_this._play.nowPlaying].musicId
         )
           .then((response) => {
             //console.log(response.data);
@@ -401,7 +374,7 @@ export default {
       const _this = this;
       Axios.get(
         "https://api.weyoung.tech/vue_simple-music-player/get.php?method=author&sid=" +
-          _this._playlist[_this._play.nowPlaying].musicId
+        _this._playlist[_this._play.nowPlaying].musicId
       )
         .then((response) => {
           if (response.data.status === "200") {
@@ -514,30 +487,28 @@ export default {
       //TODO:防抖准备
 
       this.lrc_line = this.getLrc_line(
-        `[${
-          this.formatTime(parseInt($music.currentTime / 60)) +
-          ":" +
-          this.formatTime(parseInt($music.currentTime % 60)) +
-          "." +
-          this.formatNumber(
-            parseFloat(
-              $music.currentTime - parseInt($music.currentTime)
-            ).toFixed(3) * 1000
-          )
+        `[${this.formatTime(parseInt($music.currentTime / 60)) +
+        ":" +
+        this.formatTime(parseInt($music.currentTime % 60)) +
+        "." +
+        this.formatNumber(
+          parseFloat(
+            $music.currentTime - parseInt($music.currentTime)
+          ).toFixed(3) * 1000
+        )
         }]`
       );
 
       this.tlrc_line = this.getTLrc_line(
-        `[${
-          this.formatTime(parseInt($music.currentTime / 60)) +
-          ":" +
-          this.formatTime(parseInt($music.currentTime % 60)) +
-          "." +
-          this.formatNumber(
-            parseFloat(
-              $music.currentTime - parseInt($music.currentTime)
-            ).toFixed(3) * 1000
-          )
+        `[${this.formatTime(parseInt($music.currentTime / 60)) +
+        ":" +
+        this.formatTime(parseInt($music.currentTime % 60)) +
+        "." +
+        this.formatNumber(
+          parseFloat(
+            $music.currentTime - parseInt($music.currentTime)
+          ).toFixed(3) * 1000
+        )
         }]`
       );
     });
@@ -556,17 +527,16 @@ export default {
         if (
           parseInt(
             el_music_name.offsetWidth -
-              this.$refs["music-name__wrapper"].getBoundingClientRect().width
+            this.$refs["music-name__wrapper"].getBoundingClientRect().width
           ) > 0
         ) {
           // 超长则滚动
           el_music_name.classList.add("animation");
           el_music_name.style.setProperty(
             "--overflow_width_name",
-            `${
-              parseInt(
-                this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
-              ) - parseInt(el_music_name.offsetWidth)
+            `${parseInt(
+              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+            ) - parseInt(el_music_name.offsetWidth)
             }px`
           );
         } else el_music_name.classList.remove("animation");
@@ -735,16 +705,15 @@ export default {
           el_music_lrc &&
           parseInt(
             el_music_lrc.offsetWidth -
-              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+            this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
           )
         ) {
           // 超长则滚动
           el_music_lrc.style.setProperty(
             "--overflow_width_lrc",
-            `${
-              parseInt(
-                this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
-              ) - parseInt(el_music_lrc.offsetWidth)
+            `${parseInt(
+              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+            ) - parseInt(el_music_lrc.offsetWidth)
             }px`
           );
           el_music_lrc.classList.add("goScroll");
@@ -757,16 +726,15 @@ export default {
           el_music_tlrc &&
           parseInt(
             el_music_tlrc.offsetWidth -
-              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+            this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
           )
         ) {
           // 超长则滚动
           el_music_tlrc.style.setProperty(
             "--overflow_width_lrc",
-            `${
-              parseInt(
-                this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
-              ) - parseInt(el_music_tlrc.offsetWidth)
+            `${parseInt(
+              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+            ) - parseInt(el_music_tlrc.offsetWidth)
             }px`
           );
           el_music_tlrc.classList.add("goScroll");
@@ -783,15 +751,15 @@ export default {
       $("#aboutAuthor").css(
         "--overflow_time_aboutAuthor",
         parseInt(document.getElementById("aboutAuthor").offsetWidth) * 0.05 +
-          "s"
+        "s"
       );
       $("#aboutAuthor").css(
         "--overflow_width_aboutAuthor",
         -this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
-          36 -
-          20 -
-          parseInt(document.getElementById("aboutAuthor").offsetWidth) +
-          "px"
+        36 -
+        20 -
+        parseInt(document.getElementById("aboutAuthor").offsetWidth) +
+        "px"
       );
     },
   },
@@ -855,6 +823,7 @@ $dark_border_color: var(--dark_border_color);
       line-height: 40px;
 
       @keyframes gothrough {
+
         0%,
         10% {
           transform: translateX(5px);
@@ -907,18 +876,22 @@ $dark_border_color: var(--dark_border_color);
           opacity: 0;
           visibility: hidden;
         }
+
         3% {
           visibility: visible;
           opacity: 1;
         }
+
         70% {
           transform: translateX(var(--overflow_width_aboutAuthor));
           opacity: 1;
         }
+
         71% {
           opacity: 0;
           visibility: hidden;
         }
+
         100% {
           opacity: 0;
           visibility: hidden;
@@ -927,8 +900,7 @@ $dark_border_color: var(--dark_border_color);
 
       display: inline-block;
       white-space: nowrap;
-      animation: gothrough_author var(--overflow_time_aboutAuthor) linear
-        infinite 3s;
+      animation: gothrough_author var(--overflow_time_aboutAuthor) linear infinite 3s;
     }
 
     .dark & {
@@ -984,8 +956,7 @@ $dark_border_color: var(--dark_border_color);
     }
 
     .bar_point {
-      @keyframes shine {
-      }
+      @keyframes shine {}
 
       position: absolute;
       width: 10px;
@@ -1055,27 +1026,33 @@ $dark_border_color: var(--dark_border_color);
         transform: translateX(-50%) translateY(0%);
         opacity: 1;
       }
+
       100% {
         transform: translateX(-50%) translateY(-100%);
         opacity: 0;
       }
     }
+
     @keyframes placeholder-after {
       0% {
         transform: translateX(-50%) translateY(100%);
         opacity: 0;
       }
+
       100% {
         transform: translateX(-50%) translateY(0);
         opacity: 1;
       }
     }
+
     .animate::before {
       animation: 0.25s placeholder-before ease-in-out;
     }
+
     .animate::after {
       animation: 0.25s placeholder-after ease-in-out;
     }
+
     .animate::before,
     .animate::after {
       animation-fill-mode: forwards;
@@ -1106,13 +1083,16 @@ $dark_border_color: var(--dark_border_color);
           0% {
             transform: translateX(5px);
           }
+
           80% {
             transform: translateX(calc(var(--overflow_width_lrc) - 5px));
           }
+
           100% {
             transform: translateX(5px);
           }
         }
+
         animation: gothrough_lrc 2s ease-in-out infinite 0.2s;
       }
 

@@ -1,64 +1,25 @@
 <template>
   <div :class="'flexbox ' + size">
-    <Modal
-      v-if="uploadSuccess"
-      title="提示"
-      :content="'上传数据成功，编号为' + pid"
-      aod="aod"
-    />
+    <Modal v-if="uploadSuccess" title="提示" :content="'上传数据成功，编号为' + pid" aod="aod" />
     <div class="flexbox_part">
-      <Button
-        v-show="size === 'small'"
-        size="middle"
-        title="我喜欢"
-        :bindtap="switchLike"
-        @click="this.hasChange = true"
-        type="fa fa-heart"
-        :active="_playlist[_play.nowPlaying].isLike"
-      />
-      <Button
-        v-show="size === 'small'"
-        size="middle"
-        title="更多"
-        :disabled="
-          _dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
-        "
-        :bindtap="getMore"
-        type="fa fa-ellipsis-h"
-      />
+      <Button v-show="size === 'small'" size="middle" title="我喜欢" :bindtap="switchLike" @click="this.hasChange = true"
+        type="fa fa-heart" :active="_playlist[_play.nowPlaying].isLike" />
+      <Button v-show="size === 'small'" size="middle" title="更多" :disabled="
+        _dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
+      " :bindtap="getMore" type="fa fa-ellipsis-h" />
     </div>
-    <div
-      :class="'music-image ' + size"
-      @click="playSwitchFade()"
-      :title="_play.isPlaying ? '暂停' : '播放'"
-    >
+    <div :class="'music-image ' + size" @click="playSwitchFade()" :title="_play.isPlaying ? '暂停' : '播放'">
       <!-- @click="setSuccess(true)" title="进入传送门"-->
-      <img
-        :class="'middle-image playing ' + size"
-        :src="_playlist[_play.nowPlaying].musicImage"
-        alt="图片加载失败"
-        :style="{
-          webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
-        }"
-      />
+      <img :class="'middle-image playing ' + size" :src="_playlist[_play.nowPlaying].musicImage" alt="图片加载失败" :style="{
+        webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
+      }" />
       <!-- <canvas id="wrap" height="275" width="275"></canvas> -->
     </div>
     <div class="flexbox_part">
-      <Button
-        v-show="size === 'small'"
-        size="middle"
-        title="备份数据到云端"
-        :disabled="Boolean(_pid)"
-        :bindtap="saveList"
-        type="fas fa-cloud-upload-alt"
-      />
-      <Button
-        v-show="size === 'small'"
-        size="middle"
-        title="从云端还原数据"
-        @click="setSuccess(true)"
-        type="fas fa-cloud-download-alt"
-      />
+      <Button v-show="size === 'small'" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)" :bindtap="saveList"
+        type="fas fa-cloud-upload-alt" />
+      <Button v-show="size === 'small'" size="middle" title="从云端还原数据" @click="setSuccess(true)"
+        type="fas fa-cloud-download-alt" />
       <!-- FIXME: @click="setSuccess(true)" -->
     </div>
   </div>
@@ -175,6 +136,7 @@ $dark_active_color: var(--dark_active_color);
 $dark_title_color: var(--dark_title_color);
 $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
+
 .flexbox {
   display: flex;
   justify-content: center;
@@ -192,6 +154,7 @@ $dark_border_color: var(--dark_border_color);
     from {
       opacity: 0;
     }
+
     to {
       opacity: 1;
     }
@@ -201,6 +164,7 @@ $dark_border_color: var(--dark_border_color);
     from {
       opacity: 1;
     }
+
     to {
       opacity: 0;
     }
@@ -213,6 +177,7 @@ $dark_border_color: var(--dark_border_color);
       from {
         opacity: 0;
       }
+
       to {
         opacity: 1;
       }
@@ -226,6 +191,7 @@ $dark_border_color: var(--dark_border_color);
   &::v-deep .player-button {
     animation: fade-out 0.5s;
   }
+
   // * {
   //   float: left;
   // }
@@ -248,7 +214,8 @@ $dark_border_color: var(--dark_border_color);
   width: 250px;
   height: 250px;
   border-radius: 50%;
-  box-shadow: 20px 20px 24px #b6bcc5, -20px -20px 24px #ffffff;
+  box-shadow: 20px 20px 24px #b6bcc5,
+  -20px -20px 24px #ffffff;
   margin-bottom: 40px;
   transition: 0.3s all ease-in-out;
   cursor: pointer;
@@ -342,6 +309,7 @@ $dark_border_color: var(--dark_border_color);
         -o-transform: rotate(0deg);
         transform: rotate(0deg);
       }
+
       100% {
         -webkit-transform: rotate(360deg);
         -ms-transform: rotate(360deg);
@@ -349,6 +317,7 @@ $dark_border_color: var(--dark_border_color);
         transform: rotate(360deg);
       }
     }
+
     @-webkit-keyframes music_disc {
       0% {
         -webkit-transform: rotate(0deg);
@@ -356,6 +325,7 @@ $dark_border_color: var(--dark_border_color);
         -o-transform: rotate(0deg);
         transform: rotate(0deg);
       }
+
       100% {
         -webkit-transform: rotate(360deg);
         -ms-transform: rotate(360deg);

@@ -1,15 +1,7 @@
 <template>
   <div @click="handelClick($event)" :class="slide" id="list">
-    <ListItem
-      v-for="(item, i) in _playlist"
-      :key="item.musicId"
-      :title="item.musicName"
-      :subTitle="item.musicAuthor"
-      :active="i === _play.nowPlaying"
-      :skip="item.skip || false"
-      :listIndex="i"
-      :label="item.recommendReason"
-    />
+    <ListItem v-for="(item, i) in _playlist" :key="item.musicId" :title="item.musicName" :subTitle="item.musicAuthor"
+      :active="i === _play.nowPlaying" :skip="item.skip || false" :listIndex="i" :label="item.recommendReason" />
   </div>
   <div class="mask"></div>
   <!-- <ListItem title="歌曲标题" subTitle="歌曲歌手" /> -->
@@ -122,6 +114,7 @@ export default {
 <style lang='scss' scoped>
 $dark_player_color: var(--dark_player_color);
 $player_color: var(--player_color);
+
 div {
   display: none;
 }
@@ -131,13 +124,11 @@ div {
   position: fixed;
   width: 356px;
   height: 45px;
-  background: -webkit-gradient(
-    linear,
-    bottom,
-    top,
-    from(var(--player_color)),
-    to(transparent)
-  );
+  background: -webkit-gradient(linear,
+      bottom,
+      top,
+      from(var(--player_color)),
+      to(transparent));
   background: linear-gradient(to top, var(--player_color), transparent);
   left: 50%;
   transform: translate(-50%);
@@ -148,18 +139,16 @@ div {
   pointer-events: none;
 
   .dark & {
-    background: -webkit-linear-gradient(
-      top,
-      transparent,
-      var(--dark_player_color)
-    );
+    background: -webkit-linear-gradient(top,
+        transparent,
+        var(--dark_player_color));
     background: linear-gradient(to top, var(--dark_player_color), transparent);
   }
 }
 
 .slide-up {
   @media (max-width: 768px) {
-    max-height: calc(1rem - 320px);
+    max-height: calc(100% - 320px);
   }
 
   // background: linear-gradient(
@@ -197,6 +186,7 @@ div {
     opacity: 0;
     transform: translatey(100%);
   }
+
   to {
     opacity: 1;
     transform: translatey(0);
@@ -207,6 +197,7 @@ div {
   from {
     transform: translatey(0);
   }
+
   to {
     transform: translatey(100%);
     display: none;
@@ -234,11 +225,11 @@ div {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #333;
+
   .dark & {
     background: #bfbfbf;
   }
 }
 
-::-webkit-scrollbar-corner {
-}
+::-webkit-scrollbar-corner {}
 </style>

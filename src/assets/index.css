@@ -39,6 +39,10 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 1s ease;
-    /* height: 100vh; */
+    transition: 1s ease;
+    height: 100vh;
+    -webkit-transition: 1s ease;
+    -moz-transition: 1s ease;
+    -ms-transition: 1s ease;
+    -o-transition: 1s ease;
 }
