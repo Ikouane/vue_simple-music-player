@@ -158,9 +158,13 @@ $dark_border_color: var(--dark_border_color);
     .music-image {
       width: calc(100vmin - 30px);
       height: calc(100vmin - 30px);
-      // max-width: 90px;
-      // max-height: 90px;
       margin: initial;
+      box-shadow: 5px 5px 12px #b6bcc5,
+        -5px -5px 12px #ffffff;
+
+      .dark & {
+        box-shadow: 5px 5px 5px #1d2024, -5px -5px 5px #2d3036;
+      }
 
       .middle-image {
         width: 100%;

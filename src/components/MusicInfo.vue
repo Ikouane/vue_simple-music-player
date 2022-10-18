@@ -3,7 +3,7 @@
     <template v-if="_miniMode">
       <div class="flex">
         <p class="music-name" ref="music-name__wrapper">
-          <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
+          <span ref="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
           <span class="alia" id="music-alia">{{
           _playlist[_play.nowPlaying].musicAlia
           }}</span>
@@ -16,7 +16,7 @@
     </template>
     <template v-else>
       <p class="music-name" ref="music-name__wrapper">
-        <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
+        <span ref="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
         <span class="alia" id="music-alia">{{
         _playlist[_play.nowPlaying].musicAlia
         }}</span>
@@ -534,10 +534,15 @@ export default {
       //监听歌曲改变
       console.log("nowPlaying: " + val, oldVal);
 
+      this.setImageBackground();
+
+      this.getLrc();
+      this.getAuthor();
+
       let el_music_name = null;
 
       this.$nextTick(() => {
-        el_music_name = document.getElementById("music-name");
+        el_music_name = this.$refs["music-name"];
 
         // 判断歌名是否超长
         if (
@@ -551,17 +556,13 @@ export default {
           el_music_name.style.setProperty(
             "--overflow_width_name",
             `${parseInt(
-              this.$refs["music-lrc__wrapper"].getBoundingClientRect().width
+              this.$refs["music-name__wrapper"].getBoundingClientRect().width
             ) - parseInt(el_music_name.offsetWidth)
             }px`
           );
         } else el_music_name.classList.remove("animation");
       });
 
-      this.setImageBackground();
-
-      this.getLrc();
-      this.getAuthor();
 
       // var url = this._playlist[val].musicUrl;
       // if (!window.AudioContext) {
@@ -805,29 +806,37 @@ $dark_border_color: var(--dark_border_color);
     display: flex;
     flex-direction: column;
     justify-content: space-around;
-    width: 100%;
+    flex: 1;
+    overflow: hidden;
 
     .flex {
       width: 100%;
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 10px;
 
       .music-name {
         margin-bottom: 0;
         width: initial;
+        font-weight: initial;
+        max-width: 130px;
 
         --title_size: 20px;
         --text_size: 14px;
 
         span {
-          line-height: 150%;
+          line-height: 120%;
         }
       }
 
       .music-author {
         margin-bottom: 0;
         height: initial;
+        flex: 1;
+        text-align: right;
+        white-space: nowrap;
+        text-overflow: ellipsis;
       }
     }
   }
@@ -874,7 +883,7 @@ $dark_border_color: var(--dark_border_color);
 
         0%,
         10% {
-          transform: translateX(5px);
+          transform: translateX(0);
         }
 
         50%,
@@ -884,7 +893,7 @@ $dark_border_color: var(--dark_border_color);
 
         70%,
         100% {
-          transform: translateX(5px);
+          transform: translateX(0);
         }
       }
 

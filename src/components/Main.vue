@@ -32,7 +32,7 @@
       <div class="flex flex-column">
         <div class="flex">
           <MusicImage :smallSize="_play.nowPage === 'PLAYLIST'" />
-          <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
+          <InfoBlock v-show="_play.nowPage === 'PLAYING NOW'" />
         </div>
       </div>
     </template>
@@ -41,8 +41,8 @@
       <MusicImage :smallSize="_play.nowPage === 'PLAYLIST'" />
       <!-- v-if="_play.nowPage === 'PLAYLIST'" -->
       <PlayList :slide="_play.nowPage === 'PLAYLIST' ? 'slide-up' : 'slide-down'" />
-      <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
-      <PlayBar :show="_play.nowPage === 'PLAYING NOW'" />
+      <InfoBlock v-show="_play.nowPage === 'PLAYING NOW'" />
+      <PlayBar v-show="_play.nowPage === 'PLAYING NOW'" />
     </template>
   </div>
 </template>
