@@ -1,5 +1,5 @@
 <template>
-  <div :class="'mplayer' + (_play.mode === 'day' ? '' : ' dark')">
+  <div class="mplayer" :class="{dark: _play.mode != 'day', mini: _miniMode}">
     <transition>
       <InputModal v-if="_success" :isShow="_success" :isWrong="isWrong" />
     </transition>
@@ -28,12 +28,22 @@
           _playlist[_play.nowPlaying].musicAuthor
       " />
     </transition>
-    <AppBar @rid-click-action="switchBoxShow()" @more-click-action="switchMoreActionShow()" />
-    <MusicImage :size="_play.nowPage === 'PLAYLIST' ? 'small' : ''" />
-    <!-- v-if="_play.nowPage === 'PLAYLIST'" -->
-    <PlayList :slide="_play.nowPage === 'PLAYLIST' ? 'slide-up' : 'slide-down'" />
-    <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
-    <PlayBar v-show="_play.nowPage === 'PLAYING NOW'" />
+    <template v-if="_miniMode">
+      <div class="flex flex-column">
+        <div class="flex">
+          <MusicImage :smallSize="_play.nowPage === 'PLAYLIST'" />
+          <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
+        </div>
+      </div>
+    </template>
+    <template v-else>
+      <AppBar @rid-click-action="switchBoxShow()" @more-click-action="switchMoreActionShow()" />
+      <MusicImage :smallSize="_play.nowPage === 'PLAYLIST'" />
+      <!-- v-if="_play.nowPage === 'PLAYLIST'" -->
+      <PlayList :slide="_play.nowPage === 'PLAYLIST' ? 'slide-up' : 'slide-down'" />
+      <InfoBlock :show="_play.nowPage === 'PLAYING NOW'" />
+      <PlayBar :show="_play.nowPage === 'PLAYING NOW'" />
+    </template>
   </div>
 </template>
 <script>
@@ -76,7 +86,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_success", "_pid", "_rid"]),
+    ...mapState(["_play", "_playlist", "_success", "_pid", "_rid", "_miniMode"]),
   },
   methods: {
     ...mapMutations(["setStore", "setSuccess", "setPid", "setRid"]),
@@ -177,6 +187,23 @@ export default {
   overflow: hidden;
   position: relative;
   box-sizing: border-box;
+
+  &.mini {
+    display: flex;
+    flex-direction: column;
+    padding: 15px;
+
+    .flex {
+      display: flex;
+      gap: 20px;
+
+      &.flex-column {
+        flex-direction: column;
+        justify-content: center;
+        height: 100%;
+      }
+    }
+  }
 
   &.dark {
     background-color: var(--dark_player_color);

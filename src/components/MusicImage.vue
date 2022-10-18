@@ -1,24 +1,26 @@
 <template>
-  <div :class="'flexbox ' + size">
+  <div class="flexbox" :class="{small: smallSize, mini: _miniMode}">
     <Modal v-if="uploadSuccess" title="提示" :content="'上传数据成功，编号为' + pid" aod="aod" />
     <div class="flexbox_part">
-      <Button v-show="size === 'small'" size="middle" title="我喜欢" :bindtap="switchLike" @click="this.hasChange = true"
-        type="fa fa-heart" :active="_playlist[_play.nowPlaying].isLike" />
-      <Button v-show="size === 'small'" size="middle" title="更多" :disabled="
+      <Button v-show="!_miniMode && smallSize" size="middle" title="我喜欢" :bindtap="switchLike"
+        @click="this.hasChange = true" type="fa fa-heart" :active="_playlist[_play.nowPlaying].isLike" />
+      <Button v-show="!_miniMode && smallSize" size="middle" title="更多" :disabled="
         _dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
       " :bindtap="getMore" type="fa fa-ellipsis-h" />
     </div>
-    <div :class="'music-image ' + size" @click="playSwitchFade()" :title="_play.isPlaying ? '暂停' : '播放'">
+    <div class="music-image" :class="{small: smallSize}" @click="playSwitchFade()"
+      :title="_play.isPlaying ? '暂停' : '播放'">
       <!-- @click="setSuccess(true)" title="进入传送门"-->
-      <img :class="'middle-image playing ' + size" :src="_playlist[_play.nowPlaying].musicImage" alt="图片加载失败" :style="{
-        webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
-      }" />
+      <img class="middle-image playing" :class="{small: smallSize}" :src="_playlist[_play.nowPlaying].musicImage"
+        alt="图片加载失败" :style="{
+          webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
+        }" />
       <!-- <canvas id="wrap" height="275" width="275"></canvas> -->
     </div>
     <div class="flexbox_part">
-      <Button v-show="size === 'small'" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)" :bindtap="saveList"
-        type="fas fa-cloud-upload-alt" />
-      <Button v-show="size === 'small'" size="middle" title="从云端还原数据" @click="setSuccess(true)"
+      <Button v-show="!_miniMode && smallSize" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)"
+        :bindtap="saveList" type="fas fa-cloud-upload-alt" />
+      <Button v-show="!_miniMode && smallSize" size="middle" title="从云端还原数据" @click="setSuccess(true)"
         type="fas fa-cloud-download-alt" />
       <!-- FIXME: @click="setSuccess(true)" -->
     </div>
@@ -43,9 +45,9 @@ export default {
     Modal,
   },
   props: {
-    size: {
-      type: String,
-      default: "",
+    smallSize: {
+      type: Boolean,
+      default: false,
     },
   },
   computed: {
@@ -57,6 +59,7 @@ export default {
       "_rid",
       "_pid",
       "_mid",
+      "_miniMode"
     ]),
   },
   methods: {
@@ -142,6 +145,31 @@ $dark_border_color: var(--dark_border_color);
   justify-content: center;
   align-items: center;
   margin: auto;
+
+  &.mini {
+    display: inline;
+    width: fit-content;
+    margin: initial;
+
+    .flexbox_part {
+      display: none;
+    }
+
+    .music-image {
+      width: calc(100vmin - 30px);
+      height: calc(100vmin - 30px);
+      // max-width: 90px;
+      // max-height: 90px;
+      margin: initial;
+
+      .middle-image {
+        width: 100%;
+        height: 100%;
+        border-width: 4px;
+        box-sizing: border-box;
+      }
+    }
+  }
 
   .flexbox_part {
     display: flex;

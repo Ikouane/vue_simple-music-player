@@ -1,15 +1,31 @@
 <template>
-  <div class="player-middle" v-show="show">
-    <p class="music-name" ref="music-name__wrapper">
-      <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
-      <span class="alia" id="music-alia">{{
-      _playlist[_play.nowPlaying].musicAlia
-      }}</span>
-    </p>
-    <p class="music-author">
-      {{ _playlist[_play.nowPlaying].musicAuthor }}
-      <span id="aboutAuthor">{{ aboutAuthor }}</span>
-    </p>
+  <div class="player-middle" :class="{mini: _miniMode}" v-show="show">
+    <template v-if="_miniMode">
+      <div class="flex">
+        <p class="music-name" ref="music-name__wrapper">
+          <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
+          <span class="alia" id="music-alia">{{
+          _playlist[_play.nowPlaying].musicAlia
+          }}</span>
+        </p>
+        <p class="music-author">
+          {{ _playlist[_play.nowPlaying].musicAuthor }}
+          <span v-if="!_miniMode" id="aboutAuthor">{{ aboutAuthor }}</span>
+        </p>
+      </div>
+    </template>
+    <template v-else>
+      <p class="music-name" ref="music-name__wrapper">
+        <span id="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
+        <span class="alia" id="music-alia">{{
+        _playlist[_play.nowPlaying].musicAlia
+        }}</span>
+      </p>
+      <p class="music-author">
+        {{ _playlist[_play.nowPlaying].musicAuthor }}
+        <span v-if="!_miniMode" id="aboutAuthor">{{ aboutAuthor }}</span>
+      </p>
+    </template>
     <div class="progressbar">
       <div class="timetext">
         <span id="now">
@@ -34,7 +50,7 @@
         </div>
       </div>
     </div>
-    <div class="music-lrc" ref="music-lrc__wrapper">
+    <div v-if="!_miniMode" class="music-lrc" ref="music-lrc__wrapper">
       <label class="lrc_wrapper" :data-before="lrc_line__prev" :data-after="lrc_line__next"
         :class="{ animate: shouldAnimate }" @animationend="animationEnded">
         <span id="music-lrc" ref="music-lrc">
@@ -95,7 +111,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_userTouch"]),
+    ...mapState(["_play", "_playlist", "_userTouch", "_miniMode"]),
     _nowPlaying() {
       return this._play.nowPlaying;
     },
@@ -784,6 +800,38 @@ $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
 
 .player-middle {
+  &.mini {
+    margin: initial;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 100%;
+
+    .flex {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+
+      .music-name {
+        margin-bottom: 0;
+        width: initial;
+
+        --title_size: 20px;
+        --text_size: 14px;
+
+        span {
+          line-height: 150%;
+        }
+      }
+
+      .music-author {
+        margin-bottom: 0;
+        height: initial;
+      }
+    }
+  }
+
   @media (max-width: 768px) {
     margin-bottom: 0.07rem;
   }

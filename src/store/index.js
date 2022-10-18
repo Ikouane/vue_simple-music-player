@@ -16,6 +16,7 @@ export default createStore({
     _singleMusicMode: false,
     _timer: null,
     _userTouch: false,
+    _miniMode: false,
     _play: {
       isPlaying: false,
       nowPlaying: 0,
@@ -634,6 +635,11 @@ export default createStore({
     // 设置已触碰
     setAlreadyTouch(state) {
       state._userTouch = true;
+    },
+
+    // 设置 MINI 模式
+    setMiniMode(state) {
+      state._miniMode = true;
     },
 
     // 发送房间广播消息

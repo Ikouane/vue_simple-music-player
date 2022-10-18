@@ -5,7 +5,6 @@
 </template>
 
 <script>
-// import HelloWorld from "./components/HelloWorld.vue";
 import Main from "./components/Main";
 import "@/assets/index.css";
 import { mapActions, mapMutations, mapState } from "vuex";
@@ -19,7 +18,7 @@ export default {
     Main,
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch"]),
+    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch", "_miniMode"]),
   },
   methods: {
     ...mapMutations([
@@ -40,6 +39,7 @@ export default {
       "goTime",
       "setDailyMode",
       "setAlreadyTouch",
+      "setMiniMode"
     ]),
     ...mapActions(["playSync"]),
     initScreen() {
@@ -70,7 +70,10 @@ export default {
       lid = getQueryVariable("lid"),
       startTime = getQueryVariable("st"),
       endTime = getQueryVariable("et"),
-      dailyMode = getQueryVariable("daily");
+      dailyMode = getQueryVariable("daily"),
+      mini = getQueryVariable("mini");
+
+    if (mini) this.setMiniMode();
 
     if (mid) {
       console.log("单音乐模式");
@@ -221,13 +224,13 @@ export default {
         window.event.preventDefault(); //关闭浏览器快捷键
         console.log("点击空格");
         _this.playSwitchFade();
-      } else if (key == 38 && e.altKey) {
+      } else if (key == 38 && e.shiftKey) {
         window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击Alt + 上箭头");
+        console.log("点击Shift + 上箭头");
         _this.prev();
-      } else if (key == 40 && e.altKey) {
+      } else if (key == 40 && e.shiftKey) {
         window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击Alt + 点击下箭头");
+        console.log("点击Shift + 点击下箭头");
         _this.next();
       } else if (key == 38) {
         window.event.preventDefault(); //关闭浏览器快捷键

@@ -1,13 +1,11 @@
 <template>
-  <div
-    :class="
-      'modal ' +
-      (isShow ? 'modal-show' : 'modal-hide') +
-      (_play.mode === 'night' ? ' dark' : '')
-    "
-    @click="handleClose"
-  >
-    <label class="modal-title">{{ title }}</label>
+  <div class="modal" :class="{
+    modalShow: isShow,
+    modalHide: !isShow,
+    dark: _play.mode === 'night',
+    mini: _miniMode
+  }" @click=" handleClose">
+    <label v-if="!_miniMode" class="modal-title">{{ title }}</label>
     <div class="modal-content">{{ content }}</div>
     <div class="modal-button" v-if="okmsg && cancelmsg">
       <button class="button-ok">{{ okmsg }}</button>
@@ -37,7 +35,7 @@ export default {
       default: false,
     },
   },
-  computed: { ...mapState(["_play", "_timer"]) },
+  computed: { ...mapState(["_play", "_timer", "_miniMode"]) },
   methods: {
     handleClose() {
       this.clearMsg();
@@ -114,18 +112,28 @@ export default {
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 
+  &.mini {
+    width: fit-content;
+    padding: 6px 10px;
+    margin: 10px 0;
+
+    .modal-content {
+      margin-top: 0;
+    }
+  }
+
   &.dark {
     background-color: rgba(0, 0, 0, 0.72);
     color: white;
   }
 
-  &-show {
+  &Show {
     top: 0px;
     transform: translate(-50%);
     transition: all 0.5s ease;
   }
 
-  &-hide {
+  &Hide {
     top: -100%;
     transform: translate(-50%, 100%);
     transition: all 0.5s ease;

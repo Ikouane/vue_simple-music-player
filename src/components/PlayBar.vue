@@ -1,45 +1,21 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-02-27 17:49:58
+ * @LastEditTime: 2022-10-18 22:49:51
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
 -->
 <template>
-  <div class="player-bottom">
-    <Button
-      :disabled="_playlist.length <= 1"
-      size="large"
-      title="上一首(↑)"
-      type="fa fa-backward"
-      :bindtap="prev"
-    />
-    <Button
-      size="large"
-      title="暂停(空格)"
-      v-if="_play.isPlaying"
-      active
-      type="fa fa-pause"
-      :bindtap="musicFadeOut"
-      id="pauseButton"
-    />
-    <Button
-      size="large"
-      title="播放(空格)"
-      v-else
-      active
-      type="fa fa-play"
-      :bindtap="musicFadeIn"
-      id="playButton"
-    />
-    <Button
-      :disabled="_playlist.length <= 1"
-      size="large"
-      title="下一首(↓)"
-      type="fa fa-forward"
-      :bindtap="next"
-    />
+  <div class="player-bottom" :class="{mini: _miniMode}">
+    <Button :disabled="_playlist.length <= 1" :size="_miniMode ? 'small' : 'large'" title="上一首(↑)" type="fa fa-backward"
+      :bindtap="prev" />
+    <Button :size="_miniMode ? 'small' : 'large'" title="暂停(空格)" v-if="_play.isPlaying" active type="fa fa-pause"
+      :bindtap="musicFadeOut" id="pauseButton" />
+    <Button :size="_miniMode ? 'small' : 'large'" title="播放(空格)" v-else active type="fa fa-play" :bindtap="musicFadeIn"
+      id="playButton" />
+    <Button :disabled="_playlist.length <= 1" :size="_miniMode ? 'small' : 'large'" title="下一首(↓)" type="fa fa-forward"
+      :bindtap="next" />
   </div>
 </template>
 <script>
@@ -55,6 +31,7 @@ export default {
     // 映射 this.isPlaying 为 store.state.isPlaying
     "_play",
     "_playlist",
+    "_miniMode"
   ]),
   methods: {
     ...mapMutations([
@@ -73,5 +50,9 @@ export default {
   display: flex;
   justify-content: space-around;
   margin-bottom: 40px;
+
+  &.mini {
+    margin-bottom: 0;
+  }
 }
 </style>
