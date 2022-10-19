@@ -44,10 +44,7 @@ export default {
     ...mapActions(["playSync"]),
     initScreen() {
       if (window.innerWidth < 768) {
-        const height = window.innerHeight + "px";
-        document.querySelector("html").style.fontSize = height;
-        document.getElementById("app").style.width =
-          document.documentElement.clientWidth + "px";
+        document.querySelector("html").style.fontSize = window.innerHeight + "px";
       }
     }
   },
@@ -353,7 +350,6 @@ body {
 
 @media (max-width: 768px) {
   #app {
-    width: initial;
     max-width: initial;
     height: 100%;
 

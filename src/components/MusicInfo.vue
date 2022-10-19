@@ -3,10 +3,11 @@
     <template v-if="_miniMode">
       <div class="flex">
         <p class="music-name" ref="music-name__wrapper">
-          <span ref="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
-          <span class="alia" id="music-alia">{{
-          _playlist[_play.nowPlaying].musicAlia
-          }}</span>
+          <span :style="musicNameOverflowWidth" :class="{animation: musicNameOverflowWidth, paused: !_isPlaying}"
+            ref="music-name">{{
+            _playlist[_play.nowPlaying].musicName }} ({{
+            _playlist[_play.nowPlaying].musicAlia
+            }})</span>
         </p>
         <p class="music-author">
           {{ _playlist[_play.nowPlaying].musicAuthor }}
@@ -16,7 +17,8 @@
     </template>
     <template v-else>
       <p class="music-name" ref="music-name__wrapper">
-        <span ref="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
+        <span :style="musicNameOverflowWidth" :class="{animation: musicNameOverflowWidth, paused: !_isPlaying}"
+          ref="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
         <span class="alia" id="music-alia">{{
         _playlist[_play.nowPlaying].musicAlia
         }}</span>
@@ -102,6 +104,7 @@ export default {
       lrc_line__next: "",
       tlrc_line__prev: "",
       tlrc_line__next: "",
+      musicNameOverflowWidth: 0
     };
   },
   props: {
@@ -405,6 +408,28 @@ export default {
     animationEnded() {
       this.shouldAnimate = false;
     },
+
+    scrollMusicName() {
+      let el_music_name = null;
+
+      this.$nextTick(() => {
+        el_music_name = this.$refs["music-name"];
+
+        // 判断歌名是否超长
+        if (
+          parseInt(
+            el_music_name.offsetWidth -
+            this.$refs["music-name__wrapper"].getBoundingClientRect().width
+          ) > 0
+        ) {
+          // 超长则滚动
+          this.musicNameOverflowWidth = `--overflow_width_name: ${parseInt(
+            this.$refs["music-name__wrapper"].getBoundingClientRect().width
+          ) - parseInt(el_music_name.offsetWidth)
+            }px`;
+        } else this.musicNameOverflowWidth = 0;
+      });
+    }
   },
 
   mounted() {
@@ -463,6 +488,8 @@ export default {
         console.log("音乐已播放（外部）");
         this.musicFadeIn();
       } else console.log("音乐已播放（内部）");
+
+      this.scrollMusicName();
     });
 
     $music.addEventListener("ended", () => {
@@ -539,30 +566,7 @@ export default {
       this.getLrc();
       this.getAuthor();
 
-      let el_music_name = null;
-
-      this.$nextTick(() => {
-        el_music_name = this.$refs["music-name"];
-
-        // 判断歌名是否超长
-        if (
-          parseInt(
-            el_music_name.offsetWidth -
-            this.$refs["music-name__wrapper"].getBoundingClientRect().width
-          ) > 0
-        ) {
-          // 超长则滚动
-          el_music_name.classList.add("animation");
-          el_music_name.style.setProperty(
-            "--overflow_width_name",
-            `${parseInt(
-              this.$refs["music-name__wrapper"].getBoundingClientRect().width
-            ) - parseInt(el_music_name.offsetWidth)
-            }px`
-          );
-        } else el_music_name.classList.remove("animation");
-      });
-
+      this.scrollMusicName();
 
       // var url = this._playlist[val].musicUrl;
       // if (!window.AudioContext) {
@@ -902,6 +906,10 @@ $dark_border_color: var(--dark_border_color);
 
       &.animation {
         animation: gothrough 10s ease-in-out infinite;
+
+        &.paused {
+          animation-play-state: paused;
+        }
       }
     }
 

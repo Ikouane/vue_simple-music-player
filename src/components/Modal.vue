@@ -113,12 +113,13 @@ export default {
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 
   &.mini {
-    width: fit-content;
+    width: max-content;
     padding: 6px 10px;
     margin: 10px 0;
 
     .modal-content {
       margin-top: 0;
+      max-width: calc(100vw - 50px);
     }
   }
 
