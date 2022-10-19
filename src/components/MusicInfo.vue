@@ -5,9 +5,9 @@
         <p class="music-name" ref="music-name__wrapper">
           <span :style="musicNameOverflowWidth" :class="{animation: musicNameOverflowWidth, paused: !_isPlaying}"
             ref="music-name">{{
-            _playlist[_play.nowPlaying].musicName }} ({{
-            _playlist[_play.nowPlaying].musicAlia
-            }})</span>
+            _playlist[_play.nowPlaying].musicName }} {{
+            _playlist[_play.nowPlaying].musicAlia ? "(" + _playlist[_play.nowPlaying].musicAlia + ")" : ""
+            }}</span>
         </p>
         <p class="music-author">
           {{ _playlist[_play.nowPlaying].musicAuthor }}
