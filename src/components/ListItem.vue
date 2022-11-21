@@ -1,22 +1,16 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-06-27 23:50:01
+ * @LastEditTime: 2022-11-22 01:31:47
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
 -->
 <template>
-  <div
-    class="list-card"
-    :class="{ active, skip }"
-    :data-index="listIndex"
-    v-mouse-menu="{
-      params: listIndex,
-      ...options,
-    }"
-    :title="label"
-  >
+  <div class="list-card" :class="{ active, skip }" :data-index="listIndex" v-mouse-menu="{
+    params: listIndex,
+    ...options,
+  }" :title="label">
     <div class="music-info">
       <div class="title__wrapper">
         <span class="label" v-if="label">{{ formatLabel(label) }}</span>
@@ -24,33 +18,13 @@
       </div>
       <span>{{ subTitle }}</span>
     </div>
-    <Button
-      size="small"
-      title="移出播放列表"
-      v-if="skip"
-      active
-      type="fas fa-times"
-      :data-index="listIndex"
-    />
+    <Button size="small" title="移出播放列表" v-if="skip" active type="fas fa-times" :data-index="listIndex" />
     <!-- FIXME: 事件代理重写 -->
     <div v-else>
-      <Button
-        size="small"
-        title="暂停"
-        v-if="_play.isPlaying && _play.nowPlaying == listIndex"
-        active
-        type="fa fa-pause"
-        :data-index="listIndex"
-      />
+      <Button size="small" title="暂停" v-if="_play.isPlaying && _play.nowPlaying == listIndex" active type="fa fa-pause"
+        :data-index="listIndex" />
       <!--  :bindtap="pause" :bindtap="play" 事件已代理-->
-      <Button
-        size="small"
-        title="播放"
-        v-else
-        active
-        type="fa fa-play"
-        :data-index="listIndex"
-      />
+      <Button size="small" title="播放" v-else active type="fa fa-play" :data-index="listIndex" />
     </div>
   </div>
 </template>
@@ -183,14 +157,17 @@ export default {
     .dark & {
       background-color: rgba(0, 0, 0, 0.2);
     }
+
+    .pink & {
+      background-color: rgba(255, 133, 141, 0.1);
+    }
   }
 
   &.skip {
     cursor: not-allowed;
     filter: grayscale(1);
 
-    .dark & {
-    }
+    .dark & {}
   }
 
   .music-info {
@@ -209,6 +186,14 @@ export default {
         color: var(--title_color);
         font-weight: bold;
         margin-bottom: 3px;
+
+        .dark & {
+          color: var(--dark_title_color);
+        }
+
+        .pink & {
+          color: var(--pink_title_color);
+        }
       }
 
       .label {
@@ -231,11 +216,23 @@ export default {
         .dark & {
           background-color: var(--dark_active_color);
         }
+
+        .pink & {
+          background-color: var(--pink_active_color);
+        }
       }
     }
 
     & span:nth-child(2) {
       color: var(--text_color);
+
+      .dark & {
+        color: var(--dark_text_color);
+      }
+
+      .pink & {
+        color: var(--pink_text_color);
+      }
     }
   }
 }

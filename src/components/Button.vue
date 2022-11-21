@@ -1,16 +1,11 @@
 <template>
-  <div
-    class="player-button"
-    :class="{
-      active,
-      disabled,
-      small: size == 'small',
-      middle: size == 'middle',
-      large: size == 'large',
-    }"
-    :title="title"
-    @click="handelClick"
-  >
+  <div class="player-button" :class="{
+    active,
+    disabled,
+    small: size == 'small',
+    middle: size == 'middle',
+    large: size == 'large',
+  }" :title="title" @click="handelClick">
     <i :class="type" aria-hidden="true"></i>
   </div>
 </template>
@@ -24,7 +19,7 @@ export default {
     title: String,
     bindtap: {
       type: Function,
-      default: function () {},
+      default: function () { },
     },
     type: String,
     active: {
@@ -61,6 +56,13 @@ $dark_title_color: var(--dark_title_color);
 $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
 
+$pink_main_color: var(--pink_main_color);
+$pink_player_color: var(--pink_player_color);
+$pink_active_color: var(--pink_active_color);
+$pink_title_color: var(--pink_title_color);
+$pink_text_color: var(--pink_text_color);
+$pink_border_color: var(--pink_border_color);
+
 .player-button {
   border-radius: 50px;
   background: linear-gradient(145deg, #f9ffff, #d2d9e3);
@@ -79,8 +81,7 @@ $dark_border_color: var(--dark_border_color);
     cursor: not-allowed;
     filter: grayscale(1);
 
-    .dark & {
-    }
+    .dark & {}
   }
 
   .dark & {
@@ -93,6 +94,7 @@ $dark_border_color: var(--dark_border_color);
     }
 
     &:not(.disabled) {
+
       &:hover,
       &.active {
         background: var(--dark_active_color) !important;
@@ -100,6 +102,32 @@ $dark_border_color: var(--dark_border_color);
         border: 2px solid var(--dark_active_color);
         box-shadow: inset 6px 6px 12px #c9460e, inset -6px -6px 12px #ff5e12;
       }
+    }
+  }
+
+  .pink & {
+    border: 2px solid $pink_border_color;
+    background: linear-gradient(145deg, #ffebf3, #f7f0f4);
+    box-shadow: 5px 5px 20px #f9e7f0, -5px -5px 15px #ffffff;
+
+    &.small {
+      box-shadow: 2px 2px 8px #f9e7f0, -2px -2px 6px #ffffff;
+    }
+
+    &:not(.disabled) {
+
+      &:hover,
+      &.active {
+        background: var(--pink_active_color) !important;
+        box-shadow: clear;
+        border: 2px solid var(--pink_active_color);
+        box-shadow: inset 6px 6px 12px #eda6c8, inset -6px -6px 12px #f4c0da;
+      }
+    }
+
+    svg {
+      color: $pink_text_color;
+      pointer-events: none; //点击穿透
     }
   }
 
@@ -128,6 +156,7 @@ $dark_border_color: var(--dark_border_color);
   }
 
   &:not(.disabled) {
+
     &:hover,
     &.active {
       background: var(--active_color) !important;

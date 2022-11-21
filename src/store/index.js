@@ -105,10 +105,14 @@ export default createStore({
         document
           .querySelector("body")
           .setAttribute("style", "background-color:var(--dark_main_color)");
-      else
+      else if (state._play.mode === "day")
         document
           .querySelector("body")
           .setAttribute("style", "background-color:var(--main_color)");
+      if (state._play.mode === "pink")
+        document
+          .querySelector("body")
+          .setAttribute("style", "background-color:var(--pink_main_color)");
       // state._play = this.commit('deepClone', o_Play._play)
       // state._playlist = this.commit('deepClone', o_Play._playlist)
       // this.commit('clearMsg');
@@ -452,8 +456,7 @@ export default createStore({
       }
 
       Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get.php?method=like&mid=${
-          state._playlist[state._play.nowPlaying].musicId
+        `https://api.weyoung.tech/vue_simple-music-player/get.php?method=like&mid=${state._playlist[state._play.nowPlaying].musicId
         }&like=${!state._playlist[state._play.nowPlaying].isLike}`
       )
         .then((response) => {
@@ -553,8 +556,7 @@ export default createStore({
           .querySelector("body")
           .setAttribute(
             "style",
-            `--backgroundImage:url("${
-              state._playlist[state._play.nowPlaying].musicImage
+            `--backgroundImage:url("${state._playlist[state._play.nowPlaying].musicImage
             }")`
           );
         document.querySelector("body").classList.add("imgBg");
@@ -822,9 +824,8 @@ export default createStore({
 
     // 精准空降
     getThisMoment(state) {
-      return `https://music.weyoung.tech?mid=${
-        state._playlist[state._play.nowPlaying].musicId
-      }&st=${state._play.playTime}`;
+      return `https://music.weyoung.tech?mid=${state._playlist[state._play.nowPlaying].musicId
+        }&st=${state._play.playTime}`;
     },
 
     // 根据 Index 获取 Id

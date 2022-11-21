@@ -1,5 +1,5 @@
 <template>
-  <div class="mplayer" :class="{dark: _play.mode != 'day', mini: _miniMode}">
+  <div class="mplayer" :class="{ dark: _play.mode == 'night', pink: _play.mode == 'pink', mini: _miniMode }">
     <transition>
       <InputModal v-if="_success" :isShow="_success" :isWrong="isWrong" />
     </transition>
@@ -19,14 +19,14 @@
         _play.message.content
           ? '通知'
           : _play.isPlaying
-          ? '正在播放'
-          : '已同步上次播放'
+            ? '正在播放'
+            : '已同步上次播放'
       " :aod="_play.message.duration == 0" :time="getNowTime()" :content="
-        _play.message.content ||
-        _playlist[_play.nowPlaying].musicName +
-          ' - ' +
-          _playlist[_play.nowPlaying].musicAuthor
-      " />
+  _play.message.content ||
+  _playlist[_play.nowPlaying].musicName +
+  ' - ' +
+  _playlist[_play.nowPlaying].musicAuthor
+" />
     </transition>
     <template v-if="_miniMode">
       <div class="flex flex-column">
@@ -208,6 +208,11 @@ export default {
   &.dark {
     background-color: var(--dark_player_color);
     border: 2px solid black;
+  }
+
+  &.pink {
+    background-color: var(--pink_player_color);
+    border: 2px solid var(--pink_border_color);
   }
 
   @media (max-width: 768px) {

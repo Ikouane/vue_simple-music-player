@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-10-13 23:04:24
+ * @LastEditTime: 2022-11-22 00:18:51
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -9,37 +9,22 @@
 <template>
   <div class="appbar">
     <div class="top_more" @click="$emit('more-click-action')">...</div>
-    <Button
-      size="middle"
-      title="切换主题"
-      :bindtap="modeSwitch"
-      type="fa fa-paint-brush"
-    />
-    <div
-      class="title"
-      :class="{
-        signal_icon: _rid !== null && _play.nowPage != 'PLAYLIST',
-        green: _signalColor === 'green',
-        yellow: _signalColor === 'yellow',
-        red: _signalColor === 'red',
-      }"
-      title="正在播放"
-      @click="if (_rid) $emit('rid-click-action');"
-    >
+    <Button size="middle" title="切换主题" :bindtap="modeSwitch" type="fa fa-paint-brush" />
+    <div class="title" :class="{
+      signal_icon: _rid !== null && _play.nowPage != 'PLAYLIST',
+      green: _signalColor === 'green',
+      yellow: _signalColor === 'yellow',
+      red: _signalColor === 'red',
+    }" title="正在播放" @click="if (_rid) $emit('rid-click-action');">
       {{
-        _rid === null
-          ? _play.nowPage
-          : _play.nowPage === "PLAYING NOW"
-          ? "PLAYING TOGETHER"
-          : "PLAYLIST"
+          _rid === null
+            ? _play.nowPage
+            : _play.nowPage === "PLAYING NOW"
+              ? "PLAYING TOGETHER"
+              : "PLAYLIST"
       }}
     </div>
-    <Button
-      size="middle"
-      title="播放列表"
-      :bindtap="listSwitch"
-      type="fa fa-bars"
-    />
+    <Button size="middle" title="播放列表" :bindtap="listSwitch" type="fa fa-bars" />
   </div>
 </template>
 <script>
@@ -76,6 +61,13 @@ $dark_active_color: var(--dark_active_color);
 $dark_title_color: var(--dark_title_color);
 $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
+
+$pink_main_color: var(--pink_main_color);
+$pink_player_color: var(--pink_player_color);
+$pink_active_color: var(--pink_active_color);
+$pink_title_color: var(--pink_title_color);
+$pink_text_color: var(--pink_text_color);
+$pink_border_color: var(--pink_border_color);
 
 .appbar {
   display: flex;

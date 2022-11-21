@@ -1,13 +1,14 @@
 <template>
-  <div class="player-middle" :class="{mini: _miniMode}" v-show="show">
+  <div class="player-middle" :class="{ mini: _miniMode }" v-show="show">
     <template v-if="_miniMode">
       <div class="flex">
         <p class="music-name" ref="music-name__wrapper">
-          <span :style="musicNameOverflowWidth" :class="{animation: musicNameOverflowWidth, paused: !_isPlaying}"
+          <span :style="musicNameOverflowWidth" :class="{ animation: musicNameOverflowWidth, paused: !_isPlaying }"
             ref="music-name">{{
-            _playlist[_play.nowPlaying].musicName }} {{
-            _playlist[_play.nowPlaying].musicAlia ? "(" + _playlist[_play.nowPlaying].musicAlia + ")" : ""
-            }}</span>
+                _playlist[_play.nowPlaying].musicName
+            }} {{
+    _playlist[_play.nowPlaying].musicAlia ? "(" + _playlist[_play.nowPlaying].musicAlia + ")" : ""
+}}</span>
         </p>
         <p class="music-author">
           {{ _playlist[_play.nowPlaying].musicAuthor }}
@@ -17,10 +18,10 @@
     </template>
     <template v-else>
       <p class="music-name" ref="music-name__wrapper">
-        <span :style="musicNameOverflowWidth" :class="{animation: musicNameOverflowWidth, paused: !_isPlaying}"
+        <span :style="musicNameOverflowWidth" :class="{ animation: musicNameOverflowWidth, paused: !_isPlaying }"
           ref="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
         <span class="alia" id="music-alia">{{
-        _playlist[_play.nowPlaying].musicAlia
+            _playlist[_play.nowPlaying].musicAlia
         }}</span>
       </p>
       <p class="music-author">
@@ -32,11 +33,11 @@
       <div class="timetext">
         <span id="now">
           {{
-          drag
-          ? nowTime
-          : formatTime(parseInt(_play.playTime / 60)) +
-          ":" +
-          formatTime(parseInt(_play.playTime % 60))
+              drag
+                ? nowTime
+                : formatTime(parseInt(_play.playTime / 60)) +
+                ":" +
+                formatTime(parseInt(_play.playTime % 60))
           }}
         </span>
         <span id="length">{{ musicLength }}</span>
@@ -804,6 +805,13 @@ $dark_title_color: var(--dark_title_color);
 $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
 
+$pink_main_color: var(--pink_main_color);
+$pink_player_color: var(--pink_player_color);
+$pink_active_color: var(--pink_active_color);
+$pink_title_color: var(--pink_title_color);
+$pink_text_color: var(--pink_text_color);
+$pink_border_color: var(--pink_border_color);
+
 .player-middle {
   &.mini {
     margin: initial;
@@ -856,8 +864,17 @@ $dark_border_color: var(--dark_border_color);
   align-items: center;
   margin: auto;
   margin-bottom: 40px; //100px
-  color: $text_color;
   width: 90%;
+
+  color: $text_color;
+
+  .dark & {
+    color: $dark_text_color;
+  }
+
+  .pink & {
+    color: $pink_text_color;
+  }
 
   p {
     margin: 0;
@@ -916,6 +933,10 @@ $dark_border_color: var(--dark_border_color);
     .dark & {
       color: var(--dark_title_color);
     }
+
+    .pink & {
+      color: var(--pink_title_color);
+    }
   }
 
   .music-author {
@@ -971,6 +992,10 @@ $dark_border_color: var(--dark_border_color);
     .dark & {
       color: var(--dark_text_color);
     }
+
+    .pink & {
+      color: var(--pink_text_color);
+    }
   }
 
   .progressbar {
@@ -1000,8 +1025,12 @@ $dark_border_color: var(--dark_border_color);
 
       .dark & {
         background-color: #171b1b;
-        border-radius: 4px;
         box-shadow: inset 1px 1px 1px #141717, inset -1px -1px 1px #4a4b4e;
+      }
+
+      .pink & {
+        background-color: transparent;
+        box-shadow: inset 3px 3px 3px #f3d5e8, inset -3px -3px 3px #f7e1ef;
       }
     }
 
@@ -1017,6 +1046,11 @@ $dark_border_color: var(--dark_border_color);
       .dark & {
         box-shadow: inset 1px 1px 1px #141717, inset -1px -1px 1px #4a4b4e;
         background: linear-gradient(145deg, var(--dark_active_color), #e5bc28);
+      }
+
+      .pink & {
+        box-shadow: inset 1px 1px 1px #f3d5e8, inset -1px -1px 1px #f7e1ef;
+        background: linear-gradient(145deg, var(--pink_active_color), #f6c7c7);
       }
     }
 
@@ -1041,6 +1075,12 @@ $dark_border_color: var(--dark_border_color);
         border: 5px solid var(--dark_player_color);
         box-shadow: 2px 2px 6px #000000;
       }
+
+      .pink & {
+        background-color: var(--pink_active_color);
+        border: 5px solid var(--pink_player_color);
+        box-shadow: 2px 2px 6px #e7b7b7;
+      }
     }
   }
 
@@ -1060,6 +1100,16 @@ $dark_border_color: var(--dark_border_color);
       white-space: nowrap;
       height: 50%;
       width: 100%;
+
+      color: var(--text_color);
+
+      .dark & {
+        color: var(--dark_text_color);
+      }
+
+      .pink & {
+        color: var(--pink_text_color);
+      }
     }
 
     .lrc_wrapper::before,
@@ -1074,7 +1124,6 @@ $dark_border_color: var(--dark_border_color);
       line-height: 20px;
       margin-top: 4px;
       opacity: 0;
-      color: var(--text_color);
       width: 100%;
     }
 
@@ -1141,7 +1190,7 @@ $dark_border_color: var(--dark_border_color);
       line-height: 20px;
       display: inline-block;
       white-space: nowrap;
-      color: var(--text_color) !important;
+      color: var(--text_color);
 
       &.goScroll {
         @keyframes gothrough_lrc {
@@ -1171,6 +1220,14 @@ $dark_border_color: var(--dark_border_color);
 
         &:last-child {
           color: var(--dark_text_color);
+        }
+      }
+
+      .pink & {
+        color: var(--pink_title_color);
+
+        &:last-child {
+          color: var(--pink_text_color);
         }
       }
     }

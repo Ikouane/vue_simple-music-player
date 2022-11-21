@@ -1,5 +1,5 @@
 <template>
-  <div class="flexbox" :class="{small: smallSize, mini: _miniMode}">
+  <div class="flexbox" :class="{ small: smallSize, mini: _miniMode }">
     <Modal v-if="uploadSuccess" title="提示" :content="'上传数据成功，编号为' + pid" aod="aod" />
     <div class="flexbox_part">
       <Button v-show="!_miniMode && smallSize" size="middle" title="我喜欢" :bindtap="switchLike"
@@ -8,10 +8,10 @@
         _dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
       " :bindtap="getMore" type="fa fa-ellipsis-h" />
     </div>
-    <div class="music-image" :class="{small: smallSize}" @click="playSwitchFade()"
+    <div class="music-image" :class="{ small: smallSize }" @click="playSwitchFade()"
       :title="_play.isPlaying ? '暂停' : '播放'">
       <!-- @click="setSuccess(true)" title="进入传送门"-->
-      <img class="middle-image playing" :class="{small: smallSize}" :src="_playlist[_play.nowPlaying].musicImage"
+      <img class="middle-image playing" :class="{ small: smallSize }" :src="_playlist[_play.nowPlaying].musicImage"
         alt="图片加载失败" :style="{
           webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
         }" />
@@ -140,6 +140,13 @@ $dark_title_color: var(--dark_title_color);
 $dark_text_color: var(--dark_text_color);
 $dark_border_color: var(--dark_border_color);
 
+$pink_main_color: var(--pink_main_color);
+$pink_player_color: var(--pink_player_color);
+$pink_active_color: var(--pink_active_color);
+$pink_title_color: var(--pink_title_color);
+$pink_text_color: var(--pink_text_color);
+$pink_border_color: var(--pink_border_color);
+
 .flexbox {
   display: flex;
   justify-content: center;
@@ -164,6 +171,10 @@ $dark_border_color: var(--dark_border_color);
 
       .dark & {
         box-shadow: 5px 5px 5px #1d2024, -5px -5px 5px #2d3036;
+      }
+
+      .pink & {
+        box-shadow: 5px 5px 15px #d3c4cd, -5px -5px 15px #ffffff, 0 0 0.5vh 0.5vh #f9e7f0;
       }
 
       .middle-image {
@@ -294,6 +305,16 @@ $dark_border_color: var(--dark_border_color);
     }
   }
 
+  .pink & {
+    box-shadow: none;
+    box-shadow: 20px 20px 60px #d3c4cd, -20px -20px 60px #ffffff, 0 0 2vh 2vh #f9e7f0;
+
+    &.small {
+      box-shadow: none;
+      box-shadow: 12px 12px 36px #d3c4cd, -12px -12px 36px #ffffff, 0 0 1.2vh 1.2vh #f9e7f0;
+    }
+  }
+
   .middle-image {
     @media (max-width: 768px) {
       width: 0.3rem;
@@ -323,6 +344,17 @@ $dark_border_color: var(--dark_border_color);
       &.small {
         border: none;
         border: 4px solid var(--dark_player_color);
+      }
+    }
+
+    .pink & {
+      border: none;
+      border: 6px solid var(--pink_player_color);
+      background: linear-gradient(145deg, #d3c4cd, #ffffff);
+
+      &.small {
+        border: none;
+        border: 4px solid var(--pink_player_color);
       }
     }
 

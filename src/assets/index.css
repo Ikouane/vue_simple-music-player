@@ -1,4 +1,5 @@
 :root {
+    /* 日间模式 */
     --title_color: #6d7b94;
     --text_color: #a1b1c9;
     --main_color: #ccdefa;
@@ -9,12 +10,21 @@
     --text_size: 16px;
     --time_size: 12px;
 
+    /* 夜间模式 */
     --dark_main_color: #26282b;
     --dark_player_color: #25282d;
     --dark_active_color: #ed5210;
     --dark_title_color: #adaeaf;
     --dark_text_color: #7c7d7f;
     --dark_border_color: #202428;
+
+    /* 少女心 */
+    --pink_main_color: #f9e7f0;
+    --pink_player_color: #f8e7f1;
+    --pink_active_color: #eda6c8;
+    --pink_title_color: #675f63;
+    --pink_text_color: #bcaeb3;
+    --pink_border_color: #e6d5dd;
 
     --scrollbar_width: 0px;
 }
