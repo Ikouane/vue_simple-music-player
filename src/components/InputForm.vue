@@ -1,15 +1,8 @@
 <template>
   <div :class="'inputbox ' + (isShow ? 'inputbox-show' : 'inputbox-hide')">
     <p>{{ !isWrong ? "请输入编号" : "未找到数据，请检查编号" }}</p>
-    <input
-      v-for="(item, i) in 4"
-      v-bind:key="i"
-      class="input-single"
-      disabled="disabled"
-      maxlength="1"
-      :id="i"
-      :value="input_text.slice()[i]"
-    />
+    <input v-for="(item, i) in 4" v-bind:key="i" class="input-single" disabled="disabled" maxlength="1" :id="i"
+      :value="input_text.slice()[i]" />
     <br />
     <input class="input-union" maxlength="4" v-model="input_text" />
   </div>
@@ -93,7 +86,7 @@ export default {
       data.append("play", JSON.stringify(_this._play));
       data.append("playlist", JSON.stringify(_this._playlist));
       Axios.post(
-        "https://api.weyoung.tech/vue_simple-music-player/get.php",
+        "https://api.weyoung.tech/vue_simple-music-player/get_v3.php",
         data,
         {
           headers: {
@@ -111,7 +104,7 @@ export default {
     getList(pid) {
       const _this = this;
       Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get.php?pid=${pid}`
+        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?pid=${pid}`
       )
         .then((response) => {
           //console.log(response.data);

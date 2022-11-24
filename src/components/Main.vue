@@ -22,11 +22,11 @@
             ? '正在播放'
             : '已同步上次播放'
       " :aod="_play.message.duration == 0" :time="getNowTime()" :content="
-  _play.message.content ||
-  _playlist[_play.nowPlaying].musicName +
-  ' - ' +
-  _playlist[_play.nowPlaying].musicAuthor
-" />
+        _play.message.content ||
+        _playlist[_play.nowPlaying].musicName +
+        ' - ' +
+        _playlist[_play.nowPlaying].musicAuthor
+      " />
     </transition>
     <template v-if="_miniMode">
       <div class="flex flex-column">
@@ -109,7 +109,7 @@ export default {
       data.append("play", JSON.stringify(_this._play));
       data.append("playlist", JSON.stringify(_this._playlist));
       Axios.post(
-        "https://api.weyoung.tech/vue_simple-music-player/get.php",
+        "https://api.weyoung.tech/vue_simple-music-player/get_v3.php",
         data,
         {
           headers: {
@@ -126,7 +126,7 @@ export default {
     },
     getList(pid) {
       Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get.php?pid=${pid}`
+        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?pid=${pid}`
       )
         .then((response) => {
           //console.log(response.data);

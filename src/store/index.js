@@ -17,6 +17,7 @@ export default createStore({
     _timer: null,
     _userTouch: false,
     _miniMode: false,
+    _mainColor: "rgb(0,0,0)", // 主题色,
     _play: {
       isPlaying: false,
       nowPlaying: 0,
@@ -480,7 +481,7 @@ export default createStore({
       }
 
       Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get.php?method=like&mid=${state._playlist[state._play.nowPlaying].musicId
+        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=like&mid=${state._playlist[state._play.nowPlaying].musicId
         }&like=${!state._playlist[state._play.nowPlaying].isLike}`
       )
         .then((response) => {
@@ -679,6 +680,11 @@ export default createStore({
           })
         );
     },
+
+    // 设置主题色
+    setMainColor(state, { mainColor }) {
+      state._mainColor = mainColor
+    }
   },
   actions: {
     playSync({ commit, rootState }) {
@@ -811,7 +817,7 @@ export default createStore({
 
     retryAfterPlayFail({ commit, rootState }, { index = 0, needPlay = true }) {
       Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get.php?sid=${rootState._playlist[index].musicId}`
+        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?sid=${rootState._playlist[index].musicId}`
       )
         .then((response) => {
           commit("replaceMusicUrl", {
@@ -844,7 +850,7 @@ export default createStore({
           return;
         }
         Axios.get(
-          "https://api.weyoung.tech/vue_simple-music-player/get.php?method=music&mid=" +
+          "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=music&mid=" +
           rootState._playlist[musicIndex].musicId
         )
           .then((response) => {

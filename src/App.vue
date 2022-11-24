@@ -76,7 +76,7 @@ export default {
       console.log("单音乐模式");
       const _this = this;
       Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get.php?mid=${mid}`
+        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?mid=${mid}`
       )
         .then((response) => {
           // console.log(response.data);
@@ -109,7 +109,7 @@ export default {
       console.log("歌单模式");
       const _this = this;
       Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get.php?lid=${lid}`
+        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?lid=${lid}`
       )
         .then((response) => {
           // console.log(response.data);
@@ -129,11 +129,11 @@ export default {
           console.log("发现本地数据");
           this.getLocal();
         } else {
-          let url = "https://api.weyoung.tech/vue_simple-music-player/get.php";
+          let url = "https://api.weyoung.tech/vue_simple-music-player/get_v3.php";
           if (dailyMode) {
             this.setDailyMode();
             url =
-              "https://api.weyoung.tech/vue_simple-music-player/get.php?method=daily_recommend_songs";
+              "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=daily_recommend_songs";
           }
           const _this = this;
           Axios.get(url)
@@ -166,7 +166,7 @@ export default {
         console.log("获取目标歌单");
         const _this = this;
         Axios.get(
-          `https://api.weyoung.tech/vue_simple-music-player/get.php?pid=${pid}`
+          `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?pid=${pid}`
         )
           .then((response) => {
             // console.log(response.data);

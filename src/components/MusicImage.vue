@@ -8,14 +8,15 @@
         _dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
       " :bindtap="getMore" type="fa fa-ellipsis-h" />
     </div>
-    <div class="music-image" :class="{ small: smallSize }" @click="playSwitchFade()"
+    <div class="music-image" :class="{ small: smallSize, playing: _play.isPlaying }" @click="playSwitchFade()"
       :title="_play.isPlaying ? '暂停' : '播放'">
       <!-- @click="setSuccess(true)" title="进入传送门"-->
-      <img class="middle-image playing" :class="{ small: smallSize }" :src="_playlist[_play.nowPlaying].musicImage"
-        alt="图片加载失败" :style="{
+      <img class="middle-image playing" ref="musicImage" @load="getPictureColor" :class="{ small: smallSize }"
+        :src="_playlist[_play.nowPlaying].musicImage" alt="图片加载失败" :style="{
           webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
         }" crossorigin="anonymous" />
-      <canvas class="visualizations" ref="visualizations"></canvas>
+      <canvas class="visualizations" :class="{ playing: _play.isPlaying }"
+        :style="`--mainColor: ${this._mainColor}`"></canvas>
     </div>
     <div class="flexbox_part">
       <Button v-show="!_miniMode && smallSize" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)"
@@ -31,6 +32,7 @@ import Button from "./Button";
 import { mapState, mapMutations } from "vuex";
 import Axios from "axios";
 import Modal from "./Modal";
+import ColorThief from "colorthief";
 export default {
   name: "MusicImage",
   data() {
@@ -59,7 +61,8 @@ export default {
       "_rid",
       "_pid",
       "_mid",
-      "_miniMode"
+      "_miniMode",
+      "_mainColor"
     ]),
   },
   methods: {
@@ -70,11 +73,12 @@ export default {
       "playSwitchFade",
       "setMsg",
       "setLocal",
+      "setMainColor"
     ]),
     getMore() {
       const _this = this;
       Axios.get(
-        "https://api.weyoung.tech/vue_simple-music-player/get.php?method=more"
+        "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=more"
       )
         .then((response) => {
           _this.addMore(response.data._playlist);
@@ -100,7 +104,7 @@ export default {
         data.append("play", JSON.stringify(_this._play));
         data.append("playlist", JSON.stringify(_this._playlist));
         Axios.post(
-          "https://api.weyoung.tech/vue_simple-music-player/get.php",
+          "https://api.weyoung.tech/vue_simple-music-player/get_v3.php",
           data,
           {
             headers: {
@@ -119,6 +123,10 @@ export default {
           });
       }
     },
+    getPictureColor() {
+      let colorThief = new ColorThief();
+      this.setMainColor({ mainColor: `rgb(${colorThief.getColor(this.$refs["musicImage"]).join(",")})` });
+    }
   },
 };
 </script>
@@ -408,6 +416,12 @@ $pink_border_color: var(--pink_border_color);
     height: 100%;
     z-index: 0;
     transform: scale(1.2);
+    filter: initial;
+    transition: all 0.2s ease-in-out;
+
+    &.playing {
+      filter: drop-shadow(2px 4px 6px var(--mainColor));
+    }
   }
 }
 </style>

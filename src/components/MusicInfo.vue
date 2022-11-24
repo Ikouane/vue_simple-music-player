@@ -114,7 +114,6 @@
 import { mapState, mapMutations, mapActions, mapGetters } from "vuex";
 import Axios from "axios";
 import $ from "jquery";
-import ColorThief from "colorthief";
 export default {
   name: "MusicInfo",
   data() {
@@ -146,7 +145,6 @@ export default {
       tlrc_line__next: "",
       musicNameOverflowWidth: 0,
       audioCtx: null,
-      pictureColor: "rgb(0,0,0)"
     };
   },
   props: {
@@ -156,7 +154,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_userTouch", "_miniMode"]),
+    ...mapState(["_play", "_playlist", "_userTouch", "_miniMode", "_mainColor"]),
     ...mapGetters(["getAnonymous"]),
     _nowPlaying() {
       return this._play.nowPlaying;
@@ -352,7 +350,7 @@ export default {
       if (this.musicId != _this._playlist[_this._play.nowPlaying].musicId) {
         this.musicId = _this._playlist[_this._play.nowPlaying].musicId;
         Axios.get(
-          "https://api.weyoung.tech/vue_simple-music-player/get.php?method=lrc&id=" +
+          "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=lrc&id=" +
           _this._playlist[_this._play.nowPlaying].musicId
         )
           .then((response) => {
@@ -435,7 +433,7 @@ export default {
     getAuthor() {
       const _this = this;
       Axios.get(
-        "https://api.weyoung.tech/vue_simple-music-player/get.php?method=author&sid=" +
+        "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=author&sid=" +
         _this._playlist[_this._play.nowPlaying].musicId
       )
         .then((response) => {
@@ -536,9 +534,9 @@ export default {
 
       const _this = this;
 
-      let colorThief = new ColorThief();
-      let img = document.querySelector(".middle-image");
-      this.pictureColor = `rgb(${colorThief.getColor(img).join(",")})`;
+      // 获取 ID 为 "oscilloscope" 的画布
+      let canvas = document.querySelector(".visualizations");
+      let cxt = canvas.getContext("2d");
 
       if (this._userTouch && !this.audioCtx) {
         this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -551,10 +549,6 @@ export default {
         // 分析器连接到音频对象
         analyser.connect(this.audioCtx.destination);
         analyser.fftSize = 2048;
-
-        // 获取 ID 为 "oscilloscope" 的画布
-        let canvas = document.querySelector(".visualizations");
-        let cxt = canvas.getContext("2d");
 
         // 获取到屏幕倒是是几倍屏。
         let getPixelRatio = function (context) {
@@ -580,15 +574,15 @@ export default {
         (function drawSpectrum() {
           analyser.getByteFrequencyData(output);//获取频域数据
           cxt.clearRect(0, 0, WIDTH, HEIGHT);
-          cxt.strokeStyle = _this.pictureColor;
+          cxt.strokeStyle = _this._mainColor;
           //画线条
           for (let i = 0; i < 360; i++) {
             let value = output[i] / 8;//<===获取数据
             cxt.beginPath();
-            cxt.lineWidth = 2;
+            cxt.lineWidth = 3;
             cxt.moveTo(r, r);
             //R * cos (PI/180*一次旋转的角度数) ,-R * sin (PI/180*一次旋转的角度数)
-            cxt.lineTo(Math.cos((i * 1) / 180 * Math.PI) * (value + r / 1.2) + r, - Math.sin((i * 1) / 180 * Math.PI) * (value + r / 1.2) + r);
+            cxt.lineTo(Math.cos((i * 1) / 180 * Math.PI) * (value - 5 + r / 1.2) + r, - Math.sin((i * 1) / 180 * Math.PI) * (value - 5 + r / 1.2) + r);
             cxt.stroke();
           }
           //画一个小圆，将线条覆盖
