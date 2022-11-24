@@ -49,19 +49,6 @@
             : Math.floor((_play.playTime / musicDuration) * 100) + '%',
           transition: drag ? 'clear' : 'all 0.2s ease-out',
         }">
-          <!-- <svg v-if="_play.mode == 'pink'" class="icon bar_point" @mousedown="handelMouseDrag($event)" title="拖动进度"
-            viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
-            <path
-              d="M350.65 447.74c7.22-13.06 21.02-21.18 35.97-21.18l1.75 0.04c15.13 0.5 28.87 9.53 35.49 23.55l40 84.85 61.48-156.37c6.17-15.76 21.11-26 38.06-26.1 17.04 0 32 10.06 38.35 25.61l40.96 100.61 20.43-20.83c8.12-8.25 18.99-12.49 30.41-12.32 11.27 0.25 22.12 5.26 29.67 13.72l47.05 52.64h33.44c9.26-13.67 17.61-27.82 24.51-42.4 30.42-64.23 23.59-130.04-22.05-186.44-41.53-51.33-121.95-71.79-187.05-45.57-38.15 15.37-71.97 41.49-112.01 65.31-2.23-1.97-7.78-7.31-13.78-12.1-31.19-24.89-62.45-50.17-102.81-58.46-91.81-18.88-202.64 20.66-210.51 151.13-2.68 44.39 8.82 83.01 29.19 117.41h111.92l29.53-53.1z">
-            </path>
-            <path
-              d="M691.82 517.5l-27.12 27.65c-9.74 9.92-23.68 14.23-37.33 11.57-13.68-2.69-24.96-11.99-30.19-24.89l-33.2-81.55-60.08 152.79a41.117 41.117 0 0 1-36.97 26.08l-1.37 0.03c-16.08 0-30.34-9.06-37.2-23.63l-43.27-91.79-15.61 28.09a41.164 41.164 0 0 1-35.97 21.18h-74.56c74.41 74.49 151.59 146.23 227.63 219.09 21.93 21.02 29.11 21.07 51.4-0.32 71.87-68.95 145.17-136.51 214.65-207.78 0.22-0.22 0.43-0.45 0.64-0.67-8.83-1.67-16.99-6.11-23.08-12.9l-38.37-42.95z">
-            </path>
-            <path
-              d="M465.11 607.07c-7.45 0-13.99-4.14-17.19-10.93l-60.77-128.89c-0.08-0.18-0.28-0.6-0.94-0.62-0.58 0.09-0.88 0.39-0.98 0.56l-35.51 63.93c-3.36 6.04-9.74 9.8-16.65 9.8H186.22c-4.96 0-8.99-4.02-8.99-8.99 0-4.96 4.02-8.99 8.99-8.99h146.84c0.39 0 0.75-0.21 0.94-0.55l35.51-63.93c3.38-6.09 9.72-9.8 16.64-9.8 0.22 0 0.44 0 0.65 0.01 7.18 0.24 13.54 4.42 16.6 10.92l60.76 128.89c0.09 0.21 0.31 0.56 1.01 0.62 0.71-0.02 0.89-0.47 0.97-0.68l79.31-201.7c2.86-7.29 9.78-12.03 17.61-12.08h0.12c7.79 0 14.7 4.65 17.64 11.87l53.03 130.24c0.05 0.13 0.22 0.54 0.79 0.65 0.56 0.11 0.87-0.2 0.98-0.3l42.85-43.69c3.68-3.75 8.65-5.84 14.05-5.7 5.24 0.12 10.26 2.44 13.76 6.35l53.34 59.67c0.28 0.13 0.53 0.23 0.81 0.36h65.59c4.96 0 8.99 4.02 8.99 8.99 0 4.96-4.02 8.99-8.99 8.99h-65.59c-5.42 0-10.59-2.31-14.2-6.35l-53.34-59.68c-0.2-0.23-0.47-0.35-0.78-0.36-0.16 0.06-0.58 0.1-0.8 0.32l-42.84 43.69c-4.51 4.59-10.95 6.6-17.28 5.35a19.009 19.009 0 0 1-13.96-11.51L564.2 393.29c-0.09-0.24-0.35-0.69-1.01-0.67-0.73 0-0.9 0.45-0.99 0.68L482.89 595c-2.83 7.19-9.38 11.81-17.1 12.07h-0.68z">
-            </path>
-          </svg> -->
-
           <svg v-if="_play.mode == 'pink'" class="icon bar_point" @mousedown="handelMouseDrag($event)" title="拖动进度"
             viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" width="36" height="36">
             <path
@@ -117,15 +104,17 @@
         <span id="music-tlrc" ref="music-tlrc">{{ tlrc_line.now }}</span>
       </label>
     </div>
-    <audio :src="_playlist[_play.nowPlaying].musicUrl" id="music" :autoplay="_isPlaying"></audio>
+    <audio ref="music" :src="_playlist[_play.nowPlaying].musicUrl" id="music" :autoplay="_isPlaying"
+      crossorigin="anonymous"></audio>
     <!-- :autoplay="_isPlaying ? 'autoplay' : 'false'" 
-      crossOrigin="anonymous"-->
+      -->
   </div>
 </template>
 <script>
-import { mapState, mapMutations, mapActions } from "vuex";
+import { mapState, mapMutations, mapActions, mapGetters } from "vuex";
 import Axios from "axios";
 import $ from "jquery";
+import ColorThief from "colorthief";
 export default {
   name: "MusicInfo",
   data() {
@@ -155,7 +144,9 @@ export default {
       lrc_line__next: "",
       tlrc_line__prev: "",
       tlrc_line__next: "",
-      musicNameOverflowWidth: 0
+      musicNameOverflowWidth: 0,
+      audioCtx: null,
+      pictureColor: "rgb(0,0,0)"
     };
   },
   props: {
@@ -166,6 +157,7 @@ export default {
   },
   computed: {
     ...mapState(["_play", "_playlist", "_userTouch", "_miniMode"]),
+    ...mapGetters(["getAnonymous"]),
     _nowPlaying() {
       return this._play.nowPlaying;
     },
@@ -216,7 +208,7 @@ export default {
 
     changeTime(event) {
       //点击播放条更新进度
-      const music = document.getElementById("music"),
+      const music = this.$refs["music"],
         otimebar_out = document.getElementsByClassName("timebar_out")[0],
         otimebar_in = document.getElementsByClassName("timebar_in")[0];
       if (this._playlist[this._nowPlaying].playEndTime) {
@@ -241,7 +233,7 @@ export default {
     },
 
     handelMouseDrag(event) {
-      const music = document.getElementById("music"),
+      const music = this.$refs["music"],
         otimebar_out = document.getElementsByClassName("timebar_out")[0],
         otimebar_in = document.getElementsByClassName("timebar_in")[0];
       let e = event || window.event; //兼容性处理
@@ -291,7 +283,7 @@ export default {
               (this.left / otimebar_out.offsetWidth) * music.duration
             ),
           });
-          this.nowLength = this.nowLengthCal(document.getElementById("music"));
+          this.nowLength = this.nowLengthCal(this.$refs["music"]);
           this.left = null;
           this.drag = false;
         }
@@ -485,7 +477,7 @@ export default {
 
   mounted() {
     //window.vue = this; //开放Vue
-    const $music = document.getElementById("music");
+    const $music = this.$refs["music"];
 
     $music.addEventListener("canplay", () => {
       this.musicLength = this.musicLengthCal($music); //音频加载完成后，获取时长
@@ -541,6 +533,75 @@ export default {
       } else console.log("音乐已播放（内部）");
 
       this.scrollMusicName();
+
+      const _this = this;
+
+      let colorThief = new ColorThief();
+      let img = document.querySelector(".middle-image");
+      this.pictureColor = `rgb(${colorThief.getColor(img).join(",")})`;
+
+      if (this._userTouch && !this.audioCtx) {
+        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        let analyser = this.audioCtx.createAnalyser();
+
+        // 根据 DOM 创建 source
+        let source = this.audioCtx.createMediaElementSource(this.$refs["music"]);
+        // 将资源连接到分析器
+        source.connect(analyser);
+        // 分析器连接到音频对象
+        analyser.connect(this.audioCtx.destination);
+        analyser.fftSize = 2048;
+
+        // 获取 ID 为 "oscilloscope" 的画布
+        let canvas = document.querySelector(".visualizations");
+        let cxt = canvas.getContext("2d");
+
+        // 获取到屏幕倒是是几倍屏。
+        let getPixelRatio = function (context) {
+          let backingStore = context.backingStorePixelRatio ||
+            context.webkitBackingStorePixelRatio ||
+            context.mozBackingStorePixelRatio ||
+            context.msBackingStorePixelRatio ||
+            context.oBackingStorePixelRatio ||
+            context.backingStorePixelRatio || 1;
+          return (window.devicePixelRatio || 1) / backingStore;
+        };
+        // iphone6下得到是2
+        const pixelRatio = getPixelRatio(canvas);
+        // 设置canvas的真实宽高
+        canvas.width = pixelRatio * canvas.offsetWidth; // 想当于 2 * 375 = 750 
+        canvas.height = pixelRatio * canvas.offsetHeight;
+
+        const WIDTH = canvas.width, HEIGHT = canvas.height, r = canvas.width / 2;
+
+        // 绘制一个当前音频源的示波器
+
+        let output = new Uint8Array(360);
+        (function drawSpectrum() {
+          analyser.getByteFrequencyData(output);//获取频域数据
+          cxt.clearRect(0, 0, WIDTH, HEIGHT);
+          cxt.strokeStyle = _this.pictureColor;
+          //画线条
+          for (let i = 0; i < 360; i++) {
+            let value = output[i] / 8;//<===获取数据
+            cxt.beginPath();
+            cxt.lineWidth = 2;
+            cxt.moveTo(r, r);
+            //R * cos (PI/180*一次旋转的角度数) ,-R * sin (PI/180*一次旋转的角度数)
+            cxt.lineTo(Math.cos((i * 1) / 180 * Math.PI) * (value + r / 1.2) + r, - Math.sin((i * 1) / 180 * Math.PI) * (value + r / 1.2) + r);
+            cxt.stroke();
+          }
+          //画一个小圆，将线条覆盖
+          // cxt.beginPath();
+          // cxt.lineWidth = 1;
+          // cxt.arc(WIDTH / 2, HEIGHT / 2, WIDTH / 2, 0, 2 * Math.PI, false);
+          // cxt.fillStyle = "#fff";
+          // cxt.stroke();
+          // cxt.fill();
+          //请求下一帧
+          requestAnimationFrame(drawSpectrum);
+        })();
+      }
     });
 
     $music.addEventListener("ended", () => {
@@ -551,7 +612,7 @@ export default {
       if (this._isPlaying) {
         this.nowLength = this.nowLengthCal($music);
         this.setTime($music.currentTime);
-        //console.log(document.getElementById("music").currentTime);
+        //console.log(this.$refs["music"].currentTime);
       }
     }, 100);
 
@@ -563,7 +624,7 @@ export default {
           message: `播放出错，已为您暂停`,
         });
         this.retryAfterPlayFail({ index: 0, needPlay: this._userTouch });
-      } else this.next({ hasWrong: "wrong" });
+      } //else this.next({ hasWrong: "wrong" });
       this.skipMusic(this._play.nowPlaying);
     });
 
@@ -618,128 +679,6 @@ export default {
       this.getAuthor();
 
       this.scrollMusicName();
-
-      // var url = this._playlist[val].musicUrl;
-      // if (!window.AudioContext) {
-      //   alert("您的浏览器不支持AudioContext");
-      // } else {
-      //   //创建上下文
-      //   var ctx = new AudioContext();
-      //   var source = null;
-      //   //使用Ajax获取音频文件
-
-      //   var request = new XMLHttpRequest();
-      //   request.open("GET", url, true);
-      //   request.responseType = "arraybuffer"; //配置数据的返回类型
-      //   //加载完成
-      //   request.onload = function () {
-      //     var arraybuffer = request.response;
-      //     ctx.decodeAudioData(
-      //       arraybuffer,
-      //       function (buffer) {
-      //         //创建分析器
-      //         var analyser = ctx.createAnalyser();
-      //         source = ctx.createBufferSource();
-      //         //将source与分析器链接
-      //         source.connect(analyser);
-      //         //将分析器与destination链接，这样才能形成到达扬声器的通路
-      //         //analyser.connect(ctx.destination);
-      //         //将解码后的buffer数据复制给source
-      //         source.buffer = buffer;
-      //         //播放
-      //         //source.start(0);
-
-      //         //开始绘制频谱图
-      //         function drawSpectrum() {
-      //           var canvas = document.getElementById("wrap"),
-      //             cwidth = canvas.width,
-      //             cheight = canvas.height - 2,
-      //             meterWidth = 10, //能量条的宽度
-      //             //gap = 2, //能量条的间距
-      //             meterNum = 800 / (10 + 2), //计算当前画布上能画多少条
-      //             ctx = canvas.getContext("2d");
-      //           var capHeight = 2; //
-      //           var array = new Uint8Array(analyser.frequencyBinCount);
-      //           analyser.getByteFrequencyData(array);
-      //           console.info(array.length);
-      //           var step = Math.round(array.length / meterNum); //计算从analyser中的采样步长
-
-      //           //清理画布
-      //           ctx.clearRect(0, 0, cwidth, cheight);
-      //           //定义一个渐变样式用于画图
-      //           var gradient = ctx.createLinearGradient(0, 0, 0, 300);
-      //           gradient.addColorStop(1, "#0f0");
-      //           gradient.addColorStop(0.5, "#ff0");
-      //           gradient.addColorStop(0, "#f00");
-      //           ctx.fillStyle = gradient;
-      //           //对信源数组进行抽样遍历，画出每个频谱条
-      //           for (var i = 0; i < meterNum; i++) {
-      //             var value = array[i * step];
-      //             ctx.fillRect(
-      //               i * 12 /*频谱条的宽度+条间距*/,
-      //               cheight - value + capHeight,
-      //               meterWidth,
-      //               cheight
-      //             );
-      //           }
-      //           requestAnimationFrame(drawSpectrum);
-      //         }
-      //         requestAnimationFrame(drawSpectrum);
-      //       },
-      //       function (e) {
-      //         console.info("处理出错", e);
-      //       }
-      //     );
-      //   };
-      //   request.send();
-      // }
-
-      // var wrap = document.getElementById("wrap");
-      // var cxt = wrap.getContext("2d");
-      // //获取API
-      // var context = new (window.AudioContext || window.webkitAudioContext)();
-      // //加载媒体
-      // var audio = document.getElementById("music");
-      // //创建节点
-      // var source = context.createMediaElementSource(audio);
-      // //source.crossOrigin = "anonymous";
-      // var analyser = context.createAnalyser();
-      // //连接：source → analyser → destination
-      // source.connect(analyser);
-      // analyser.connect(context.destination);
-      // //创建数据
-      // var output = new Uint8Array(360);
-      // (function drawSpectrum() {
-      //   const width =
-      //     document.getElementsByClassName("middle-image")[0].offsetWidth;
-
-      //   analyser.getByteFrequencyData(output); //获取频域数据
-      //   cxt.clearRect(0, 0, wrap.width, wrap.height);
-      //   //画线条
-      //   for (var i = 0; i < 360; i++) {
-      //     var value = output[i] / 8; //<===获取数据
-      //     cxt.beginPath();
-      //     cxt.lineWidth = 2;
-      //     cxt.moveTo(width / 2, width / 2);
-      //     //R * cos (PI/180*一次旋转的角度数) ,-R * sin (PI/180*一次旋转的角度数)
-      //     cxt.lineTo(
-      //       Math.cos(((i * 1) / 180) * Math.PI) * (200 + value) + 300,
-      //       -Math.sin(((i * 1) / 180) * Math.PI) * (200 + value) + 300
-      //     );
-      //     cxt.stroke();
-      //   }
-      //   //画一个小圆，将线条覆盖
-      //   cxt.beginPath();
-      //   cxt.lineWidth = 1;
-      //   wrap.width = width;
-      //   wrap.height = width;
-      //   cxt.arc(width, width, width / 2, 0, 2 * Math.PI, false);
-      //   cxt.fillStyle = "#fff";
-      //   cxt.stroke();
-      //   cxt.fill();
-      //   //请求下一帧
-      //   requestAnimationFrame(drawSpectrum);
-      // })();
     },
 
     "lrc_line.now"() {

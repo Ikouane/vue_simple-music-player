@@ -118,6 +118,10 @@ export default createStore({
       // this.commit('clearMsg');
       // this.commit("setMsg", "数据已更新");
 
+      this.dispatch("getMusicUrl", {
+        musicIndex: 0
+      })
+
       console.log("数据已更新");
     },
     pause(state, showMsg = true) {
@@ -212,31 +216,38 @@ export default createStore({
             action: "prev",
           })
         );
-      let v = document.getElementById("music").volume;
-      let int = setInterval(() => {
-        console.log("渐出");
-        v -= 0.1;
-        if (v <= 0) {
-          state._play.isPlaying = false;
-          if ((state._play.nowPlaying -= 1) < 0)
-            state._play.nowPlaying = state._playlist.length - 1;
-          state._play.isPlaying = true;
-          this.commit("updateTitle");
-          let v2 = document.getElementById("music").volume;
-          let int2 = setInterval(() => {
-            console.log("渐入");
-            v2 += 0.1;
-            if (v2 >= (state._play.volume / 100).toFixed(2)) {
-              clearInterval(int2);
-            } else {
-              document.getElementById("music").volume = v2;
-            }
-          }, 100);
-          clearInterval(int);
-        } else {
-          document.getElementById("music").volume = v;
-        }
-      }, 75);
+
+      let desIndex = state._playlist.length - 1;
+      if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
+
+      this.dispatch("getMusicUrl", {
+        musicIndex: desIndex
+      }).then(() => {
+        let v = document.getElementById("music").volume;
+        let int = setInterval(() => {
+          console.log("渐出");
+          v -= 0.1;
+          if (v <= 0) {
+            state._play.isPlaying = false;
+            state._play.nowPlaying = desIndex;
+            state._play.isPlaying = true;
+            this.commit("updateTitle");
+            let v2 = document.getElementById("music").volume;
+            let int2 = setInterval(() => {
+              console.log("渐入");
+              v2 += 0.1;
+              if (v2 >= (state._play.volume / 100).toFixed(2)) {
+                clearInterval(int2);
+              } else {
+                document.getElementById("music").volume = v2;
+              }
+            }, 100);
+            clearInterval(int);
+          } else {
+            document.getElementById("music").volume = v;
+          }
+        }, 75);
+      })
 
       // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
       // state._play.isPlaying = true
@@ -251,45 +262,53 @@ export default createStore({
             hasWrong: args.hasWrong,
           })
         );
-      let v = document.getElementById("music").volume;
-      let int = setInterval(() => {
-        console.log("渐出");
-        v -= 0.1;
-        if (v <= 0) {
-          state._play.isPlaying = false;
-          if (state._singleMusicMode) {
-            console.log("重新播放");
-            document.getElementById("music").currentTime = 0;
-            document.getElementById("music").play();
-            state._play.isPlaying = true;
-            this.commit("updateTitle");
-          } else {
-            if ((state._play.nowPlaying += 1) > state._playlist.length - 1)
-              state._play.nowPlaying = 0;
-            state._play.isPlaying = true;
-            this.commit("updateTitle");
-          }
-          let v2 = document.getElementById("music").volume;
-          let int2 = setInterval(() => {
-            console.log("渐入");
-            v2 += 0.1;
-            if (v2 >= (state._play.volume / 100).toFixed(2)) {
-              clearInterval(int2);
-            } else {
-              document.getElementById("music").volume = v2;
-            }
-          }, 100);
-          clearInterval(int);
-        } else {
-          document.getElementById("music").volume = v;
-        }
-      }, 75);
 
-      if (args.hasWrong === "wrong") {
-        this.commit("setMsg", {
-          message: "播放出错，已为您跳过",
-        });
-      }
+      let desIndex = 0;
+
+      if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+
+      this.dispatch("getMusicUrl", {
+        musicIndex: desIndex
+      }).then(() => {
+        let v = document.getElementById("music").volume;
+        let int = setInterval(() => {
+          console.log("渐出");
+          v -= 0.1;
+          if (v <= 0) {
+            state._play.isPlaying = false;
+            if (state._singleMusicMode) {
+              console.log("重新播放");
+              document.getElementById("music").currentTime = 0;
+              document.getElementById("music").play();
+              state._play.isPlaying = true;
+              this.commit("updateTitle");
+            } else {
+              state._play.nowPlaying = desIndex;
+              state._play.isPlaying = true;
+              this.commit("updateTitle");
+            }
+            let v2 = document.getElementById("music").volume;
+            let int2 = setInterval(() => {
+              console.log("渐入");
+              v2 += 0.1;
+              if (v2 >= (state._play.volume / 100).toFixed(2)) {
+                clearInterval(int2);
+              } else {
+                document.getElementById("music").volume = v2;
+              }
+            }, 100);
+            clearInterval(int);
+          } else {
+            document.getElementById("music").volume = v;
+          }
+        }, 75);
+
+        if (args.hasWrong === "wrong") {
+          this.commit("setMsg", {
+            message: "播放出错，已为您跳过",
+          });
+        }
+      })
 
       // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
       // state._play.isPlaying = true
@@ -309,37 +328,42 @@ export default createStore({
               desIndex,
             })
           );
-        const musicEl = document.getElementById("music");
-        nextTick(() => {
-          let v = musicEl.volume;
-          let int = setInterval(() => {
-            console.log("渐出");
-            v -= 0.1;
-            if (v <= 0) {
-              // state._play.isPlaying = false;
-              // this.commit("pause");
-              state._play.nowPlaying = desIndex;
-              if (needPlay) {
-                this.commit("play");
-                state._play.isPlaying = true;
-              }
-              this.commit("updateTitle");
-              let v2 = musicEl.volume;
-              let int2 = setInterval(() => {
-                console.log("渐入");
-                v2 += 0.1;
-                if (v2 >= (state._play.volume / 100).toFixed(2)) {
-                  clearInterval(int2);
-                } else {
-                  musicEl.volume = v2;
+
+        this.dispatch("getMusicUrl", {
+          musicIndex: desIndex
+        }).then(() => {
+          const musicEl = document.getElementById("music");
+          nextTick(() => {
+            let v = musicEl.volume;
+            let int = setInterval(() => {
+              console.log("渐出");
+              v -= 0.1;
+              if (v <= 0) {
+                // state._play.isPlaying = false;
+                // this.commit("pause");
+                state._play.nowPlaying = desIndex;
+                if (needPlay) {
+                  this.commit("play");
+                  state._play.isPlaying = true;
                 }
-              }, 100);
-              clearInterval(int);
-            } else {
-              musicEl.volume = v;
-            }
-          }, 50);
-        });
+                this.commit("updateTitle");
+                let v2 = musicEl.volume;
+                let int2 = setInterval(() => {
+                  console.log("渐入");
+                  v2 += 0.1;
+                  if (v2 >= (state._play.volume / 100).toFixed(2)) {
+                    clearInterval(int2);
+                  } else {
+                    musicEl.volume = v2;
+                  }
+                }, 100);
+                clearInterval(int);
+              } else {
+                musicEl.volume = v;
+              }
+            }, 50);
+          });
+        })
       }
     },
     goTime(state, { desTime, needSync = true }) {
@@ -811,6 +835,32 @@ export default createStore({
           console.log(error);
         });
     },
+
+    // 获取音乐链接
+    getMusicUrl({ rootState }, { musicIndex }) {
+      return new Promise((resolve, reject) => {
+        if (rootState._playlist[musicIndex].musicUrl) {
+          resolve();
+          return;
+        }
+        Axios.get(
+          "https://api.weyoung.tech/vue_simple-music-player/get.php?method=music&mid=" +
+          rootState._playlist[musicIndex].musicId
+        )
+          .then((response) => {
+            if (response.data.status === "200") {
+              rootState._playlist[musicIndex].musicUrl = response.data.url;
+              rootState._playlist[musicIndex].skip = false;
+              resolve();
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+            rootState._playlist[musicIndex].skip = true;
+            reject(error);
+          });
+      })
+    }
   },
   getters: {
     // 获取音乐 - 艺术家 名称
@@ -837,6 +887,11 @@ export default createStore({
     getMode(state) {
       return state._play.mode;
     },
+
+    // 返回跨域标识
+    getAnonymous(state, url) {
+      return url.indexOf("cdn.weyoung.tech") == -1
+    }
   },
   modules: {},
 });

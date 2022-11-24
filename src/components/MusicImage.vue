@@ -14,8 +14,8 @@
       <img class="middle-image playing" :class="{ small: smallSize }" :src="_playlist[_play.nowPlaying].musicImage"
         alt="图片加载失败" :style="{
           webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
-        }" />
-      <!-- <canvas id="wrap" height="275" width="275"></canvas> -->
+        }" crossorigin="anonymous" />
+      <canvas class="visualizations" ref="visualizations"></canvas>
     </div>
     <div class="flexbox_part">
       <Button v-show="!_miniMode && smallSize" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)"
@@ -253,6 +253,7 @@ $pink_border_color: var(--pink_border_color);
     margin-bottom: 0.05rem;
   }
 
+  position: relative;
   margin: auto;
   width: 250px;
   height: 250px;
@@ -262,7 +263,7 @@ $pink_border_color: var(--pink_border_color);
   margin-bottom: 40px;
   transition: 0.3s all ease-in-out;
   cursor: pointer;
-  position: relative;
+
 
   @keyframes scaleCircle {
     from {
@@ -322,8 +323,10 @@ $pink_border_color: var(--pink_border_color);
     }
 
     position: absolute;
-    width: 250px;
-    height: 250px;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
     object-fit: cover;
     border-radius: 50%;
     border: 6px solid $player_color;
@@ -399,8 +402,12 @@ $pink_border_color: var(--pink_border_color);
     }
   }
 
-  canvas#wrap {
+  .visualizations {
     position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    transform: scale(1.2);
   }
 }
 </style>
