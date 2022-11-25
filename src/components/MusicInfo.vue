@@ -507,7 +507,7 @@ export default {
           this.prev();
         });
         window.navigator.mediaSession.setActionHandler("nexttrack", () => {
-          this.next();
+          this.next({ isForce: true });
         });
       }
 

@@ -89,6 +89,10 @@ $pink_border_color: var(--pink_border_color);
     background: linear-gradient(145deg, #2a2e33, #23272b);
     box-shadow: 5px 5px 10px #212529, -5px -5px 10px #2d3137;
 
+    &.middle {
+      box-shadow: 3px 3px 6px #212529, -3px -3px 6px #2d3137;
+    }
+
     &.small {
       box-shadow: 2px 2px 4px #212529, -2px -2px 4px #2d3137;
     }

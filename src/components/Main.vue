@@ -7,10 +7,8 @@
       <MessageBox v-if="boxShow" title="提示" content="欢迎使用 一起听" :boxShow="boxShow" :qrText="urlText"
         @click-action="switchBoxShow()" />
     </transition>
-    <transition name="MsgBox">
-      <MessageBox v-if="moreActionShow" title="更多功能" type="more" :boxShow="moreActionShow"
-        @click-action="switchMoreActionShow()" />
-    </transition>
+    <MessageBox v-if="moreActionShow" title="更多功能" type="more" :boxShow="moreActionShow"
+      @click-action="switchMoreActionShow()" />
     <!-- <InputModal v-if="showInput" :isShow="showInput" :isWrong="isWrong" /> -->
     <!-- <InputModal v-if="false" :isShow="_success" :isWrong="isWrong" /> -->
     <!--v-if="showInput" :isShow="showInput"-->
@@ -22,11 +20,11 @@
             ? '正在播放'
             : '已同步上次播放'
       " :aod="_play.message.duration == 0" :time="getNowTime()" :content="
-        _play.message.content ||
-        _playlist[_play.nowPlaying].musicName +
-        ' - ' +
-        _playlist[_play.nowPlaying].musicAuthor
-      " />
+  _play.message.content ||
+  _playlist[_play.nowPlaying].musicName +
+  ' - ' +
+  _playlist[_play.nowPlaying].musicAuthor
+" />
     </transition>
     <template v-if="_miniMode">
       <div class="flex flex-column">

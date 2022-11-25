@@ -1,13 +1,13 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-10-18 22:49:51
+ * @LastEditTime: 2022-11-25 14:56:20
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
 -->
 <template>
-  <div class="player-bottom" :class="{mini: _miniMode}">
+  <div class="player-bottom" :class="{ mini: _miniMode }">
     <Button :disabled="_playlist.length <= 1" :size="_miniMode ? 'small' : 'large'" title="上一首(↑)" type="fa fa-backward"
       :bindtap="prev" />
     <Button :size="_miniMode ? 'small' : 'large'" title="暂停(空格)" v-if="_play.isPlaying" active type="fa fa-pause"
@@ -15,7 +15,7 @@
     <Button :size="_miniMode ? 'small' : 'large'" title="播放(空格)" v-else active type="fa fa-play" :bindtap="musicFadeIn"
       id="playButton" />
     <Button :disabled="_playlist.length <= 1" :size="_miniMode ? 'small' : 'large'" title="下一首(↓)" type="fa fa-forward"
-      :bindtap="next" />
+      :bindtap="forceNext" />
   </div>
 </template>
 <script>
@@ -42,6 +42,9 @@ export default {
       "musicFadeIn",
       "musicFadeOut",
     ]),
+    forceNext() {
+      this.next({ isForce: true });
+    }
   },
 };
 </script>

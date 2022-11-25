@@ -228,7 +228,7 @@ export default {
       } else if (key == 40 && e.shiftKey) {
         window.event.preventDefault(); //关闭浏览器快捷键
         console.log("点击Shift + 点击下箭头");
-        _this.next();
+        _this.next({ isForce: true });
       } else if (key == 38) {
         window.event.preventDefault(); //关闭浏览器快捷键
         console.log("点击上箭头");

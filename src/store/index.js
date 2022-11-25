@@ -18,6 +18,7 @@ export default createStore({
     _userTouch: false,
     _miniMode: false,
     _mainColor: "rgb(0,0,0)", // 主题色,
+    _playModeCount: 0,
     _play: {
       isPlaying: false,
       nowPlaying: 0,
@@ -219,7 +220,28 @@ export default createStore({
         );
 
       let desIndex = state._playlist.length - 1;
-      if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
+
+      // 若强制上一首则上一首
+      // 即使处于单曲循环也进行上一首
+      // 若处于随机状态则随机上一首
+
+      switch (this.getters.getPlayMode) {
+        // 单曲循环
+        case "cycle":
+          if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
+          state._singleMusicMode = true;
+          break;
+        // 随机播放
+        case "random":
+          desIndex = Math.floor(Math.random() * state._playlist.length);
+          state._singleMusicMode = false;
+          break;
+        // 列表循环
+        case "list":
+          if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
+          state._singleMusicMode = false;
+          break;
+      }
 
       this.dispatch("getMusicUrl", {
         musicIndex: desIndex
@@ -253,7 +275,7 @@ export default createStore({
       // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
       // state._play.isPlaying = true
     },
-    next(state, args = { hasWrong: false, needSync: true }) {
+    next(state, args = { hasWrong: false, needSync: true, isForce: false }) {
       if (args.needSync && state._ws)
         state._ws.send(
           JSON.stringify({
@@ -266,7 +288,27 @@ export default createStore({
 
       let desIndex = 0;
 
-      if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+      // 若强制下一首则下一首
+      // 即使处于单曲循环也进行下一首
+      // 若处于随机状态则随机下一首
+
+      switch (this.getters.getPlayMode) {
+        // 单曲循环
+        case "cycle":
+          if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+          state._singleMusicMode = true;
+          break;
+        // 随机播放
+        case "random":
+          desIndex = Math.floor(Math.random() * state._playlist.length);
+          state._singleMusicMode = false;
+          break;
+        // 列表循环
+        case "list":
+          if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+          state._singleMusicMode = false;
+          break;
+      }
 
       this.dispatch("getMusicUrl", {
         musicIndex: desIndex
@@ -277,7 +319,7 @@ export default createStore({
           v -= 0.1;
           if (v <= 0) {
             state._play.isPlaying = false;
-            if (state._singleMusicMode) {
+            if (state._singleMusicMode && !args.isForce) {
               console.log("重新播放");
               document.getElementById("music").currentTime = 0;
               document.getElementById("music").play();
@@ -684,6 +726,12 @@ export default createStore({
     // 设置主题色
     setMainColor(state, { mainColor }) {
       state._mainColor = mainColor
+    },
+
+    // 循环切换播放模式
+    addPlayMode(state) {
+      state._playModeCount += 1;
+      console.log(state._playModeCount, this.getters.getPlayMode);
     }
   },
   actions: {
@@ -897,6 +945,13 @@ export default createStore({
     // 返回跨域标识
     getAnonymous(state, url) {
       return url.indexOf("cdn.weyoung.tech") == -1
+    },
+
+    // 返回当前播放模式
+    getPlayMode(state) {
+      if (state._playModeCount % 3 == 0) return "list";
+      if (state._playModeCount % 3 == 1) return "cycle";
+      if (state._playModeCount % 3 == 2) return "random";
     }
   },
   modules: {},

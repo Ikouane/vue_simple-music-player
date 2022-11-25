@@ -1,5 +1,5 @@
 <template>
-  <div :class="'inputbox ' + (isShow ? 'inputbox-show' : 'inputbox-hide')">
+  <div class="inputbox" :class="{ show: isShow }">
     <p>{{ !isWrong ? "请输入编号" : "未找到数据，请检查编号" }}</p>
     <input v-for="(item, i) in 4" v-bind:key="i" class="input-single" disabled="disabled" maxlength="1" :id="i"
       :value="input_text.slice()[i]" />
@@ -147,30 +147,24 @@ export default {
   position: absolute;
   top: -100%;
   left: 50%;
-  transform: translate(-50%);
+  transform: translate(-50%, 100%);
   box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+  transition: all 0.5s ease;
 
   border-radius: 15px;
   width: 360px;
   margin: 25px 0;
   padding: 15px;
   box-sizing: border-box;
-  z-index: 1;
+  z-index: 2;
 
   background-color: rgba(255, 255, 255, 0.9);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
 
-  &-show {
+  &.show {
     top: 80px;
     transform: translate(-50%);
-    transition: all 0.5s ease;
-  }
-
-  &-hide {
-    top: -100%;
-    transform: translate(-50%, 100%);
-    transition: all 0.5s ease;
   }
 
   .dark & {

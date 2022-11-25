@@ -1,24 +1,22 @@
 <template>
-  <div class="container" v-if="isShow">
-    <p class="title">{{ title }}</p>
-    <template v-if="type != 'more'">
-      <p class="content" v-if="content">{{ content }}</p>
-      <div id="qrcode"></div>
-      <button class="button" @click="$emit('click-action')">确认</button>
-    </template>
-    <div class="flex__wrapper" v-else>
-      <Button
-        size="middle"
-        title="发送消息"
-        :bindtap="showSendMessageBox"
-        type="fa fa-paper-plane"
-      />
-      <Button
-        size="middle"
-        title="登录"
-        :bindtap="showLoginBox"
-        type="fa fa-user"
-      />
+  <div v-if="isShow" class="mask" @click.self="$emit('click-action')">
+    <div class="container">
+      <p class="title">{{ title }}</p>
+      <template v-if="type != 'more'">
+        <p class="content" v-if="content">{{ content }}</p>
+        <div id="qrcode"></div>
+        <button class="button" @click="$emit('click-action')">确认</button>
+      </template>
+      <div class="flex__wrapper" v-else>
+        <Button size="middle" title="发送消息" :bindtap="showSendMessageBox" type="fa fa-paper-plane" />
+        <Button size="middle" title="登录" :bindtap="showLoginBox" type="fa fa-user" />
+        <Button v-if="iconType == 'fa fa-list'" type="fa fa-list" size="middle" :title="playMode"
+          :bindtap="switchPlayMode" />
+        <Button v-if="iconType == 'fa fa-repeat'" type="fas fa-redo" size="middle" :title="playMode"
+          :bindtap="switchPlayMode" />
+        <Button v-if="iconType == 'fa fa-random'" type="fa fa-random" size="middle" :title="playMode"
+          :bindtap="switchPlayMode" />
+      </div>
     </div>
   </div>
 </template>
@@ -26,6 +24,8 @@
 import { onMounted, ref } from "vue";
 import QRCode from "qrcodejs2";
 import Button from "./Button.vue";
+import { useStore } from "vuex";
+import { computed } from "@vue/reactivity";
 export default {
   name: "MessageBox",
   components: {
@@ -56,6 +56,14 @@ export default {
   setup(props) {
     let isShow = ref(props.boxShow);
 
+    const store = useStore();
+
+    const playMode = computed(() => {
+      return store.getters.getPlayMode
+    });
+
+    const iconType = ref("fa fa-list");
+
     const hideBox = () => {
       console.log("关闭弹窗");
       if (isShow.value) isShow.value = !isShow.value;
@@ -72,6 +80,23 @@ export default {
     const showLoginBox = () => {
       console.log("显示登录二维码弹窗");
     };
+
+    const switchPlayMode = () => {
+      store.commit("addPlayMode");
+      console.log("切换到播放模式", playMode.value);
+
+      switch (playMode.value) {
+        case "list":
+          iconType.value = "fa fa-list";
+          break;
+        case "cycle":
+          iconType.value = "fa fa-repeat";
+          break;
+        case "random":
+          iconType.value = "fa fa-random";
+          break;
+      }
+    }
 
     onMounted(() => {
       if (props.qrText) {
@@ -91,6 +116,9 @@ export default {
       isShow,
       showSendMessageBox,
       showLoginBox,
+      switchPlayMode,
+      playMode,
+      iconType
     };
   },
 };
@@ -101,6 +129,15 @@ export default {
   padding: 0;
   box-sizing: border-box;
 }
+
+.mask {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  left: 0;
+}
+
 .container {
   position: fixed;
   box-sizing: border-box;
@@ -117,6 +154,7 @@ export default {
   font-size: 10px;
   overflow: hidden;
   color: var(--title_color);
+  padding: 0 10px 20px 10px;
 
   .dark & {
     background-color: rgba(0, 0, 0, 0.72);
