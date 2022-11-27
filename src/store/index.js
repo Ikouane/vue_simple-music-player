@@ -905,7 +905,7 @@ export default createStore({
             if (response.data.status === "200") {
               rootState._playlist[musicIndex].musicUrl = response.data.url;
               rootState._playlist[musicIndex].skip = false;
-              resolve();
+              resolve(response.data.url);
             }
           })
           .catch((error) => {
@@ -952,6 +952,31 @@ export default createStore({
       if (state._playModeCount % 3 == 0) return "list";
       if (state._playModeCount % 3 == 1) return "cycle";
       if (state._playModeCount % 3 == 2) return "random";
+    },
+
+    // 获取下一首歌曲序号（用于倒数 30s 预载）
+    getNextMusicIndex(state) {
+      let desIndex = 0;
+
+      // 若强制下一首则下一首
+      // 即使处于单曲循环也进行下一首
+      // 若处于随机状态则随机下一首
+
+      switch (state._playModeCount % 3) {
+        // 单曲循环
+        case 0:
+          if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+          break;
+        // 随机播放
+        case 1:
+          desIndex = Math.floor(Math.random() * state._playlist.length);
+          break;
+        // 列表循环
+        case 2:
+          if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+          break;
+      }
+      return desIndex;
     }
   },
   modules: {},

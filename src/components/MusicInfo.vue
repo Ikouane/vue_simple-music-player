@@ -155,7 +155,7 @@ export default {
   },
   computed: {
     ...mapState(["_play", "_playlist", "_userTouch", "_miniMode", "_mainColor"]),
-    ...mapGetters(["getAnonymous"]),
+    ...mapGetters(["getAnonymous", "getPlayMode", "getNextMusicIndex"]),
     _nowPlaying() {
       return this._play.nowPlaying;
     },
@@ -178,7 +178,7 @@ export default {
       "setMsg",
     ]),
 
-    ...mapActions(["retryAfterPlayFail"]),
+    ...mapActions(["retryAfterPlayFail", "getMusicUrl"]),
 
     formatTime(timeNum) {
       //补0，格式化数字
@@ -631,6 +631,15 @@ export default {
           desTime: this._playlist[this._nowPlaying].playStartTime,
         });
         this.setMsg({ message: "已回到区间起始点" });
+      }
+
+      if ($music.currentTime >= $music.duration - 30) {
+        // 预载歌曲
+        if (!this._playlist[this.getNextMusicIndex].musicUrl && this.getPlayMode == "list")
+          this.getMusicUrl({ musicIndex: this.getNextMusicIndex }).then((res) => {
+            Axios.get(res);
+            Axios.get(this._playlist[this.getNextMusicIndex].musicImage);
+          })
       }
 
       //TODO:防抖准备
