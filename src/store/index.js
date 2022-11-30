@@ -115,6 +115,29 @@ export default createStore({
         document
           .querySelector("body")
           .setAttribute("style", "background-color:var(--pink_main_color)");
+
+      if (state._play.snowMode) {
+        let fragMent = document.createDocumentFragment();
+        let count = 200;
+        if (
+          navigator.userAgent.match(
+            /(iPhone|iPod|Android|ios|iOS|iPad|Backerry|WebOS|Symbian|Windows Phone|Phone)/i
+          )
+        )
+          count = 50;
+        for (let index = 0; index < count; index++) {
+          let div = document.createElement("div");
+          div.className = "snow";
+          fragMent.appendChild(div);
+        }
+
+        let snowWrapper = document.createElement("div");
+        snowWrapper.className = "snow__wrapper";
+
+        document.querySelector("body").appendChild(snowWrapper);
+
+        snowWrapper.appendChild(fragMent);
+      }
       // state._play = this.commit('deepClone', o_Play._play)
       // state._playlist = this.commit('deepClone', o_Play._playlist)
       // this.commit('clearMsg');

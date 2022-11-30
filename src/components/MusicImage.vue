@@ -11,12 +11,12 @@
     <div class="music-image" :class="{ small: smallSize, playing: _play.isPlaying }" @click="playSwitchFade()"
       :title="_play.isPlaying ? '暂停' : '播放'">
       <!-- @click="setSuccess(true)" title="进入传送门"-->
+      <canvas class="visualizations" :class="{ playing: _play.isPlaying }"
+        :style="`--mainColor: ${this._mainColor}`"></canvas>
       <img class="middle-image playing" ref="musicImage" @load="getPictureColor" :class="{ small: smallSize }"
         :src="_playlist[_play.nowPlaying].musicImage" alt="图片加载失败" :style="{
           webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
         }" crossorigin="anonymous" />
-      <canvas class="visualizations" :class="{ playing: _play.isPlaying }"
-        :style="`--mainColor: ${this._mainColor}`"></canvas>
     </div>
     <div class="flexbox_part">
       <Button v-show="!_miniMode && smallSize" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)"
@@ -330,8 +330,6 @@ $pink_border_color: var(--pink_border_color);
       height: 0.3rem;
     }
 
-    position: absolute;
-    z-index: 1;
     width: 100%;
     height: 100%;
     box-sizing: border-box;
@@ -414,7 +412,6 @@ $pink_border_color: var(--pink_border_color);
     position: absolute;
     width: 100%;
     height: 100%;
-    z-index: 0;
     transform: scale(1.2);
     filter: initial;
     transition: all 0.2s ease-in-out;
