@@ -534,67 +534,75 @@ export default {
 
       const _this = this;
 
-      // 获取 ID 为 "oscilloscope" 的画布
-      let canvas = document.querySelector(".visualizations");
-      let cxt = canvas.getContext("2d");
+      if (
+        navigator.userAgent.match(
+          /(iPhone|iPod|ios|iOS|iPad)/i
+        )
+      ) {
+        // 
+      } else {
+        // 获取 ID 为 "oscilloscope" 的画布
+        let canvas = document.querySelector(".visualizations");
+        let cxt = canvas.getContext("2d");
 
-      if (this._userTouch && !this.audioCtx) {
-        this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        let analyser = this.audioCtx.createAnalyser();
+        if (this._userTouch && !this.audioCtx) {
+          this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          let analyser = this.audioCtx.createAnalyser();
 
-        // 根据 DOM 创建 source
-        let source = this.audioCtx.createMediaElementSource(this.$refs["music"]);
-        // 将资源连接到分析器
-        source.connect(analyser);
-        // 分析器连接到音频对象
-        analyser.connect(this.audioCtx.destination);
-        analyser.fftSize = 2048;
+          // 根据 DOM 创建 source
+          let source = this.audioCtx.createMediaElementSource(this.$refs["music"]);
+          // 将资源连接到分析器
+          source.connect(analyser);
+          // 分析器连接到音频对象
+          analyser.connect(this.audioCtx.destination);
+          analyser.fftSize = 2048;
 
-        // 获取到屏幕倒是是几倍屏。
-        let getPixelRatio = function (context) {
-          let backingStore = context.backingStorePixelRatio ||
-            context.webkitBackingStorePixelRatio ||
-            context.mozBackingStorePixelRatio ||
-            context.msBackingStorePixelRatio ||
-            context.oBackingStorePixelRatio ||
-            context.backingStorePixelRatio || 1;
-          return (window.devicePixelRatio || 1) / backingStore;
-        };
-        // iphone6下得到是2
-        const pixelRatio = getPixelRatio(canvas);
-        // 设置canvas的真实宽高
-        canvas.width = pixelRatio * canvas.offsetWidth; // 想当于 2 * 375 = 750 
-        canvas.height = pixelRatio * canvas.offsetHeight;
+          // 获取到屏幕倒是是几倍屏。
+          let getPixelRatio = function (context) {
+            let backingStore = context.backingStorePixelRatio ||
+              context.webkitBackingStorePixelRatio ||
+              context.mozBackingStorePixelRatio ||
+              context.msBackingStorePixelRatio ||
+              context.oBackingStorePixelRatio ||
+              context.backingStorePixelRatio || 1;
+            return (window.devicePixelRatio || 1) / backingStore;
+          };
+          // iphone6下得到是2
+          const pixelRatio = getPixelRatio(canvas);
+          // 设置canvas的真实宽高
+          canvas.width = pixelRatio * canvas.offsetWidth; // 想当于 2 * 375 = 750 
+          canvas.height = pixelRatio * canvas.offsetHeight;
 
-        const WIDTH = canvas.width, HEIGHT = canvas.height, r = canvas.width / 2;
+          const WIDTH = canvas.width, HEIGHT = canvas.height, r = canvas.width / 2;
 
-        // 绘制一个当前音频源的示波器
+          // 绘制一个当前音频源的示波器
 
-        let output = new Uint8Array(360);
-        (function drawSpectrum() {
-          analyser.getByteFrequencyData(output);//获取频域数据
-          cxt.clearRect(0, 0, WIDTH, HEIGHT);
-          cxt.strokeStyle = _this._mainColor;
-          //画线条
-          for (let i = 0; i < 360; i++) {
-            let value = output[i] / 8;//<===获取数据
-            cxt.beginPath();
-            cxt.lineWidth = 3;
-            cxt.moveTo(r, r);
-            //R * cos (PI/180*一次旋转的角度数) ,-R * sin (PI/180*一次旋转的角度数)
-            cxt.lineTo(Math.cos((i * 1) / 180 * Math.PI) * (value - 5 + r / 1.2) + r, - Math.sin((i * 1) / 180 * Math.PI) * (value - 5 + r / 1.2) + r);
-            cxt.stroke();
-          }
-          //画一个小圆，将线条覆盖
-          // cxt.beginPath();
-          // cxt.lineWidth = 1;
-          // cxt.arc(WIDTH / 2, HEIGHT / 2, WIDTH / 2, 0, 2 * Math.PI, false);
-          // cxt.fillStyle = "#fff";
-          // cxt.stroke();
-          // cxt.fill();
-          //请求下一帧
-          requestAnimationFrame(drawSpectrum);
-        })();
+          let output = new Uint8Array(360);
+          (function drawSpectrum() {
+            analyser.getByteFrequencyData(output);//获取频域数据
+            cxt.clearRect(0, 0, WIDTH, HEIGHT);
+            cxt.strokeStyle = _this._mainColor;
+            //画线条
+            for (let i = 0; i < 360; i++) {
+              let value = output[i] / 8;//<===获取数据
+              cxt.beginPath();
+              cxt.lineWidth = 3;
+              cxt.moveTo(r, r);
+              //R * cos (PI/180*一次旋转的角度数) ,-R * sin (PI/180*一次旋转的角度数)
+              cxt.lineTo(Math.cos((i * 1) / 180 * Math.PI) * (value - 5 + r / 1.2) + r, - Math.sin((i * 1) / 180 * Math.PI) * (value - 5 + r / 1.2) + r);
+              cxt.stroke();
+            }
+            //画一个小圆，将线条覆盖
+            // cxt.beginPath();
+            // cxt.lineWidth = 1;
+            // cxt.arc(WIDTH / 2, HEIGHT / 2, WIDTH / 2, 0, 2 * Math.PI, false);
+            // cxt.fillStyle = "#fff";
+            // cxt.stroke();
+            // cxt.fill();
+            //请求下一帧
+            requestAnimationFrame(drawSpectrum);
+          })();
+        }
       }
     });
 
@@ -638,7 +646,7 @@ export default {
         if (!this._playlist[this.getNextMusicIndex].musicUrl && this.getPlayMode == "list")
           this.getMusicUrl({ musicIndex: this.getNextMusicIndex }).then((res) => {
             Axios.get(res);
-            Axios.get(this._playlist[this.getNextMusicIndex].musicImage);
+            Axios.get(this._playlist[this.getNextMusicIndex].musicImage.replace("http://", "https://"));
           })
       }
 

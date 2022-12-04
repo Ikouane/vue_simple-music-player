@@ -1,7 +1,7 @@
 <template>
   <div id="app">
-    <!-- <div class="snow__wrapper"></div> -->
     <Main />
+    <div class="snow__wrapper" :style="`--mainColor: ${_play.isPlaying ? _mainColor : 'white'}`"></div>
   </div>
 </template>
 
@@ -19,7 +19,7 @@ export default {
     Main,
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch", "_miniMode"]),
+    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch", "_miniMode", "_mainColor"]),
   },
   methods: {
     ...mapMutations([
@@ -47,7 +47,7 @@ export default {
       if (window.innerWidth < 768) {
         document.querySelector("html").style.fontSize = window.innerHeight + "px";
       }
-    }
+    },
   },
   created() {
     function getQueryVariable(variable) {
@@ -360,7 +360,8 @@ body {
       position: absolute;
       width: 10px;
       height: 10px;
-      background: white;
+      background: var(--mainColor, white);
+      transition: background 3s ease-in-out;
       border-radius: 50%;
 
       @for $i from 1 through $total {

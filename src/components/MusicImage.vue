@@ -171,6 +171,7 @@ $pink_border_color: var(--pink_border_color);
     }
 
     .music-image {
+      position: relative;
       width: calc(100vmin - 30px);
       height: calc(100vmin - 30px);
       margin: initial;
@@ -330,6 +331,7 @@ $pink_border_color: var(--pink_border_color);
       height: 0.3rem;
     }
 
+    position: absolute;
     width: 100%;
     height: 100%;
     box-sizing: border-box;

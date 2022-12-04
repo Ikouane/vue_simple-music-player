@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-11-22 01:31:47
+ * @LastEditTime: 2022-12-04 13:31:22
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -223,7 +223,7 @@ export default {
       }
     }
 
-    & span:nth-child(2) {
+    &>span:last-child {
       color: var(--text_color);
 
       .dark & {

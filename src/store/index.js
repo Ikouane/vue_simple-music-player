@@ -116,6 +116,7 @@ export default createStore({
           .querySelector("body")
           .setAttribute("style", "background-color:var(--pink_main_color)");
 
+      let snowWrapper = document.querySelector(".snow__wrapper");
       if (state._play.snowMode) {
         let fragMent = document.createDocumentFragment();
         let count = 200;
@@ -130,14 +131,8 @@ export default createStore({
           div.className = "snow";
           fragMent.appendChild(div);
         }
-
-        let snowWrapper = document.createElement("div");
-        snowWrapper.className = "snow__wrapper";
-
-        document.querySelector("body").appendChild(snowWrapper);
-
         snowWrapper.appendChild(fragMent);
-      }
+      } else snowWrapper.parentElement.removeChild(snowWrapper);
       // state._play = this.commit('deepClone', o_Play._play)
       // state._playlist = this.commit('deepClone', o_Play._playlist)
       // this.commit('clearMsg');
