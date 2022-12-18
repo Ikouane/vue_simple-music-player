@@ -619,15 +619,17 @@ export default {
     }, 100);
 
     $music.addEventListener("error", () => {
-      console.log("无法播放，已为您跳过。");
-      if (this._playlist.length == 1) {
-        this.pause(false);
-        this.setMsg({
-          message: `播放出错，已为您暂停`,
-        });
-        this.retryAfterPlayFail({ index: 0, needPlay: this._userTouch });
-      } //else this.next({ hasWrong: "wrong" });
-      this.skipMusic(this._play.nowPlaying);
+      console.log("无法播放，重新获取链接");
+      // if (this._playlist.length == 1) {
+      //   this.pause(false);
+      //   this.setMsg({
+      //     message: `播放出错，已为您暂停`,
+      //   });
+      // } //else this.next({ hasWrong: "wrong" });
+      this.setMsg({
+        message: `播放出错，尝试重新播放`,
+      });
+      this.retryAfterPlayFail({ index: this._nowPlaying, needPlay: this._userTouch });
     });
 
     $music.addEventListener("timeupdate", () => {

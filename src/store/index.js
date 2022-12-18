@@ -133,6 +133,8 @@ export default createStore({
         }
         snowWrapper.appendChild(fragMent);
       } else snowWrapper.parentElement.removeChild(snowWrapper);
+
+      // TODO: 雪花数量根据音乐增减 
       // state._play = this.commit('deepClone', o_Play._play)
       // state._playlist = this.commit('deepClone', o_Play._playlist)
       // this.commit('clearMsg');
@@ -905,13 +907,15 @@ export default createStore({
         .catch(function (error) {
           // 请求失败处理
           console.log(error);
+          commit("skipMusic", index);
+          commit("next", { hasWrong: "wrong" })
         });
     },
 
     // 获取音乐链接
-    getMusicUrl({ rootState }, { musicIndex }) {
+    getMusicUrl({ rootState }, { musicIndex, forceFlag = false }) {
       return new Promise((resolve, reject) => {
-        if (rootState._playlist[musicIndex].musicUrl) {
+        if (rootState._playlist[musicIndex].musicUrl && !forceFlag) {
           resolve();
           return;
         }
