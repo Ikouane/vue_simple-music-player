@@ -78,7 +78,8 @@ export default {
     };
 
     const showLoginBox = () => {
-      console.log("显示登录二维码弹窗");
+      console.log("跳转登录二维码页面");
+      window.open("qrlogin.html");
     };
 
     const switchPlayMode = () => {

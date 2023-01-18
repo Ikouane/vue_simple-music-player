@@ -54,16 +54,10 @@ import { mapActions, mapMutations, mapState } from "vuex";
 import Modal from "./Modal";
 import InputModal from "./InputForm";
 import MessageBox from "./MessageBox";
-import Axios from "axios";
+import { getSavedList } from "@/api/api"
 
 export default {
   name: "Main",
-  // data() {
-  //   return {
-  //     title: String,
-  //     msg: String,
-  //   };
-  // },
   components: {
     AppBar,
     InfoBlock,
@@ -100,36 +94,11 @@ export default {
       console.log("显示更多功能");
       this.moreActionShow = !this.moreActionShow;
     },
-    saveList() {
-      const _this = this;
-      let data = new FormData();
-      data.append("method", "save");
-      data.append("play", JSON.stringify(_this._play));
-      data.append("playlist", JSON.stringify(_this._playlist));
-      Axios.post(
-        "https://api.weyoung.tech/vue_simple-music-player/get_v3.php",
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data; charset=UTF-8", //将表单数据传递转化为form-data类型
-          },
-        }
-      )
-        .then(function (response) {
-          console.log(response.data);
-        })
-        .catch(function (error) {
-          alert(error);
-        });
-    },
     getList(pid) {
-      Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?pid=${pid}`
-      )
+      getSavedList(pid)
         .then((response) => {
-          //console.log(response.data);
-          if (response.data._playlist) {
-            this.setStore(response.data);
+          if (response._playlist) {
+            this.setStore(response);
             this.isWrong = false;
             this.showInputSwitch();
           } else this.isWrong = true;

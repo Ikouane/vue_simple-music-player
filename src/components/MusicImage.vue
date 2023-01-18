@@ -30,9 +30,10 @@
 <script>
 import Button from "./Button";
 import { mapState, mapMutations } from "vuex";
-import Axios from "axios";
 import Modal from "./Modal";
 import ColorThief from "colorthief";
+import { setSavedList, getMoreMusic } from "@/api/api"
+
 export default {
   name: "MusicImage",
   data() {
@@ -77,11 +78,9 @@ export default {
     ]),
     getMore() {
       const _this = this;
-      Axios.get(
-        "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=more"
-      )
+      getMoreMusic()
         .then((response) => {
-          _this.addMore(response.data._playlist);
+          _this.addMore(response._playlist);
           _this.hasChange = true;
         })
         .catch(function (error) {
@@ -103,20 +102,15 @@ export default {
         data.append("method", "save");
         data.append("play", JSON.stringify(_this._play));
         data.append("playlist", JSON.stringify(_this._playlist));
-        Axios.post(
-          "https://api.weyoung.tech/vue_simple-music-player/get_v3.php",
-          data,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data; charset=UTF-8", //将表单数据传递转化为form-data类型
-            },
-          }
-        )
+        setSavedList(data, {
+          headers: {
+            "Content-Type": "multipart/form-data; charset=UTF-8", //将表单数据传递转化为form-data类型
+          },
+        })
           .then(function (response) {
-            console.log(response.data);
             _this.uploadSuccess = true;
             _this.hasChange = false;
-            _this.pid = response.data.pid;
+            _this.pid = response.pid;
           })
           .catch(function (error) {
             alert(error);

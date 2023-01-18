@@ -1,7 +1,7 @@
 import { createStore } from "vuex";
 import useClipboard from "vue-clipboard3";
-import Axios from "axios";
 import { nextTick } from "vue";
+import { getMusicUrl, getSvipMusicUrl, loveSong } from "@/api/api"
 
 export default createStore({
   state: {
@@ -39,9 +39,9 @@ export default createStore({
         musicName: "Say Goodbye",
         musicAuthor: "S Club 7",
         musicImage:
-          "https://cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.jpg",
+          "//cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.jpg",
         musicUrl:
-          "https://cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.mp3",
+          "//cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.mp3",
         isLike: false,
       },
       {
@@ -49,9 +49,9 @@ export default createStore({
         musicName: "Good To Be Alive",
         musicAuthor: "Meghan Trainor",
         musicImage:
-          "https://cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.jpg",
+          "//cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.jpg",
         musicUrl:
-          "https://cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.mp3",
+          "//cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.mp3",
         isLike: false,
       },
       {
@@ -59,9 +59,9 @@ export default createStore({
         musicName: "High Hopes",
         musicAuthor: "Gabriela Bee",
         musicImage:
-          "https://cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.jpg",
+          "//cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.jpg",
         musicUrl:
-          "https://cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.mp3",
+          "//cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.mp3",
         isLike: false,
       },
     ],
@@ -542,12 +542,9 @@ export default createStore({
         console.log("我喜欢");
       }
 
-      Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=like&mid=${state._playlist[state._play.nowPlaying].musicId
-        }&like=${!state._playlist[state._play.nowPlaying].isLike}`
-      )
+      loveSong(state._playlist[state._play.nowPlaying].musicId, !state._playlist[state._play.nowPlaying].isLike)
         .then((response) => {
-          if (response.data.status == 200) {
+          if (response.status == 200) {
             if (state._playlist[state._play.nowPlaying].isLike)
               _this.commit("setMsg", {
                 message: "已移出我喜欢，并同步至网易云",
@@ -680,6 +677,7 @@ export default createStore({
     // 设置单音乐模式
     setSingleMusicMode(state) {
       state._singleMusicMode = true;
+      this.commit("addPlayMode");
     },
 
     // 设置定时器
@@ -884,14 +882,12 @@ export default createStore({
     },
 
     retryAfterPlayFail({ commit, rootState }, { index = 0, needPlay = true }) {
-      Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?sid=${rootState._playlist[index].musicId}`
-      )
+      getSvipMusicUrl(rootState._playlist[index].musicId)
         .then((response) => {
           commit("replaceMusicUrl", {
             musicIndex: index,
-            musicId: response.data.musicId,
-            musicUrl: response.data.musicUrl,
+            musicId: response.musicId,
+            musicUrl: response.musicUrl,
             needPlay,
           });
           if (needPlay) {
@@ -900,7 +896,7 @@ export default createStore({
             });
           } else {
             commit("setMsg", {
-              message: `处于隐私安全，请手动播放`,
+              message: rootState._play.message.content || `处于隐私安全，请手动播放`,
             });
           }
         })
@@ -919,15 +915,12 @@ export default createStore({
           resolve();
           return;
         }
-        Axios.get(
-          "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=music&mid=" +
-          rootState._playlist[musicIndex].musicId
-        )
+        getMusicUrl(rootState._playlist[musicIndex].musicId)
           .then((response) => {
-            if (response.data.status === "200") {
-              rootState._playlist[musicIndex].musicUrl = response.data.url;
+            if (response.status === "200") {
+              rootState._playlist[musicIndex].musicUrl = response.url;
               rootState._playlist[musicIndex].skip = false;
-              resolve(response.data.url);
+              resolve(response.url);
             }
           })
           .catch((error) => {
@@ -950,13 +943,13 @@ export default createStore({
 
     // 精准空降
     getThisMoment(state) {
-      return `https://music.weyoung.tech?mid=${state._playlist[state._play.nowPlaying].musicId
+      return `${window.location.origin}${window.location.pathname}?mid=${state._playlist[state._play.nowPlaying].musicId
         }&st=${state._play.playTime}`;
     },
 
     // 根据 Index 获取 Id
     getMusicIdByIndex: (state) => (id) => {
-      return `https://music.weyoung.tech?mid=${state._playlist[id].musicId}`;
+      return `${window.location.origin}${window.location.pathname}?mid=${state._playlist[id].musicId}`;
     },
 
     // 获取显示模式

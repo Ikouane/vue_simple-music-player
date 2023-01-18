@@ -9,7 +9,7 @@
 import Main from "./components/Main";
 import "@/assets/index.css";
 import { mapActions, mapMutations, mapState } from "vuex";
-import Axios from "axios";
+import { getData, getSingleMusic, getMusicList, getSavedList } from "@/api/api"
 // import wx from "weixin-js-sdk";
 
 export default {
@@ -76,32 +76,29 @@ export default {
     if (mid) {
       console.log("单音乐模式");
       const _this = this;
-      Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?mid=${mid}`
-      )
-        .then((response) => {
-          // console.log(response.data);
-          _this.setStore(response.data);
-          _this.setSingleMusicMode();
-          if (response.data._play.mode === "night")
-            document
-              .querySelector("body")
-              .setAttribute("style", "background-color:var(--dark_main_color)");
 
-          if (startTime) {
-            console.log("精准空降", startTime);
-            _this.goTime({ desTime: startTime });
-            _this._playlist[0].playStartTime = startTime;
+      getSingleMusic(mid).then((response) => {
+        _this.setStore(response);
+        _this.setSingleMusicMode();
+        if (response._play.mode === "night")
+          document
+            .querySelector("body")
+            .setAttribute("style", "background-color:var(--dark_main_color)");
 
-            if (endTime) {
-              _this._playlist[0].playEndTime = endTime;
-              _this.setMsg({
-                message: "已进入区间播放模式，拖动进度条即可退出",
-                duration: 0,
-              });
-            }
+        if (startTime) {
+          console.log("精准空降", startTime);
+          _this.goTime({ desTime: startTime });
+          _this._playlist[0].playStartTime = startTime;
+
+          if (endTime) {
+            _this._playlist[0].playEndTime = endTime;
+            _this.setMsg({
+              message: "已进入区间播放模式，拖动进度条即可退出",
+              duration: 0,
+            });
           }
-        })
+        }
+      })
         .catch(function (error) {
           // 请求失败处理
           console.log(error);
@@ -109,17 +106,13 @@ export default {
     } else if (lid) {
       console.log("歌单模式");
       const _this = this;
-      Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?lid=${lid}`
-      )
-        .then((response) => {
-          // console.log(response.data);
-          _this.setStore(response.data);
-          if (response.data._play.mode === "night")
-            document
-              .querySelector("body")
-              .setAttribute("style", "background-color:var(--dark_main_color)");
-        })
+      getMusicList(lid).then((response) => {
+        _this.setStore(response);
+        if (response._play.mode === "night")
+          document
+            .querySelector("body")
+            .setAttribute("style", "background-color:var(--dark_main_color)");
+      })
         .catch(function (error) {
           // 请求失败处理
           console.log(error);
@@ -130,18 +123,12 @@ export default {
           console.log("发现本地数据");
           this.getLocal();
         } else {
-          let url = "https://api.weyoung.tech/vue_simple-music-player/get_v3.php";
-          if (dailyMode) {
-            this.setDailyMode();
-            url =
-              "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=daily_recommend_songs";
-          }
+          if (dailyMode) this.setDailyMode();
           const _this = this;
-          Axios.get(url)
+          getData(dailyMode)
             .then((response) => {
-              // console.log(response.data);
-              _this.setStore(response.data);
-              if (response.data._play.mode === "night")
+              _this.setStore(response);
+              if (response._play.mode === "night")
                 document
                   .querySelector("body")
                   .setAttribute(
@@ -166,16 +153,13 @@ export default {
         this.setPid(pid);
         console.log("获取目标歌单");
         const _this = this;
-        Axios.get(
-          `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?pid=${pid}`
-        )
+        getSavedList(pid)
           .then((response) => {
-            // console.log(response.data);
-            if (response.data.status == "wrong")
+            if (response.status == "wrong")
               this.setMsg({
                 message: "歌单不存在",
               });
-            else _this.setStore(response.data);
+            else _this.setStore(response);
           })
           .catch(function (error) {
             // 请求失败处理

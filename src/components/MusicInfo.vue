@@ -5,9 +5,9 @@
         <p class="music-name" ref="music-name__wrapper">
           <span :style="musicNameOverflowWidth" :class="{ animation: musicNameOverflowWidth, paused: !_isPlaying }"
             ref="music-name">{{
-                _playlist[_play.nowPlaying].musicName
+              _playlist[_play.nowPlaying].musicName
             }} {{
-    _playlist[_play.nowPlaying].musicAlia ? "(" + _playlist[_play.nowPlaying].musicAlia + ")" : ""
+  _playlist[_play.nowPlaying].musicAlia ? "(" + _playlist[_play.nowPlaying].musicAlia + ")" : ""
 }}</span>
         </p>
         <p class="music-author">
@@ -21,7 +21,7 @@
         <span :style="musicNameOverflowWidth" :class="{ animation: musicNameOverflowWidth, paused: !_isPlaying }"
           ref="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
         <span class="alia" id="music-alia">{{
-            _playlist[_play.nowPlaying].musicAlia
+          _playlist[_play.nowPlaying].musicAlia
         }}</span>
       </p>
       <p class="music-author">
@@ -33,11 +33,11 @@
       <div class="timetext">
         <span id="now">
           {{
-              drag
-                ? nowTime
-                : formatTime(parseInt(_play.playTime / 60)) +
-                ":" +
-                formatTime(parseInt(_play.playTime % 60))
+            drag
+            ? nowTime
+              : formatTime(parseInt(_play.playTime / 60)) +
+              ":" +
+              formatTime(parseInt(_play.playTime % 60))
           }}
         </span>
         <span id="length">{{ musicLength }}</span>
@@ -112,6 +112,7 @@
 </template>
 <script>
 import { mapState, mapMutations, mapActions, mapGetters } from "vuex";
+import { getLyric, getAuthorData } from "@/api/api";
 import Axios from "axios";
 import $ from "jquery";
 export default {
@@ -349,17 +350,13 @@ export default {
 
       if (this.musicId != _this._playlist[_this._play.nowPlaying].musicId) {
         this.musicId = _this._playlist[_this._play.nowPlaying].musicId;
-        Axios.get(
-          "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=lrc&id=" +
-          _this._playlist[_this._play.nowPlaying].musicId
-        )
+        getLyric(this.musicId)
           .then((response) => {
-            //console.log(response.data);
-            if (response.data.nolyric) {
+            if (response.nolyric) {
               _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
             } else {
-              _this.lrc = response.data.lrc.lyric;
-              _this.tlrc = response.data.tlyric.lyric;
+              _this.lrc = response.lrc.lyric;
+              _this.tlrc = response.tlyric.lyric;
             }
             _this.transToArray(_this.lrc, _this.tlrc); //Fix
           })
@@ -431,16 +428,12 @@ export default {
     },
 
     getAuthor() {
-      const _this = this;
-      Axios.get(
-        "https://api.weyoung.tech/vue_simple-music-player/get_v3.php?method=author&sid=" +
-        _this._playlist[_this._play.nowPlaying].musicId
-      )
+      getAuthorData(this._playlist[this._play.nowPlaying].musicId)
         .then((response) => {
-          if (response.data.status === "200") {
-            if (response.data.des == "") {
+          if (response.status === "200") {
+            if (response.des == "") {
               this.aboutAuthor = "";
-            } else this.aboutAuthor = "[作者介绍]" + response.data.des;
+            } else this.aboutAuthor = "[作者介绍]" + response.des;
           }
         })
         .catch((error) => console.log(error));
@@ -626,9 +619,9 @@ export default {
       //     message: `播放出错，已为您暂停`,
       //   });
       // } //else this.next({ hasWrong: "wrong" });
-      this.setMsg({
-        message: `播放出错，尝试重新播放`,
-      });
+      // this.setMsg({
+      //   message: `播放出错，尝试重新播放`,
+      // });
       this.retryAfterPlayFail({ index: this._nowPlaying, needPlay: this._userTouch });
     });
 

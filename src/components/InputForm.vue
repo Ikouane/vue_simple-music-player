@@ -10,7 +10,7 @@
 
 <script>
 import { mapMutations, mapState } from "vuex";
-import Axios from "axios";
+import { getSavedList } from "@/api/api"
 export default {
   data() {
     return {
@@ -79,36 +79,11 @@ export default {
   },
   methods: {
     ...mapMutations(["setStore", "setSuccess", "pause"]),
-    saveList() {
-      const _this = this;
-      let data = new FormData();
-      data.append("method", "save");
-      data.append("play", JSON.stringify(_this._play));
-      data.append("playlist", JSON.stringify(_this._playlist));
-      Axios.post(
-        "https://api.weyoung.tech/vue_simple-music-player/get_v3.php",
-        data,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data; charset=UTF-8", //将表单数据传递转化为form-data类型
-          },
-        }
-      )
-        .then(function (response) {
-          console.log(response.data);
-        })
-        .catch(function (error) {
-          alert(error);
-        });
-    },
     getList(pid) {
       const _this = this;
-      Axios.get(
-        `https://api.weyoung.tech/vue_simple-music-player/get_v3.php?pid=${pid}`
-      )
+      getSavedList(pid)
         .then((response) => {
-          //console.log(response.data);
-          if (response.data._playlist) {
+          if (response._playlist) {
             if (
               !document.getElementById("music").paused &&
               this._play.isPlaying
@@ -116,7 +91,7 @@ export default {
               this.pause(false);
             else console.log("音乐未加载，无须暂停");
 
-            _this.setStore(response.data);
+            _this.setStore(response);
             _this.isWrong = false;
             _this.setSuccess(false);
             _this.input_text = "";
