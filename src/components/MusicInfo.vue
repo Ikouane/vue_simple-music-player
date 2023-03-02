@@ -35,9 +35,9 @@
           {{
             drag
             ? nowTime
-              : formatTime(parseInt(_play.playTime / 60)) +
-              ":" +
-              formatTime(parseInt(_play.playTime % 60))
+            : formatTime(parseInt(_play.playTime / 60)) +
+            ":" +
+            formatTime(parseInt(_play.playTime % 60))
           }}
         </span>
         <span id="length">{{ musicLength }}</span>
@@ -529,9 +529,10 @@ export default {
 
       if (
         navigator.userAgent.match(
-          /(iPhone|iPod|ios|iOS|iPad)/i
+          /(iPhone|iPod|ios|iOS|iPad|Safari)/i
         )
       ) {
+        console.warn("功能受限，不使用频谱");
         // 
       } else {
         // 获取 ID 为 "oscilloscope" 的画布
@@ -540,6 +541,7 @@ export default {
 
         if (this._userTouch && !this.audioCtx) {
           this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
           let analyser = this.audioCtx.createAnalyser();
 
           // 根据 DOM 创建 source
