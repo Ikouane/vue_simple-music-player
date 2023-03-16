@@ -75,6 +75,7 @@ export default createStore({
         isLike: false,
       },
     ],
+    _inputMode: false
   },
   mutations: {
     deepClone(obj = {}) {
@@ -750,6 +751,11 @@ export default createStore({
     addPlayMode(state) {
       state._playModeCount += 1;
       console.log(state._playModeCount, this.getters.getPlayMode);
+    },
+
+    // 设置输入模式（不检测空格及其他快捷键）
+    setInputMode(state, inputMode) {
+      state._inputMode = inputMode;
     }
   },
   actions: {

@@ -8,10 +8,11 @@
         @click-action="switchBoxShow()" />
     </transition>
     <MessageBox v-if="moreActionShow" title="更多功能" type="more" :boxShow="moreActionShow"
-      @click-action="switchMoreActionShow()" />
+      @click-action="switchMoreActionShow()" @click-chat="switchChatContainerShow()" />
     <!-- <InputModal v-if="showInput" :isShow="showInput" :isWrong="isWrong" /> -->
     <!-- <InputModal v-if="false" :isShow="_success" :isWrong="isWrong" /> -->
     <!--v-if="showInput" :isShow="showInput"-->
+    <Chat v-if="chatContainerShow" @click-chat="switchChatContainerShow()"></Chat>
     <transition name="Modal">
       <Modal v-if="_play.message.show" :title="
         _play.message.content
@@ -54,6 +55,7 @@ import { mapActions, mapMutations, mapState } from "vuex";
 import Modal from "./Modal";
 import InputModal from "./InputForm";
 import MessageBox from "./MessageBox";
+import Chat from "./Chat.vue";
 import { getSavedList } from "@/api/api"
 
 export default {
@@ -67,6 +69,7 @@ export default {
     Modal,
     InputModal,
     MessageBox,
+    Chat
   },
   data() {
     return {
@@ -75,13 +78,14 @@ export default {
       urlText: "",
       boxShow: false,
       moreActionShow: false,
+      chatContainerShow: false
     };
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_success", "_pid", "_rid", "_miniMode"]),
+    ...mapState(["_play", "_playlist", "_success", "_pid", "_rid", "_miniMode", "_chatContainerShow", "_inputMode"]),
   },
   methods: {
-    ...mapMutations(["setStore", "setSuccess", "setPid", "setRid"]),
+    ...mapMutations(["setStore", "setSuccess", "setPid", "setRid", "setInputMode"]),
     ...mapActions(["playSync"]),
     // showInputSwitch() {
     //   this.setSuccess(!this._success);
@@ -93,6 +97,12 @@ export default {
     switchMoreActionShow() {
       console.log("显示更多功能");
       this.moreActionShow = !this.moreActionShow;
+    },
+    switchChatContainerShow() {
+      console.log("切换聊天弹窗");
+      this.chatContainerShow = !this.chatContainerShow;
+      this.setInputMode(this.chatContainerShow);
+      console.log(this._inputMode);
     },
     getList(pid) {
       getSavedList(pid)

@@ -19,7 +19,7 @@ export default {
     Main,
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch", "_miniMode", "_mainColor"]),
+    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch", "_miniMode", "_mainColor", "_inputMode"]),
   },
   methods: {
     ...mapMutations([
@@ -40,7 +40,8 @@ export default {
       "goTime",
       "setDailyMode",
       "setAlreadyTouch",
-      "setMiniMode"
+      "setMiniMode",
+      "setInputMode"
     ]),
     ...mapActions(["playSync"]),
     initScreen() {
@@ -191,41 +192,43 @@ export default {
 
   mounted() {
     var _this = this;
-    document.onkeydown = function (e) {
-      let key = e.keyCode || window.event.keyCode;
-      if (key == 37) {
-        //== 83 && event.ctrlKey
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击左箭头");
-        _this.minusTime();
-      } else if (key == 39) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击右箭头");
-        _this.addTime();
-      } else if (key == 32) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击空格");
-        _this.playSwitchFade();
-      } else if (key == 38 && e.shiftKey) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击Shift + 上箭头");
-        _this.prev();
-      } else if (key == 40 && e.shiftKey) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击Shift + 点击下箭头");
-        _this.next({ isForce: true });
-      } else if (key == 38) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击上箭头");
-        _this.setVolume("up");
-        // _this.prev();
-      } else if (key == 40) {
-        window.event.preventDefault(); //关闭浏览器快捷键
-        console.log("点击下箭头");
-        _this.setVolume("down");
-        // _this.next();
+    document.addEventListener("keydown", (e) => {
+      if (!this._inputMode) {
+        let key = e.keyCode || window.event.keyCode;
+        if (key == 37) {
+          //== 83 && event.ctrlKey
+          window.event.preventDefault(); //关闭浏览器快捷键
+          console.log("点击左箭头");
+          _this.minusTime();
+        } else if (key == 39) {
+          window.event.preventDefault(); //关闭浏览器快捷键
+          console.log("点击右箭头");
+          _this.addTime();
+        } else if (key == 32) {
+          window.event.preventDefault(); //关闭浏览器快捷键
+          console.log("点击空格");
+          _this.playSwitchFade();
+        } else if (key == 38 && e.shiftKey) {
+          window.event.preventDefault(); //关闭浏览器快捷键
+          console.log("点击Shift + 上箭头");
+          _this.prev();
+        } else if (key == 40 && e.shiftKey) {
+          window.event.preventDefault(); //关闭浏览器快捷键
+          console.log("点击Shift + 点击下箭头");
+          _this.next({ isForce: true });
+        } else if (key == 38) {
+          window.event.preventDefault(); //关闭浏览器快捷键
+          console.log("点击上箭头");
+          _this.setVolume("up");
+          // _this.prev();
+        } else if (key == 40) {
+          window.event.preventDefault(); //关闭浏览器快捷键
+          console.log("点击下箭头");
+          _this.setVolume("down");
+          // _this.next();
+        }
       }
-    };
+    })
 
     const setDocumentTouch = () => {
       _this.setAlreadyTouch();

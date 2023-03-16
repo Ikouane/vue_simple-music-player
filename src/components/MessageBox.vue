@@ -18,6 +18,7 @@
           :bindtap="switchPlayMode" />
       </div>
     </div>
+    <Chat></Chat>
   </div>
 </template>
 <script>
@@ -53,7 +54,7 @@ export default {
       default: "",
     },
   },
-  setup(props) {
+  setup(props, { emit }) {
     let isShow = ref(props.boxShow);
 
     const store = useStore();
@@ -75,6 +76,7 @@ export default {
 
     const showSendMessageBox = () => {
       console.log("显示发送消息弹窗");
+      emit("click-chat");
     };
 
     const showLoginBox = () => {

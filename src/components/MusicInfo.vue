@@ -527,11 +527,7 @@ export default {
 
       const _this = this;
 
-      if (
-        navigator.userAgent.match(
-          /(iPhone|iPod|ios|iOS|iPad|Safari)/i
-        )
-      ) {
+      if ((/Safari/.test(navigator.userAgent) && !/Chrome/.test(navigator.userAgent))) {
         console.warn("功能受限，不使用频谱");
         // 
       } else {
