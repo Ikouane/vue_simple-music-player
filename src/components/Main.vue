@@ -15,11 +15,11 @@
     <Chat v-if="chatContainerShow" @click-chat="switchChatContainerShow()"></Chat>
     <transition name="Modal">
       <Modal v-if="_play.message.show" :title="
-        _play.message.content
+        _play.message.title || (_play.message.content
           ? '通知'
           : _play.isPlaying
             ? '正在播放'
-            : '已同步上次播放'
+            : '已同步上次播放')
       " :aod="_play.message.duration == 0" :time="getNowTime()" :content="
   _play.message.content ||
   _playlist[_play.nowPlaying].musicName +

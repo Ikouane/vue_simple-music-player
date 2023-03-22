@@ -211,7 +211,7 @@ export default {
         } else if (key == 38 && e.shiftKey) {
           window.event.preventDefault(); //关闭浏览器快捷键
           console.log("点击Shift + 上箭头");
-          _this.prev();
+          _this.prev(false);
         } else if (key == 40 && e.shiftKey) {
           window.event.preventDefault(); //关闭浏览器快捷键
           console.log("点击Shift + 点击下箭头");
@@ -220,12 +220,10 @@ export default {
           window.event.preventDefault(); //关闭浏览器快捷键
           console.log("点击上箭头");
           _this.setVolume("up");
-          // _this.prev();
         } else if (key == 40) {
           window.event.preventDefault(); //关闭浏览器快捷键
           console.log("点击下箭头");
           _this.setVolume("down");
-          // _this.next();
         }
       }
     })

@@ -598,7 +598,7 @@ export default {
     });
 
     $music.addEventListener("ended", () => {
-      this.next(); //播放完成后，自动下一首
+      this.next({}); //播放完成后，自动下一首
     });
 
     this.intPlaying = setInterval(() => {
@@ -640,6 +640,15 @@ export default {
           this.getMusicUrl({ musicIndex: this.getNextMusicIndex }).then((res) => {
             Axios.get(res);
             Axios.get(this._playlist[this.getNextMusicIndex].musicImage.replace("http://", "https://"));
+
+            // TODO: 预告所有歌曲播放 
+            this.setMsg(
+              {
+                title: "即将播放",
+                duration: 5000,
+                message: `${this._playlist[this.getNextMusicIndex].musicName}(${this._playlist[this.getNextMusicIndex].musicAuthor})`
+              }
+            )
           })
       }
 

@@ -231,15 +231,6 @@ export default createStore({
         state._playlist[state._play.nowPlaying].musicAuthor;
     },
     prev(state, needSync = true) {
-      if (needSync && state._ws)
-        state._ws.send(
-          JSON.stringify({
-            type: "cn",
-            uuid: state._uuid,
-            action: "prev",
-          })
-        );
-
       let desIndex = state._playlist.length - 1;
 
       // 若强制上一首则上一首
@@ -263,6 +254,16 @@ export default createStore({
           state._singleMusicMode = false;
           break;
       }
+
+      if (needSync && state._ws)
+        state._ws.send(
+          JSON.stringify({
+            type: "cn",
+            uuid: state._uuid,
+            action: "prev",
+            desIndex
+          })
+        );
 
       this.dispatch("getMusicUrl", {
         musicIndex: desIndex
@@ -296,17 +297,7 @@ export default createStore({
       // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
       // state._play.isPlaying = true
     },
-    next(state, args = { hasWrong: false, needSync: true, isForce: false }) {
-      if (args.needSync && state._ws)
-        state._ws.send(
-          JSON.stringify({
-            type: "cn",
-            uuid: state._uuid,
-            action: "next",
-            hasWrong: args.hasWrong,
-          })
-        );
-
+    next(state, { hasWrong = false, needSync = true, isForce = false }) {
       let desIndex = 0;
 
       // 若强制下一首则下一首
@@ -331,6 +322,17 @@ export default createStore({
           break;
       }
 
+      if (needSync && state._ws)
+        state._ws.send(
+          JSON.stringify({
+            type: "cn",
+            uuid: state._uuid,
+            action: "next",
+            desIndex,
+            hasWrong: hasWrong,
+          })
+        );
+
       this.dispatch("getMusicUrl", {
         musicIndex: desIndex
       }).then(() => {
@@ -340,7 +342,7 @@ export default createStore({
           v -= 0.1;
           if (v <= 0) {
             state._play.isPlaying = false;
-            if (state._singleMusicMode && !args.isForce) {
+            if (state._singleMusicMode && !isForce) {
               console.log("重新播放");
               document.getElementById("music").currentTime = 0;
               document.getElementById("music").play();
@@ -367,7 +369,7 @@ export default createStore({
           }
         }, 75);
 
-        if (args.hasWrong === "wrong") {
+        if (hasWrong === "wrong") {
           this.commit("setMsg", {
             message: "播放出错，已为您跳过",
           });
@@ -841,7 +843,7 @@ export default createStore({
             if (res.action === "setStore") {
               commit("setStore", res.data);
             } else if (res.action === "next") {
-              commit("next", [res.hasWrong, false]);
+              commit("next", { desIndex: res.desIndex, hasWrong: res.hasWrong, needSync: false });
               commit("setMsg", {
                 message: `收到同步命令：下一首`,
               });
@@ -861,6 +863,7 @@ export default createStore({
                 message: `收到同步命令：歌曲切换`,
               });
             } else if (res.action === "prev") {
+              commit("prev", { desIndex: res.desIndex, needSync: false });
               commit("setMsg", {
                 message: `收到同步命令：上一首`,
               });
