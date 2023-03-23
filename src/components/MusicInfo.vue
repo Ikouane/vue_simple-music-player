@@ -598,7 +598,7 @@ export default {
     });
 
     $music.addEventListener("ended", () => {
-      this.next({}); //播放完成后，自动下一首
+      this.next(); //播放完成后，自动下一首
     });
 
     this.intPlaying = setInterval(() => {

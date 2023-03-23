@@ -2,7 +2,7 @@
  * @Author: ikouane
  * @PoweredBy: 未央宫©WeYounG
  * @Date: 2023-03-15 16:39:14
- * @LastEditTime: 2023-03-15 22:50:29
+ * @LastEditTime: 2023-03-23 00:33:17
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -16,18 +16,36 @@
   </div>
 </template>
 <script setup>
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 import { useStore } from "vuex";
 const msg = ref("");
 let inputRef = ref(null)
 const getInputRef = (el) => {
   inputRef.value = el
 }
+
+nextTick(() => {
+  inputRef.value.focus();
+})
+
 const store = useStore();
 const sendMessage = () => {
   if (msg.value == "") {
     store.commit("setMsg", { message: "输入内容不能为空", title: "通知" })
-  } else {
+  }
+  else if (msg.value.startsWith("/add ")) {
+    let [musicId, needPlay, saveInRoom] = msg.value.split("/add ")[1].split(" ");
+    needPlay = needPlay == 1;
+    saveInRoom = saveInRoom == 1;
+    if (isNaN(musicId)) {
+      store.commit("setMsg", { message: "参数格式有误", title: "通知" })
+      return
+    }
+    store.commit("addToList", { musicId, needPlay, saveInRoom });
+    msg.value = "";
+    inputRef.value.focus();
+  }
+  else {
     store.commit("sendMessage", {
       msg: msg.value
     })

@@ -12,7 +12,7 @@
     <!-- <InputModal v-if="showInput" :isShow="showInput" :isWrong="isWrong" /> -->
     <!-- <InputModal v-if="false" :isShow="_success" :isWrong="isWrong" /> -->
     <!--v-if="showInput" :isShow="showInput"-->
-    <Chat v-if="chatContainerShow" @click-chat="switchChatContainerShow()"></Chat>
+    <Chat v-if="_chatContainerShow" @click-chat="switchChatContainerShow()"></Chat>
     <transition name="Modal">
       <Modal v-if="_play.message.show" :title="
         _play.message.title || (_play.message.content
@@ -78,14 +78,13 @@ export default {
       urlText: "",
       boxShow: false,
       moreActionShow: false,
-      chatContainerShow: false
     };
   },
   computed: {
     ...mapState(["_play", "_playlist", "_success", "_pid", "_rid", "_miniMode", "_chatContainerShow", "_inputMode"]),
   },
   methods: {
-    ...mapMutations(["setStore", "setSuccess", "setPid", "setRid", "setInputMode"]),
+    ...mapMutations(["setStore", "setSuccess", "setPid", "setRid", "switchChatContainerShow"]),
     ...mapActions(["playSync"]),
     // showInputSwitch() {
     //   this.setSuccess(!this._success);
@@ -97,12 +96,6 @@ export default {
     switchMoreActionShow() {
       console.log("显示更多功能");
       this.moreActionShow = !this.moreActionShow;
-    },
-    switchChatContainerShow() {
-      console.log("切换聊天弹窗");
-      this.chatContainerShow = !this.chatContainerShow;
-      this.setInputMode(this.chatContainerShow);
-      console.log(this._inputMode);
     },
     getList(pid) {
       getSavedList(pid)

@@ -1,7 +1,7 @@
 import { createStore } from "vuex";
 import useClipboard from "vue-clipboard3";
 import { nextTick } from "vue";
-import { getMusicUrl, getSvipMusicUrl, loveSong } from "@/api/api"
+import { getMusicUrl, getSvipMusicUrl, loveSong, getSingleMusic } from "@/api/api"
 
 export default createStore({
   state: {
@@ -75,6 +75,7 @@ export default createStore({
         isLike: false,
       },
     ],
+    _chatContainerShow: false,
     _inputMode: false
   },
   mutations: {
@@ -230,29 +231,30 @@ export default createStore({
         " - " +
         state._playlist[state._play.nowPlaying].musicAuthor;
     },
-    prev(state, needSync = true) {
-      let desIndex = state._playlist.length - 1;
+    prev(state, { needSync = true, desIndex = null } = {}) {
+      if (!desIndex) {
+        desIndex = state._playlist.length - 1;
+        // 若强制上一首则上一首
+        // 即使处于单曲循环也进行上一首
+        // 若处于随机状态则随机上一首
 
-      // 若强制上一首则上一首
-      // 即使处于单曲循环也进行上一首
-      // 若处于随机状态则随机上一首
-
-      switch (this.getters.getPlayMode) {
-        // 单曲循环
-        case "cycle":
-          if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
-          state._singleMusicMode = true;
-          break;
-        // 随机播放
-        case "random":
-          desIndex = Math.floor(Math.random() * state._playlist.length);
-          state._singleMusicMode = false;
-          break;
-        // 列表循环
-        case "list":
-          if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
-          state._singleMusicMode = false;
-          break;
+        switch (this.getters.getPlayMode) {
+          // 单曲循环
+          case "cycle":
+            if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
+            state._singleMusicMode = true;
+            break;
+          // 随机播放
+          case "random":
+            desIndex = Math.floor(Math.random() * state._playlist.length);
+            state._singleMusicMode = false;
+            break;
+          // 列表循环
+          case "list":
+            if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
+            state._singleMusicMode = false;
+            break;
+        }
       }
 
       if (needSync && state._ws)
@@ -297,29 +299,31 @@ export default createStore({
       // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
       // state._play.isPlaying = true
     },
-    next(state, { hasWrong = false, needSync = true, isForce = false }) {
-      let desIndex = 0;
+    next(state, { hasWrong = false, needSync = true, isForce = false, desIndex = null } = {}) {
+      if (!desIndex) {
+        desIndex = 0;
 
-      // 若强制下一首则下一首
-      // 即使处于单曲循环也进行下一首
-      // 若处于随机状态则随机下一首
+        // 若强制下一首则下一首
+        // 即使处于单曲循环也进行下一首
+        // 若处于随机状态则随机下一首
 
-      switch (this.getters.getPlayMode) {
-        // 单曲循环
-        case "cycle":
-          if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
-          state._singleMusicMode = true;
-          break;
-        // 随机播放
-        case "random":
-          desIndex = Math.floor(Math.random() * state._playlist.length);
-          state._singleMusicMode = false;
-          break;
-        // 列表循环
-        case "list":
-          if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
-          state._singleMusicMode = false;
-          break;
+        switch (this.getters.getPlayMode) {
+          // 单曲循环
+          case "cycle":
+            if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+            state._singleMusicMode = true;
+            break;
+          // 随机播放
+          case "random":
+            desIndex = Math.floor(Math.random() * state._playlist.length);
+            state._singleMusicMode = false;
+            break;
+          // 列表循环
+          case "list":
+            if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+            state._singleMusicMode = false;
+            break;
+        }
       }
 
       if (needSync && state._ws)
@@ -755,9 +759,59 @@ export default createStore({
       console.log(state._playModeCount, this.getters.getPlayMode);
     },
 
+    switchChatContainerShow(state) {
+      state._chatContainerShow = !state._chatContainerShow;
+      this.commit("setInputMode", state._chatContainerShow);
+    },
+
     // 设置输入模式（不检测空格及其他快捷键）
-    setInputMode(state, inputMode) {
-      state._inputMode = inputMode;
+    setInputMode(state, value) {
+      state._inputMode = value;
+    },
+
+    // 追加歌曲至一起听列表
+    addToList(state, { needSync = true, musicId, needPlay = false, saveInRoom = false }) {
+      if (state._playlist.every(({ musicId: listMusicId }) => listMusicId != musicId)) {
+        if (needSync && state._ws)
+          state._ws.send(
+            JSON.stringify({
+              type: "cn",
+              uuid: state._uuid,
+              action: "addToList",
+              musicId,
+              needPlay
+            })
+          );
+
+        getSingleMusic(musicId)
+          .then((response) => {
+            this.commit("addMore", response._playlist);
+            if (needPlay) this.commit("goPlay", { desIndex: state._playlist.length - 1, needSync: false })
+            if (saveInRoom) {
+              state._ws.send(
+                JSON.stringify({
+                  type: "c3",
+                  uuid: state._uuid,
+                  play: Object.assign(state._play, {
+                    isPlaying: false,
+                    nowPlaying: 0,
+                    playTime: 0,
+                    nowPage: "PLAYING NOW",
+                  }),
+                  playlist: state._playlist,
+                  method: "post",
+                })
+              );
+            }
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      }
+      else this.commit("setMsg", {
+        message: `歌曲已存在`,
+      });
+
     }
   },
   actions: {
@@ -839,6 +893,7 @@ export default createStore({
             });
             break;
           case "roomPlaySyncPush":
+            // FIXME: 修复未播放时同步切歌导致的UI错乱的问题 
             commit("setSignalColor", "yellow");
             if (res.action === "setStore") {
               commit("setStore", res.data);
@@ -866,6 +921,11 @@ export default createStore({
               commit("prev", { desIndex: res.desIndex, needSync: false });
               commit("setMsg", {
                 message: `收到同步命令：上一首`,
+              });
+            } else if (res.action === "addToList") {
+              commit("addToList", { musicId: res.musicId, needSync: false, needPlay: res.needPlay });
+              commit("setMsg", {
+                message: `收到同步命令：添加歌曲`,
               });
             } else {
               commit(res.action, false);

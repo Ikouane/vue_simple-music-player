@@ -65,6 +65,20 @@ export default {
 
     const iconType = ref("fa fa-list");
 
+    const judgeIconType = () => {
+      switch (playMode.value) {
+        case "list":
+          iconType.value = "fa fa-list";
+          break;
+        case "cycle":
+          iconType.value = "fa fa-repeat";
+          break;
+        case "random":
+          iconType.value = "fa fa-random";
+          break;
+      }
+    }
+
     const hideBox = () => {
       console.log("关闭弹窗");
       if (isShow.value) isShow.value = !isShow.value;
@@ -88,17 +102,7 @@ export default {
       store.commit("addPlayMode");
       console.log("切换到播放模式", playMode.value);
 
-      switch (playMode.value) {
-        case "list":
-          iconType.value = "fa fa-list";
-          break;
-        case "cycle":
-          iconType.value = "fa fa-repeat";
-          break;
-        case "random":
-          iconType.value = "fa fa-random";
-          break;
-      }
+      judgeIconType();
     }
 
     onMounted(() => {
@@ -111,6 +115,8 @@ export default {
             text: props.qrText,
           });
       }
+
+      judgeIconType();
     });
 
     return {

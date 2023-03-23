@@ -41,7 +41,8 @@ export default {
       "setDailyMode",
       "setAlreadyTouch",
       "setMiniMode",
-      "setInputMode"
+      "setInputMode",
+      "switchChatContainerShow"
     ]),
     ...mapActions(["playSync"]),
     initScreen() {
@@ -195,6 +196,7 @@ export default {
     document.addEventListener("keydown", (e) => {
       if (!this._inputMode) {
         let key = e.keyCode || window.event.keyCode;
+        // console.log(key)
         if (key == 37) {
           //== 83 && event.ctrlKey
           window.event.preventDefault(); //关闭浏览器快捷键
@@ -211,7 +213,7 @@ export default {
         } else if (key == 38 && e.shiftKey) {
           window.event.preventDefault(); //关闭浏览器快捷键
           console.log("点击Shift + 上箭头");
-          _this.prev(false);
+          _this.prev();
         } else if (key == 40 && e.shiftKey) {
           window.event.preventDefault(); //关闭浏览器快捷键
           console.log("点击Shift + 点击下箭头");
@@ -224,6 +226,10 @@ export default {
           window.event.preventDefault(); //关闭浏览器快捷键
           console.log("点击下箭头");
           _this.setVolume("down");
+        } else if (key == 191) {
+          window.event.preventDefault();
+          this.switchChatContainerShow();
+          console.log("输入命令");
         }
       }
     })
