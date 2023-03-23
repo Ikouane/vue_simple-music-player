@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Main />
+    <Main v-if="_loaded" />
     <div class="snow__wrapper" :style="`--mainColor: ${_play.isPlaying ? _mainColor : 'white'}`"></div>
   </div>
 </template>
@@ -19,7 +19,7 @@ export default {
     Main,
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch", "_miniMode", "_mainColor", "_inputMode"]),
+    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch", "_miniMode", "_mainColor", "_inputMode", "_loaded"]),
   },
   methods: {
     ...mapMutations([

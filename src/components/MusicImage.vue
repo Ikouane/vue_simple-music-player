@@ -19,8 +19,8 @@
         }" crossorigin="anonymous" />
     </div>
     <div class="flexbox_part">
-      <Button v-show="!_miniMode && smallSize" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)"
-        :bindtap="saveList" type="fas fa-cloud-upload-alt" />
+      <Button v-show="!_miniMode && smallSize" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)" :bindtap="saveList"
+        type="fas fa-cloud-upload-alt" />
       <Button v-show="!_miniMode && smallSize" size="middle" title="从云端还原数据" @click="setSuccess(true)"
         type="fas fa-cloud-download-alt" />
       <!-- FIXME: @click="setSuccess(true)" -->

@@ -2,9 +2,11 @@ import { createStore } from "vuex";
 import useClipboard from "vue-clipboard3";
 import { nextTick } from "vue";
 import { getMusicUrl, getSvipMusicUrl, loveSong, getSingleMusic } from "@/api/api"
+import { loadScript } from "@/utils/loadJs.js"
 
 export default createStore({
   state: {
+    _loaded: false,
     _success: false,
     _pid: null,
     _rid: null,
@@ -33,38 +35,7 @@ export default createStore({
       },
       volume: 100, //音量
     },
-    _playlist: [
-      {
-        musicId: "21687063",
-        musicName: "Say Goodbye",
-        musicAuthor: "S Club 7",
-        musicImage:
-          "//cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.jpg",
-        musicUrl:
-          "//cdn.weyoung.tech/vue_simple-music-player/S Club 7 - Say Goodbye.mp3",
-        isLike: false,
-      },
-      {
-        musicId: "416531370",
-        musicName: "Good To Be Alive",
-        musicAuthor: "Meghan Trainor",
-        musicImage:
-          "//cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.jpg",
-        musicUrl:
-          "//cdn.weyoung.tech/vue_simple-music-player/Meghan Trainor - Good To Be Alive.mp3",
-        isLike: false,
-      },
-      {
-        musicId: "1358168845",
-        musicName: "High Hopes",
-        musicAuthor: "Gabriela Bee",
-        musicImage:
-          "//cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.jpg",
-        musicUrl:
-          "//cdn.weyoung.tech/vue_simple-music-player/Gabriela Bee - High Hopes.mp3",
-        isLike: false,
-      },
-    ],
+    _playlist: [],
     example_array: [
       {
         musicId: "musicId",
@@ -103,6 +74,7 @@ export default createStore({
     setStore(state, o_Play) {
       // state._play = {}
       // state._playlist = [
+      state._loaded = true;
       state._play = o_Play._play;
       state._playlist = o_Play._playlist;
       if (state._play.mode === "night")
@@ -135,6 +107,12 @@ export default createStore({
         }
         snowWrapper.appendChild(fragMent);
       } else snowWrapper.parentElement.removeChild(snowWrapper);
+
+      if (state._play.sakuraMode) {
+        loadScript("sakura-small.js", () => {
+          console.log("loaded")
+        });
+      }
 
       // TODO: 雪花数量根据音乐增减 
       // state._play = this.commit('deepClone', o_Play._play)

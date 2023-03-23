@@ -645,7 +645,7 @@ export default {
             this.setMsg(
               {
                 title: "即将播放",
-                duration: 5000,
+                duration: 30000,
                 message: `${this._playlist[this.getNextMusicIndex].musicName}(${this._playlist[this.getNextMusicIndex].musicAuthor})`
               }
             )
