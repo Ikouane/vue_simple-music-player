@@ -18,7 +18,6 @@
           :bindtap="switchPlayMode" />
       </div>
     </div>
-    <Chat></Chat>
   </div>
 </template>
 <script>

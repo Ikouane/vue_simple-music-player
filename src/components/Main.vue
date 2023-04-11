@@ -1,5 +1,9 @@
 <template>
-  <div class="mplayer" :class="{ dark: _play.mode == 'night', pink: _play.mode == 'pink', mini: _miniMode }">
+  <div class="mplayer" :class="{
+    dark: _play.mode == 'night',
+    pink: _play.mode == 'pink',
+    mini: _miniMode,
+  }">
     <transition>
       <InputModal v-if="_success" :isShow="_success" :isWrong="isWrong" />
     </transition>
@@ -15,7 +19,8 @@
     <Chat v-if="_chatContainerShow" @click-chat="switchChatContainerShow()"></Chat>
     <transition name="Modal">
       <Modal v-if="_play.message.show" :title="
-        _play.message.title || (_play.message.content
+        _play.message.title ||
+        (_play.message.content
           ? '通知'
           : _play.isPlaying
             ? '正在播放'
@@ -56,7 +61,7 @@ import Modal from "./Modal";
 import InputModal from "./InputForm";
 import MessageBox from "./MessageBox";
 import Chat from "./Chat.vue";
-import { getSavedList } from "@/api/api"
+import { getSavedList } from "@/api/api";
 
 export default {
   name: "Main",
@@ -69,7 +74,7 @@ export default {
     Modal,
     InputModal,
     MessageBox,
-    Chat
+    Chat,
   },
   data() {
     return {
@@ -81,10 +86,25 @@ export default {
     };
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_success", "_pid", "_rid", "_miniMode", "_chatContainerShow", "_inputMode"]),
+    ...mapState([
+      "_play",
+      "_playlist",
+      "_success",
+      "_pid",
+      "_rid",
+      "_miniMode",
+      "_chatContainerShow",
+      "_inputMode",
+    ]),
   },
   methods: {
-    ...mapMutations(["setStore", "setSuccess", "setPid", "setRid", "switchChatContainerShow"]),
+    ...mapMutations([
+      "setStore",
+      "setSuccess",
+      "setPid",
+      "setRid",
+      "switchChatContainerShow",
+    ]),
     ...mapActions(["playSync"]),
     // showInputSwitch() {
     //   this.setSuccess(!this._success);
@@ -126,6 +146,10 @@ export default {
         // this.showInputSwitch();
       }
     });
+
+    if (this._rid) {
+      this.urlText = `${window.location.origin}${window.location.pathname}?rid=${this._rid}`;
+    }
   },
   watch: {
     // _success(val, oldVal) {
@@ -140,7 +164,7 @@ export default {
     },
     _rid(val) {
       console.log(`房间已变更为${val}`);
-      this.urlText = "https://music.weyoung.tech/?rid=" + val;
+      this.urlText = `${window.location.origin}${window.location.pathname}?rid=${val}`;
     },
   },
 };
@@ -192,13 +216,21 @@ export default {
   }
 
   @keyframes fade {
-    0% {
+    from {
+      position: fixed;
+      z-index: 2;
+      top: 50%;
+      left: 50%;
       opacity: 1;
       transform-origin: 0% 0%;
       transform: scale(1) translate(-50%, -50%);
     }
 
-    100% {
+    to {
+      position: fixed;
+      z-index: 2;
+      top: 50%;
+      left: 50%;
       opacity: 0;
       transform-origin: 0% 0%;
       transform: scale(1.2) translate(-50%, -50%);

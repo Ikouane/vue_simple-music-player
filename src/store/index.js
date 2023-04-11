@@ -106,11 +106,16 @@ export default createStore({
           fragMent.appendChild(div);
         }
         snowWrapper.appendChild(fragMent);
-      } else snowWrapper.parentElement.removeChild(snowWrapper);
+      } else snowWrapper?.parentElement.removeChild(snowWrapper);
 
       if (state._play.sakuraMode) {
         loadScript("sakura-small.js", () => {
-          console.log("loaded")
+          setTimeout(() => {
+            this.commit("setMsg", {
+              title: "主题效果",
+              message: "已应用「樱花」效果"
+            });
+          }, 3000)
         });
       }
 
@@ -425,17 +430,19 @@ export default createStore({
           })
         );
 
-      if (desTime < 0) {
-        desTime = 0;
-      } else if (desTime > document.getElementById("music").duration) {
-        desTime = document.getElementById("music").duration;
-      }
-      document.getElementById("music").currentTime = desTime;
-      state._play.playTime = desTime;
-      //当音乐没播放时，调整进度会直接播放音乐，已修复
-      if (state._play.isPlaying) {
-        //
-      } else document.getElementById("music").pause();
+      nextTick(() => {
+        if (desTime < 0) {
+          desTime = 0;
+        } else if (desTime > document.getElementById("music").duration) {
+          desTime = document.getElementById("music").duration;
+        }
+        document.getElementById("music").currentTime = desTime;
+        state._play.playTime = desTime;
+        //当音乐没播放时，调整进度会直接播放音乐，已修复
+        if (state._play.isPlaying) {
+          //
+        } else document.getElementById("music").pause();
+      });
     },
     addTime() {
       this.commit("goTime", {
@@ -1039,6 +1046,11 @@ export default createStore({
           break;
       }
       return desIndex;
+    },
+
+    // 获取是否命中「樱花」效果
+    getSakuraModeByMusicName(state) {
+      return state._playlist[state._play.nowPlaying].musicName.indexOf("花") != -1
     }
   },
   modules: {},
