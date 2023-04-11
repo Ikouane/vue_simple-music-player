@@ -1,3 +1,12 @@
+/*
+ * @Author: ikouane
+ * @PoweredBy: 未央宫©WeYounG
+ * @Date: 2023-02-12 16:17:17
+ * @LastEditTime: 2023-04-11 23:02:13
+ * @LastEditors: ikouane
+ * @Description: 
+ * @version: 
+ */
 module.exports = {
     // outputDir: 'dist',   //build输出目录
     // assetsDir: 'assets', //静态资源目录（js, css, img）
@@ -23,5 +32,17 @@ module.exports = {
         //         }
         //     }
         // },
+    },
+    configureWebpack: {
+        module: {
+            rules: [
+                {
+                    test: /\.mjs$/,
+                    include: /node_modules/,
+                    type: "javascript/auto"
+                },
+            ]
+        }
     }
+
 }

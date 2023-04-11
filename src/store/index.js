@@ -3,6 +3,7 @@ import useClipboard from "vue-clipboard3";
 import { nextTick } from "vue";
 import { getMusicUrl, getSvipMusicUrl, loveSong, getSingleMusic } from "@/api/api"
 import { loadScript } from "@/utils/loadJs.js"
+import { ElNotification } from 'element-plus'
 
 export default createStore({
   state: {
@@ -855,11 +856,26 @@ export default createStore({
             break;
           case "sMsg": // 系统消息
             console.log(`[系统消息]: ${res.msg}`);
-            commit("setMsg", {
-              title: "系统消息",
-              message: res.msg,
-              duration: 0,
-            });
+            if (res.kind == "leaveRoom") {
+              ElNotification({
+                title: '房间消息',
+                message: res.msg,
+                type: 'info',
+                duration: 0
+              })
+            } else if (res.kind == "joinRoom") {
+              ElNotification({
+                title: '房间消息',
+                message: res.msg,
+                type: 'success',
+                duration: 0
+              })
+            } else
+              commit("setMsg", {
+                title: "系统消息",
+                message: res.msg,
+                duration: 0,
+              });
             break;
           case "mMsg": // 我发出的消息
             console.log(`[用户消息]: ${res.msg}`);
@@ -871,9 +887,15 @@ export default createStore({
             break;
           case "uMsg": // 用户消息
             console.log(`[用户消息]: ${res.msg}`);
+            ElNotification({
+              title: `${res.user} 说：`,
+              message: res.msg,
+              type: 'info',
+              duration: 0
+            })
             commit("setMsg", {
               title: "收到用户消息",
-              message: res.msg,
+              message: `${res.user} 说：${res.msg}`,
               duration: 5000,
             });
             break;
@@ -912,6 +934,12 @@ export default createStore({
               commit("setMsg", {
                 message: `收到同步命令：添加歌曲`,
               });
+              ElNotification({
+                title: '歌曲加入成功',
+                message: `歌曲${res.musicId}加入至播放列表${res.needPlay ? '，并立即播放' : ''}`,
+                type: 'success',
+                duration: 0
+              })
             } else {
               commit(res.action, false);
               console.log("收到同步命令.");

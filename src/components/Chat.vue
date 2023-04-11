@@ -2,7 +2,7 @@
  * @Author: ikouane
  * @PoweredBy: 未央宫©WeYounG
  * @Date: 2023-03-15 16:39:14
- * @LastEditTime: 2023-03-23 00:33:17
+ * @LastEditTime: 2023-04-11 23:04:59
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -54,7 +54,6 @@ const sendMessage = () => {
     inputRef.value.focus();
   }
 }
-
 </script>
 <style lang='scss' scoped>
 .mask {

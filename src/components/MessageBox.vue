@@ -26,6 +26,7 @@ import QRCode from "qrcodejs2";
 import Button from "./Button.vue";
 import { useStore } from "vuex";
 import { computed } from "@vue/reactivity";
+
 export default {
   name: "MessageBox",
   components: {

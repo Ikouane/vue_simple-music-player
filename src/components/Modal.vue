@@ -4,7 +4,7 @@
     modalHide: !isShow,
     dark: _play.mode === 'night',
     mini: _miniMode
-  }" @click=" handleClose">
+  }" @click="handleClose">
     <label v-if="!_miniMode" class="modal-title">{{ title }}</label>
     <div class="modal-content">{{ content }}</div>
     <div class="modal-button" v-if="okmsg && cancelmsg">
@@ -106,7 +106,7 @@ export default {
   margin: 25px 0;
   padding: 15px;
   box-sizing: border-box;
-  z-index: 1;
+  z-index: 9999;
 
   background-color: rgba(255, 255, 255, 0.72);
   backdrop-filter: saturate(180%) blur(20px);
