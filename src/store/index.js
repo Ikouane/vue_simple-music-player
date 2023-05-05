@@ -161,7 +161,7 @@ export default createStore({
             action: "musicFadeIn",
           })
         );
-      //document.getElementById("music").volume = 0;
+      document.getElementById("music").volume = 0;
       let v = document.getElementById("music").volume;
       let int = setInterval(() => {
         console.log("渐入");

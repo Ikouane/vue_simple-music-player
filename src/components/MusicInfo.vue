@@ -42,11 +42,13 @@
         </span>
         <span id="length">{{ musicLength }}</span>
       </div>
-      <div class="timebar_out" @click="changeTime($event)" title="点击调整进度(←,→)">
+      <div class="timebar_out" :class="{ blockPlay: offsetLeft && offsetRight }"
+        :style="`--offset-left: ${offsetLeft}%; --offset-right: ${offsetRight}%`" @click="changeTime($event)"
+        title="点击调整进度(←,→)">
         <div class="timebar_in" :style="{
           width: drag
             ? nowTimeLength + 'px'
-            : Math.floor((_play.playTime / musicDuration) * 100) + '%',
+            : getTimeBarLength,
           transition: drag ? 'clear' : 'all 0.2s ease-out',
         }">
           <svg v-if="_play.mode == 'pink' && getSakuraModeByMusicName" class="icon bar_point small"
@@ -161,6 +163,8 @@ export default {
       tlrc_line__next: "",
       musicNameOverflowWidth: 0,
       audioCtx: null,
+      offsetLeft: null,
+      offsetRight: null
     };
   },
   props: {
@@ -178,6 +182,12 @@ export default {
     _isPlaying() {
       return this._play.isPlaying;
     },
+    getTimeBarLength() {
+      if (this._playlist[this._nowPlaying].playStartTime) {
+        return Math.floor((this._play.playTime / this.musicDuration) * 100 - this.offsetLeft) + '%'
+      }
+      return Math.floor((this._play.playTime / this.musicDuration) * 100) + '%'
+    }
   },
   methods: {
     ...mapMutations([
@@ -517,6 +527,9 @@ export default {
         window.navigator.mediaSession.setActionHandler("nexttrack", () => {
           this.next({ isForce: true });
         });
+
+        this.offsetLeft = this._playlist[this._nowPlaying].playStartTime / this.musicDuration * 100;
+        this.offsetRight = this._playlist[this._nowPlaying].playEndTime / this.musicDuration * 100;
       }
 
       this.getLrc();
@@ -1045,6 +1058,7 @@ $pink_border_color: var(--pink_border_color);
     }
 
     .timebar_out {
+      position: relative;
       height: 6px;
       width: 100%;
       background-color: #7fa3ff;
@@ -1055,16 +1069,75 @@ $pink_border_color: var(--pink_border_color);
       .dark & {
         background-color: #171b1b;
         box-shadow: inset 1px 1px 1px #141717, inset -1px -1px 1px #4a4b4e;
+
+        &.blockPlay::before {
+          background-color: var(--dark_player_color);
+          border-color: var(--dark_active_color);
+        }
+
+        &.blockPlay::after {
+          background-color: var(--dark_player_color);
+          border-color: #e5bc28;
+        }
+
+        &.blockPlay::before,
+        &.blockPlay::after {
+          box-shadow: 2px 2px 6px #000000;
+        }
       }
 
       .pink & {
         height: 4px;
         background-color: transparent;
         box-shadow: inset 3px 3px 3px #f3d5e8, inset -3px -3px 3px #f7e1ef;
+
+        &.blockPlay::before {
+          background-color: #f7e1ef;
+          border-color: var(--pink_active_color);
+        }
+
+        &.blockPlay::after {
+          background-color: #f7e1ef;
+          border-color: #f6c7c7;
+        }
+
+        &.blockPlay::before,
+        &.blockPlay::after {
+          box-shadow: 2px 2px 6px #f7e1ef;
+        }
+      }
+
+      &.blockPlay::before,
+      &.blockPlay::after {
+        content: "";
+        position: absolute;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        overflow: hidden;
+        top: 50%;
+        transform: translate(-100%, -50%);
+        background-color: var(--player_color);
+        border: 4px solid var(--active_color);
+        box-shadow: 2px 2px 6px #c6cdd6;
+      }
+
+      &.blockPlay .timebar_in {
+        margin-left: var(--offset-left);
+      }
+
+      &.blockPlay::before {
+        left: var(--offset-left);
+      }
+
+      &.blockPlay::after {
+        left: var(--offset-right);
       }
     }
 
     .timebar_in {
+      position: absolute;
+      z-index: 1;
       height: 6px;
       width: 0%;
       background-color: var(--active_color);
