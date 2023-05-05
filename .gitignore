@@ -26,5 +26,3 @@ pnpm-debug.log*
 upload.ssh.js
 
 # .env
-.env.development
-.env.production
