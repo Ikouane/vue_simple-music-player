@@ -113,9 +113,8 @@
           {{ lrc_line.now }}
         </span>
       </label>
-      <label v-if="
-        tlrc_line.prev != '' || tlrc_line.now != '' || tlrc_line.next != ''
-      " class="lrc_wrapper" :data-before="tlrc_line__prev" :data-after="tlrc_line__next"
+      <label v-if="tlrc_line.prev != '' || tlrc_line.now != '' || tlrc_line.next != ''
+        " class="lrc_wrapper" :data-before="tlrc_line__prev" :data-after="tlrc_line__next"
         :class="{ animate: shouldAnimate }" @animationend="animationEnded">
         <span id="music-tlrc" ref="music-tlrc">{{ tlrc_line.now }}</span>
       </label>
@@ -202,6 +201,7 @@ export default {
       "skipMusic",
       "setImageBackground",
       "setMsg",
+      "setPlayCount"
     ]),
 
     ...mapActions(["retryAfterPlayFail", "getMusicUrl"]),
@@ -233,49 +233,55 @@ export default {
     changeTime(event) {
       //点击播放条更新进度
       const music = this.$refs["music"],
-        otimebar_out = document.getElementsByClassName("timebar_out")[0],
-        otimebar_in = document.getElementsByClassName("timebar_in")[0];
-      if (this._playlist[this._nowPlaying].playEndTime) {
-        this.setMsg({
-          message: "您调整了进度，区间播放已取消",
-        });
-        this._playlist[this._nowPlaying].playEndTime = null;
-      }
+        otimebar_out = document.querySelector(".timebar_out")
+      // ,otimebar_in = document.querySelector(".timebar_in");
+
       console.log(
         "调整进度条" +
-        (event.clientX - otimebar_in.getBoundingClientRect().left) +
+        (event.clientX - otimebar_out.getBoundingClientRect().left) +
         "px"
       );
       this.goTime({
         desTime: parseInt(
-          ((event.clientX - otimebar_in.getBoundingClientRect().left) /
+          ((event.clientX - otimebar_out.getBoundingClientRect().left) /
             otimebar_out.offsetWidth) *
           music.duration
         ),
       }); //不能使用 offsetLeft 代替 jq.offset().left
       this.nowLength = this.nowLengthCal(music);
+      this.$nextTick(() => {
+        if (this._playlist[this._nowPlaying].playEndTime && (music.currentTime > this._playlist[this._nowPlaying].playEndTime || music.currentTime < this._playlist[this._nowPlaying].playStartTime)) {
+          this.setMsg({
+            message: "您将进度调整到了区间外，区间播放已取消",
+          });
+          this._playlist[this._nowPlaying].playStartTime = null;
+          this._playlist[this._nowPlaying].playEndTime = null;
+        }
+      })
     },
 
     handelMouseDrag(event) {
       const music = this.$refs["music"],
-        otimebar_out = document.getElementsByClassName("timebar_out")[0],
-        otimebar_in = document.getElementsByClassName("timebar_in")[0];
+        otimebar_out = document.querySelector(".timebar_out"),
+        otimebar_in = document.querySelector(".timebar_in");
       let e = event || window.event; //兼容性处理
       console.log("开始拖拽");
       this.drag = true;
       console.log(e);
       document.onmousemove = (event) => {
+        // FIXME: 修复拖动进度条时，鼠标移出进度条区域后，进度条不再跟随鼠标移动的问题 
         let e = event || window.event;
         if (
-          parseInt(e.clientX - otimebar_in.getBoundingClientRect().left) < 0
+          parseInt(e.clientX - otimebar_out.getBoundingClientRect().left) < 0
         ) {
           this.left = 0;
         } else if (
           e.clientX - otimebar_in.getBoundingClientRect().left >
-          otimebar_out.offsetWidth
+          otimebar_out.offsetWidth - this.offsetLeft / 100 * otimebar_out.offsetWidth
         ) {
-          this.left = otimebar_out.offsetWidth;
+          this.left = otimebar_out.offsetWidth - this.offsetLeft / 100 * otimebar_out.offsetWidth;
         } else this.left = e.clientX - otimebar_in.getBoundingClientRect().left;
+
         console.log("调整进度条" + this.left + "px");
         this.nowTimeLength = this.left + 5;
         this.nowTime =
@@ -660,6 +666,8 @@ export default {
           desTime: this._playlist[this._nowPlaying].playStartTime,
         });
         this.setMsg({ message: "已回到区间起始点" });
+        // TODO: 记录播放次数，弹出是否喜欢提示 
+        // this.setPlayCount({ musicIndex: this._nowPlaying });
       }
 
       if ($music.currentTime >= $music.duration - 30) {

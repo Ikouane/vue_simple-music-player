@@ -797,7 +797,20 @@ export default createStore({
       else this.commit("setMsg", {
         message: `歌曲已存在`,
       });
+    },
 
+    // 设置播放次数
+    setPlayCount(state, { musicIndex }) {
+      if (!state._playlist[musicIndex]?.blockPlayCount) state._playlist[musicIndex].blockPlayCount = 0;
+      state._playlist[musicIndex].blockPlayCount++;
+      if (state._playlist[musicIndex].blockPlayCount == 3) {
+        this.commit("setMsg", {
+          title: `您已经听了好几遍了哦`,
+          message: `是否喜欢该歌曲？`,
+          type: "ask-for-like",
+          duration: 0
+        });
+      }
     }
   },
   actions: {
@@ -1011,7 +1024,7 @@ export default createStore({
             reject(error);
           });
       })
-    }
+    },
   },
   getters: {
     // 获取音乐 - 艺术家 名称
