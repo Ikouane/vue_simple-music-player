@@ -3,7 +3,9 @@ import useClipboard from "vue-clipboard3";
 import { nextTick } from "vue";
 import { getMusicUrl, getSvipMusicUrl, loveSong, getSingleMusic } from "@/api/api"
 import { loadScript } from "@/utils/loadJs.js"
-import { ElNotification } from 'element-plus'
+import { formatArtists } from "@/utils/public.js"
+// import { ElNotification } from 'element-plus'
+import { io } from "socket.io-client";
 
 export default createStore({
   state: {
@@ -36,7 +38,7 @@ export default createStore({
       },
       volume: 100, //音量
     },
-    _playlist: [],
+    _playList: [],
     example_array: [
       {
         musicId: "musicId",
@@ -48,7 +50,8 @@ export default createStore({
       },
     ],
     _chatContainerShow: false,
-    _inputMode: false
+    _inputMode: false,
+    formatArtists
   },
   mutations: {
     deepClone(obj = {}) {
@@ -74,10 +77,10 @@ export default createStore({
     },
     setStore(state, o_Play) {
       // state._play = {}
-      // state._playlist = [
+      // state._playList = [
       state._loaded = true;
       state._play = o_Play._play;
-      state._playlist = o_Play._playlist;
+      state._playList = o_Play._playList;
       if (state._play.mode === "night")
         document
           .querySelector("body")
@@ -122,7 +125,7 @@ export default createStore({
 
       // TODO: 雪花数量根据音乐增减 
       // state._play = this.commit('deepClone', o_Play._play)
-      // state._playlist = this.commit('deepClone', o_Play._playlist)
+      // state._playList = this.commit('deepClone', o_Play._playList)
       // this.commit('clearMsg');
       // this.commit("setMsg", "数据已更新");
 
@@ -211,13 +214,13 @@ export default createStore({
     },
     updateTitle(state) {
       document.title =
-        state._playlist[state._play.nowPlaying].musicName +
+        state._playList[state._play.nowPlaying].name +
         " - " +
-        state._playlist[state._play.nowPlaying].musicAuthor;
+        formatArtists(state._playList[state._play.nowPlaying].artist);
     },
     prev(state, { needSync = true, desIndex = null } = {}) {
       if (!desIndex) {
-        desIndex = state._playlist.length - 1;
+        desIndex = state._playList.length - 1;
         // 若强制上一首则上一首
         // 即使处于单曲循环也进行上一首
         // 若处于随机状态则随机上一首
@@ -230,7 +233,7 @@ export default createStore({
             break;
           // 随机播放
           case "random":
-            desIndex = Math.floor(Math.random() * state._playlist.length);
+            desIndex = Math.floor(Math.random() * state._playList.length);
             state._singleMusicMode = false;
             break;
           // 列表循环
@@ -280,7 +283,7 @@ export default createStore({
         }, 75);
       })
 
-      // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playlist.length - 1
+      // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playList.length - 1
       // state._play.isPlaying = true
     },
     next(state, { hasWrong = false, needSync = true, isForce = false, desIndex = null } = {}) {
@@ -294,17 +297,17 @@ export default createStore({
         switch (this.getters.getPlayMode) {
           // 单曲循环
           case "cycle":
-            if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+            if ((state._play.nowPlaying + 1) <= state._playList.length - 1) desIndex = state._play.nowPlaying + 1;
             state._singleMusicMode = true;
             break;
           // 随机播放
           case "random":
-            desIndex = Math.floor(Math.random() * state._playlist.length);
+            desIndex = Math.floor(Math.random() * state._playList.length);
             state._singleMusicMode = false;
             break;
           // 列表循环
           case "list":
-            if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+            if ((state._play.nowPlaying + 1) <= state._playList.length - 1) desIndex = state._play.nowPlaying + 1;
             state._singleMusicMode = false;
             break;
         }
@@ -364,11 +367,11 @@ export default createStore({
         }
       })
 
-      // if ((state._play.nowPlaying += 1) > state._playlist.length - 1) state._play.nowPlaying = 0
+      // if ((state._play.nowPlaying += 1) > state._playList.length - 1) state._play.nowPlaying = 0
       // state._play.isPlaying = true
     },
     goPlay(state, { desIndex, needSync = true, needPlay = true }) {
-      if (state._playlist[desIndex].skip) {
+      if (state._playList[desIndex].skip) {
         // 跳过歌曲时处理
         console.log("该歌曲无法播放，已为您播放下一首");
         this.commit("next");
@@ -529,16 +532,16 @@ export default createStore({
             action: "switchLike",
           })
         );
-      if (state._playlist[state._play.nowPlaying].isLike) {
+      if (state._playList[state._play.nowPlaying].isLike) {
         console.log("取消我喜欢");
       } else {
         console.log("我喜欢");
       }
 
-      loveSong(state._playlist[state._play.nowPlaying].musicId, !state._playlist[state._play.nowPlaying].isLike)
+      loveSong(state._playList[state._play.nowPlaying].id, !state._playList[state._play.nowPlaying].isLike)
         .then((response) => {
           if (response.status == 200) {
-            if (state._playlist[state._play.nowPlaying].isLike)
+            if (state._playList[state._play.nowPlaying].isLike)
               _this.commit("setMsg", {
                 message: "已移出我喜欢，并同步至网易云",
               });
@@ -547,7 +550,7 @@ export default createStore({
                 message: "已添加至我喜欢，并同步至网易云",
               });
           } else {
-            if (state._playlist[state._play.nowPlaying].isLike)
+            if (state._playList[state._play.nowPlaying].isLike)
               _this.commit("setMsg", {
                 message: "已移出我喜欢，同步网易云失败",
               });
@@ -561,8 +564,8 @@ export default createStore({
           // 请求失败处理
           console.log(error);
         });
-      state._playlist[state._play.nowPlaying].isLike =
-        !state._playlist[state._play.nowPlaying].isLike;
+      state._playList[state._play.nowPlaying].isLike =
+        !state._playList[state._play.nowPlaying].isLike;
     },
     clearMsg(state) {
       state._play.message.show = false;
@@ -577,19 +580,19 @@ export default createStore({
         state._play.message.content = message;
       }, 0);
     },
-    addMore(state, o_PlayList) {
-      state._playlist = state._playlist.concat(o_PlayList);
+    addMore(state, o_playList) {
+      state._playList = state._playList.concat(o_playList);
       this.commit("setMsg", {
         message: "已加载更多歌曲",
       });
     },
     // 将歌曲移出播放列表（播放出错时）
     removeMusic(state, musicIndex) {
-      state._playlist.splice(musicIndex, 1);
+      state._playList.splice(musicIndex, 1);
     },
     // 将歌曲标记为跳过，播放时将自动跳过，列表中显示灰色
     skipMusic(state, musicIndex) {
-      state._playlist[musicIndex].skip = true;
+      state._playList[musicIndex].skip = true;
     },
     setSuccess(state, isSuccess) {
       state._success = isSuccess;
@@ -607,7 +610,7 @@ export default createStore({
         "vue_simple-music-player",
         JSON.stringify({
           _play: state._play,
-          _playlist: state._playlist,
+          _playList: state._playList,
         })
       );
     },
@@ -628,12 +631,12 @@ export default createStore({
       }
     },
     setImageBackground(state) {
-      if (state._playlist[state._play.nowPlaying].musicImage) {
+      if (state._playList[state._play.nowPlaying].cover) {
         document
           .querySelector("body")
           .setAttribute(
             "style",
-            `--backgroundImage:url("${state._playlist[state._play.nowPlaying].musicImage
+            `--backgroundImage:url("${state._playList[state._play.nowPlaying].cover
             }")`
           );
         document.querySelector("body").classList.add("imgBg");
@@ -707,8 +710,8 @@ export default createStore({
 
     // 替换音乐源（游客无法播放时）
     replaceMusicUrl(state, { musicIndex, musicUrl, needPlay }) {
-      state._playlist[musicIndex].musicUrl = musicUrl;
-      state._playlist[musicIndex].skip = false;
+      state._playList[musicIndex].url = musicUrl;
+      state._playList[musicIndex].skip = false;
       this.commit("goPlay", { desIndex: musicIndex, needPlay });
     },
 
@@ -757,7 +760,7 @@ export default createStore({
 
     // 追加歌曲至一起听列表
     addToList(state, { needSync = true, musicId, needPlay = false, saveInRoom = false }) {
-      if (state._playlist.every(({ musicId: listMusicId }) => listMusicId != musicId)) {
+      if (state._playList.every(({ musicId: listMusicId }) => listMusicId != musicId)) {
         if (needSync && state._ws)
           state._ws.send(
             JSON.stringify({
@@ -771,8 +774,8 @@ export default createStore({
 
         getSingleMusic(musicId)
           .then((response) => {
-            this.commit("addMore", response._playlist);
-            if (needPlay) this.commit("goPlay", { desIndex: state._playlist.length - 1, needSync: false })
+            this.commit("addMore", response._playList);
+            if (needPlay) this.commit("goPlay", { desIndex: state._playList.length - 1, needSync: false })
             if (saveInRoom) {
               state._ws.send(
                 JSON.stringify({
@@ -784,7 +787,7 @@ export default createStore({
                     playTime: 0,
                     nowPage: "PLAYING NOW",
                   }),
-                  playlist: state._playlist,
+                  playlist: state._playList,
                   method: "post",
                 })
               );
@@ -801,9 +804,9 @@ export default createStore({
 
     // 设置播放次数
     setPlayCount(state, { musicIndex }) {
-      if (!state._playlist[musicIndex]?.blockPlayCount) state._playlist[musicIndex].blockPlayCount = 0;
-      state._playlist[musicIndex].blockPlayCount++;
-      if (state._playlist[musicIndex].blockPlayCount == 3) {
+      if (!state._playList[musicIndex]?.blockPlayCount) state._playList[musicIndex].blockPlayCount = 0;
+      state._playList[musicIndex].blockPlayCount++;
+      if (state._playList[musicIndex].blockPlayCount == 3) {
         this.commit("setMsg", {
           title: `您已经听了好几遍了哦`,
           message: `是否喜欢该歌曲？`,
@@ -811,178 +814,224 @@ export default createStore({
           duration: 0
         });
       }
-    }
+    },
   },
   actions: {
     playSync({ commit, rootState }) {
       console.log("开始进度同步（一起听）");
       console.log("连接服务器...");
-      let ws = new WebSocket("wss://api.weyoung.tech/ws/");
-      rootState._ws = ws;
-      ws.onopen = () => {
-        console.log("已连接至服务器.");
-        commit("setSignalColor", "green");
-        ws.send(
-          JSON.stringify({
-            user: "ikouane",
-            rid: rootState._rid,
-          })
-        );
-      };
-      ws.onmessage = (evt) => {
-        console.log(`收到服务器消息：${evt.data}`);
-        const res = JSON.parse(evt.data);
-        switch (res.type) {
-          case "s1":
-            rootState._uuid = res.uuid;
-            ws.send(
-              JSON.stringify({
-                type: "c2",
-                uuid: rootState._uuid,
-                user: rootState._uid,
-                rid: rootState._rid,
-              })
-            );
-            break;
-          case "s2":
-            if (res.firstMan === "true") {
-              console.log("发送播放数据.");
-              ws.send(
-                JSON.stringify({
-                  type: "c3",
-                  uuid: rootState._uuid,
-                  play: rootState._play,
-                  playlist: rootState._playlist,
-                  method: "post",
-                })
-              );
-            } else {
-              console.log("获取播放数据.");
-              ws.send(
-                JSON.stringify({
-                  type: "c3",
-                  uuid: rootState._uuid,
-                  method: "get",
-                })
-              );
-            }
-            break;
-          case "sMsg": // 系统消息
-            console.log(`[系统消息]: ${res.msg}`);
-            if (res.kind == "leaveRoom") {
-              ElNotification({
-                title: '房间消息',
-                message: res.msg,
-                type: 'info',
-                duration: 0
-              })
-            } else if (res.kind == "joinRoom") {
-              ElNotification({
-                title: '房间消息',
-                message: res.msg,
-                type: 'success',
-                duration: 0
-              })
-            } else
-              commit("setMsg", {
-                title: "系统消息",
-                message: res.msg,
-                duration: 0,
-              });
-            break;
-          case "mMsg": // 我发出的消息
-            console.log(`[用户消息]: ${res.msg}`);
-            commit("setMsg", {
-              title: "消息发送成功",
-              message: res.msg,
-              duration: 5000,
-            });
-            break;
-          case "uMsg": // 用户消息
-            console.log(`[用户消息]: ${res.msg}`);
-            ElNotification({
-              title: `${res.user} 说：`,
-              message: res.msg,
-              type: 'info',
-              duration: 0
-            })
-            commit("setMsg", {
-              title: "收到用户消息",
-              message: `${res.user} 说：${res.msg}`,
-              duration: 5000,
-            });
-            break;
-          case "roomPlaySyncPush":
-            // FIXME: 修复未播放时同步切歌导致的UI错乱的问题 
-            commit("setSignalColor", "yellow");
-            if (res.action === "setStore") {
-              commit("setStore", res.data);
-            } else if (res.action === "next") {
-              commit("next", { desIndex: res.desIndex, hasWrong: res.hasWrong, needSync: false });
-              commit("setMsg", {
-                message: `收到同步命令：下一首`,
-              });
-            } else if (res.action === "modeSwitch") {
-              commit("modeSwitch", { target: res.target, needSync: false });
-              commit("setMsg", {
-                message: `收到同步命令：模式切换`,
-              });
-            } else if (res.action === "goTime") {
-              commit("goTime", { desTime: res.desTime, needSync: false });
-              commit("setMsg", {
-                message: `收到同步命令：进度调整`,
-              });
-            } else if (res.action === "goPlay") {
-              commit("goPlay", { desIndex: res.desIndex, needSync: false });
-              commit("setMsg", {
-                message: `收到同步命令：歌曲切换`,
-              });
-            } else if (res.action === "prev") {
-              commit("prev", { desIndex: res.desIndex, needSync: false });
-              commit("setMsg", {
-                message: `收到同步命令：上一首`,
-              });
-            } else if (res.action === "addToList") {
-              commit("addToList", { musicId: res.musicId, needSync: false, needPlay: res.needPlay });
-              commit("setMsg", {
-                message: `收到同步命令：添加歌曲`,
-              });
-              ElNotification({
-                title: '歌曲加入成功',
-                message: `歌曲${res.musicId}加入至播放列表${res.needPlay ? '，并立即播放' : ''}`,
-                type: 'success',
-                duration: 0
-              })
-            } else {
-              commit(res.action, false);
-              console.log("收到同步命令.");
-              commit("setSignalColor", "green");
-            }
-            break;
-          case "roomPlaySyncMsg":
-            console.log(`收到同步结果：${res.msg}`);
-            commit("setSignalColor", "green");
-            break;
-          default:
-            break;
-        }
-      };
 
-      ws.onclose = () => {
-        console.log("与服务器断开连接.");
-        commit("setMsg", {
-          message: `与服务器断开连接.`,
+      const socket = io("ws://localhost:3000/", {
+        reconnectionDelayMax: 10000,
+        auth: {
+          token: "123"
+        },
+        query: {
+          "my-key": "my-value"
+        },
+        withCredentials: true,
+        extraHeaders: {
+          "vue_simple-music-player-token": "abcd"
+        }
+      });
+
+      //  加入房间
+      socket.on("connect", () => {
+        console.log("已连接至服务器...");
+        commit("setSignalColor", "green");
+        socket.emit("join", {
+          room: rootState._rid,
+          username: "ikouane",
         });
-      };
+
+        socket.on("message", (data) => {
+          console.log("收到消息", data);
+        });
+
+        socket.on("join", (data) => {
+          console.log("已加入房间", data);
+        });
+
+        socket.on("leave", (data) => {
+          console.log("已离开房间", data);
+        });
+
+        socket.on("welcome", (data) => {
+          console.log("欢迎", data);
+        });
+      });
+
+      socket.on("disconnect", () => {
+        console.log("已断开连接");
+        commit("setSignalColor", "red");
+      });
+
+      // let ws = new WebSocket("wss://api.weyoung.tech/ws/");
+      // rootState._ws = ws;
+      // ws.onopen = () => {
+      //   console.log("已连接至服务器.");
+      //   commit("setSignalColor", "green");
+      //   ws.send(
+      //     JSON.stringify({
+      //       user: "ikouane",
+      //       rid: rootState._rid,
+      //     })
+      //   );
+      // };
+      // ws.onmessage = (evt) => {
+      //   console.log(`收到服务器消息：${evt.data}`);
+      //   const res = JSON.parse(evt.data);
+      //   switch (res.type) {
+      //     case "s1":
+      //       rootState._uuid = res.uuid;
+      //       ws.send(
+      //         JSON.stringify({
+      //           type: "c2",
+      //           uuid: rootState._uuid,
+      //           user: rootState._uid,
+      //           rid: rootState._rid,
+      //         })
+      //       );
+      //       break;
+      //     case "s2":
+      //       if (res.firstMan === "true") {
+      //         console.log("发送播放数据.");
+      //         ws.send(
+      //           JSON.stringify({
+      //             type: "c3",
+      //             uuid: rootState._uuid,
+      //             play: rootState._play,
+      //             playlist: rootState._playList,
+      //             method: "post",
+      //           })
+      //         );
+      //       } else {
+      //         console.log("获取播放数据.");
+      //         ws.send(
+      //           JSON.stringify({
+      //             type: "c3",
+      //             uuid: rootState._uuid,
+      //             method: "get",
+      //           })
+      //         );
+      //       }
+      //       break;
+      //     case "sMsg": // 系统消息
+      //       console.log(`[系统消息]: ${res.msg}`);
+      //       if (res.kind == "leaveRoom") {
+      //         ElNotification({
+      //           title: '房间消息',
+      //           message: res.msg,
+      //           type: 'info',
+      //           duration: 0
+      //         })
+      //       } else if (res.kind == "joinRoom") {
+      //         ElNotification({
+      //           title: '房间消息',
+      //           message: res.msg,
+      //           type: 'success',
+      //           duration: 0
+      //         })
+      //       } else
+      //         commit("setMsg", {
+      //           title: "系统消息",
+      //           message: res.msg,
+      //           duration: 0,
+      //         });
+      //       break;
+      //     case "mMsg": // 我发出的消息
+      //       console.log(`[用户消息]: ${res.msg}`);
+      //       commit("setMsg", {
+      //         title: "消息发送成功",
+      //         message: res.msg,
+      //         duration: 5000,
+      //       });
+      //       break;
+      //     case "uMsg": // 用户消息
+      //       console.log(`[用户消息]: ${res.msg}`);
+      //       ElNotification({
+      //         title: `${res.user} 说：`,
+      //         message: res.msg,
+      //         type: 'info',
+      //         duration: 0
+      //       })
+      //       commit("setMsg", {
+      //         title: "收到用户消息",
+      //         message: `${res.user} 说：${res.msg}`,
+      //         duration: 5000,
+      //       });
+      //       break;
+      //     case "roomPlaySyncPush":
+      //       // FIXME: 修复未播放时同步切歌导致的UI错乱的问题 
+      //       commit("setSignalColor", "yellow");
+      //       if (res.action === "setStore") {
+      //         commit("setStore", res.data);
+      //       } else if (res.action === "next") {
+      //         commit("next", { desIndex: res.desIndex, hasWrong: res.hasWrong, needSync: false });
+      //         commit("setMsg", {
+      //           message: `收到同步命令：下一首`,
+      //         });
+      //       } else if (res.action === "modeSwitch") {
+      //         commit("modeSwitch", { target: res.target, needSync: false });
+      //         commit("setMsg", {
+      //           message: `收到同步命令：模式切换`,
+      //         });
+      //       } else if (res.action === "goTime") {
+      //         commit("goTime", { desTime: res.desTime, needSync: false });
+      //         commit("setMsg", {
+      //           message: `收到同步命令：进度调整`,
+      //         });
+      //       } else if (res.action === "goPlay") {
+      //         commit("goPlay", { desIndex: res.desIndex, needSync: false });
+      //         commit("setMsg", {
+      //           message: `收到同步命令：歌曲切换`,
+      //         });
+      //       } else if (res.action === "prev") {
+      //         commit("prev", { desIndex: res.desIndex, needSync: false });
+      //         commit("setMsg", {
+      //           message: `收到同步命令：上一首`,
+      //         });
+      //       } else if (res.action === "addToList") {
+      //         commit("addToList", { musicId: res.id, needSync: false, needPlay: res.needPlay });
+      //         commit("setMsg", {
+      //           message: `收到同步命令：添加歌曲`,
+      //         });
+      //         ElNotification({
+      //           title: '歌曲加入成功',
+      //           message: `歌曲${res.id}加入至播放列表${res.needPlay ? '，并立即播放' : ''}`,
+      //           type: 'success',
+      //           duration: 0
+      //         })
+      //       } else {
+      //         commit(res.action, false);
+      //         console.log("收到同步命令.");
+      //         commit("setSignalColor", "green");
+      //       }
+      //       break;
+      //     case "roomPlaySyncMsg":
+      //       console.log(`收到同步结果：${res.msg}`);
+      //       commit("setSignalColor", "green");
+      //       break;
+      //     default:
+      //       break;
+      //   }
+      // };
+
+      // ws.onclose = () => {
+      //   console.log("与服务器断开连接.");
+      //   commit("setMsg", {
+      //     message: `与服务器断开连接.`,
+      //   });
+      // };
     },
 
     retryAfterPlayFail({ commit, rootState }, { index = 0, needPlay = true }) {
-      getSvipMusicUrl(rootState._playlist[index].musicId)
+      getSvipMusicUrl(rootState._playList[index].id)
         .then((response) => {
           commit("replaceMusicUrl", {
             musicIndex: index,
-            musicId: response.musicId,
-            musicUrl: response.musicUrl,
+            musicId: response.id,
+            musicUrl: response.url,
             needPlay,
           });
           if (needPlay) {
@@ -1006,21 +1055,19 @@ export default createStore({
     // 获取音乐链接
     getMusicUrl({ rootState }, { musicIndex, forceFlag = false }) {
       return new Promise((resolve, reject) => {
-        if (rootState._playlist[musicIndex].musicUrl && !forceFlag) {
+        if (rootState._playList[musicIndex].url && !forceFlag) {
           resolve();
           return;
         }
-        getMusicUrl(rootState._playlist[musicIndex].musicId)
+        getMusicUrl(rootState._playList[musicIndex].id)
           .then((response) => {
-            if (response.status === "200") {
-              rootState._playlist[musicIndex].musicUrl = response.url;
-              rootState._playlist[musicIndex].skip = false;
-              resolve(response.url);
-            }
+            rootState._playList[musicIndex].url = response;
+            rootState._playList[musicIndex].skip = false;
+            resolve(response.url);
           })
           .catch((error) => {
             console.log(error);
-            rootState._playlist[musicIndex].skip = true;
+            rootState._playList[musicIndex].skip = true;
             reject(error);
           });
       })
@@ -1030,21 +1077,21 @@ export default createStore({
     // 获取音乐 - 艺术家 名称
     getContent(state) {
       return (
-        state._playlist[state._play.nowPlaying].musicName +
+        state._playList[state._play.nowPlaying].name +
         " - " +
-        state._playlist[state._play.nowPlaying].musicAuthor
+        formatArtists(state._playList[state._play.nowPlaying].artist)
       );
     },
 
     // 精准空降
     getThisMoment(state) {
-      return `${window.location.origin}${window.location.pathname}?mid=${state._playlist[state._play.nowPlaying].musicId
+      return `${window.location.origin}${window.location.pathname}?mid=${state._playList[state._play.nowPlaying].id
         }&st=${state._play.playTime}`;
     },
 
     // 根据 Index 获取 Id
     getMusicIdByIndex: (state) => (id) => {
-      return `${window.location.origin}${window.location.pathname}?mid=${state._playlist[id].musicId}`;
+      return `${window.location.origin}${window.location.pathname}?mid=${state._playList[id].id}`;
     },
 
     // 获取显示模式
@@ -1075,15 +1122,15 @@ export default createStore({
       switch (state._playModeCount % 3) {
         // 单曲循环
         case 0:
-          if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+          if ((state._play.nowPlaying + 1) <= state._playList.length - 1) desIndex = state._play.nowPlaying + 1;
           break;
         // 随机播放
         case 1:
-          desIndex = Math.floor(Math.random() * state._playlist.length);
+          desIndex = Math.floor(Math.random() * state._playList.length);
           break;
         // 列表循环
         case 2:
-          if ((state._play.nowPlaying + 1) <= state._playlist.length - 1) desIndex = state._play.nowPlaying + 1;
+          if ((state._play.nowPlaying + 1) <= state._playList.length - 1) desIndex = state._play.nowPlaying + 1;
           break;
       }
       return desIndex;
@@ -1091,7 +1138,7 @@ export default createStore({
 
     // 获取是否命中「樱花」效果
     getSakuraModeByMusicName(state) {
-      return state._playlist[state._play.nowPlaying].musicName.indexOf("花") != -1
+      return state._playList[state._play.nowPlaying].name.indexOf("花") != -1
     }
   },
   modules: {},

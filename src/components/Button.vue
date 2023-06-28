@@ -102,7 +102,7 @@ $pink_border_color: var(--pink_border_color);
       &:hover,
       &.active {
         background: var(--dark_active_color) !important;
-        box-shadow: clear;
+        box-shadow: none;
         border: 2px solid var(--dark_active_color);
         box-shadow: inset 6px 6px 12px #c9460e, inset -6px -6px 12px #ff5e12;
       }
@@ -123,7 +123,7 @@ $pink_border_color: var(--pink_border_color);
       &:hover,
       &.active {
         background: var(--pink_active_color) !important;
-        box-shadow: clear;
+        box-shadow: none;
         border: 2px solid var(--pink_active_color);
         box-shadow: inset 6px 6px 12px #eda6c8, inset -6px -6px 12px #f4c0da;
       }
@@ -164,7 +164,7 @@ $pink_border_color: var(--pink_border_color);
     &:hover,
     &.active {
       background: var(--active_color) !important;
-      box-shadow: clear;
+      box-shadow: none;
       border: 2px solid var(--active_color);
       box-shadow: inset 6px 6px 12px #708bd9, inset -6px -6px 12px #98bdff;
 

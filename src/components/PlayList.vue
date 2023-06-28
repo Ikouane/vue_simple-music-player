@@ -1,6 +1,6 @@
 <template>
   <div @click="handelClick($event)" :class="slide" id="list">
-    <ListItem v-for="(item, i) in _playlist" :key="item.musicId" :title="item.musicName" :subTitle="item.musicAuthor"
+    <ListItem v-for="(item, i) in _playList" :key="item.id" :title="item.name" :subTitle="formatArtists(item.artist)"
       :active="i === _play.nowPlaying" :skip="item.skip || false" :listIndex="i" :label="item.recommendReason" />
   </div>
   <div class="mask"></div>
@@ -21,7 +21,7 @@ export default {
     slide: String,
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_userTouch"]),
+    ...mapState(["_play", "_playList", "_userTouch", "formatArtists"]),
   },
   components: {
     ListItem,
@@ -31,8 +31,8 @@ export default {
     ...mapActions(["retryAfterPlayFail"]),
     handelClick(e) {
       let index = parseInt(e.target.getAttribute("data-index"));
-      if (this._playlist[index]) {
-        if (this._playlist[index].skip) {
+      if (this._playList[index]) {
+        if (this._playList[index].skip) {
           e.preventDefault();
           this.setMsg({
             message: `该歌曲无法播放，将再次尝试`,
@@ -101,7 +101,7 @@ export default {
     } else console.log("建议使用Chrome, 开放所有功能");
   },
   watch: {
-    _playlist(val) {
+    _playList(val) {
       let top = val.length * 78 - 780; //Smooth Scroll
       document.getElementById("list").scrollTo({
         top,

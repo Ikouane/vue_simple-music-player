@@ -3,10 +3,9 @@
     <Modal v-if="uploadSuccess" title="提示" :content="'上传数据成功，编号为' + pid" aod="aod" />
     <div class="flexbox_part">
       <Button v-show="!_miniMode && smallSize" size="middle" title="我喜欢" :bindtap="switchLike"
-        @click="this.hasChange = true" type="fa fa-heart" :active="_playlist[_play.nowPlaying].isLike" />
-      <Button v-show="!_miniMode && smallSize" size="middle" title="更多" :disabled="
-        _dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
-      " :bindtap="getMore" type="fa fa-ellipsis-h" />
+        @click="this.hasChange = true" type="fa fa-heart" :active="_playList[_play.nowPlaying].isLike" />
+      <Button v-show="!_miniMode && smallSize" size="middle" title="更多" :disabled="_dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
+        " :bindtap="getMore" type="fa fa-ellipsis-h" />
     </div>
     <div class="music-image" :class="{ small: smallSize, playing: _play.isPlaying }" @click="playSwitchFade()"
       :title="_play.isPlaying ? '暂停' : '播放'">
@@ -14,7 +13,7 @@
       <canvas class="visualizations" :class="{ playing: _play.isPlaying }"
         :style="`--mainColor: ${this._mainColor}`"></canvas>
       <img class="middle-image playing" ref="musicImage" @load="getPictureColor" :class="{ small: smallSize }"
-        :src="_playlist[_play.nowPlaying].musicImage" alt="图片加载失败" :style="{
+        :src="_playList[_play.nowPlaying].cover" alt="图片加载失败" :style="{
           webkitAnimationPlayState: _play.isPlaying ? 'running' : 'paused',
         }" crossorigin="anonymous" />
     </div>
@@ -56,7 +55,7 @@ export default {
   computed: {
     ...mapState([
       "_play",
-      "_playlist",
+      "_playList",
       "_success",
       "_dailyMode",
       "_rid",
@@ -80,7 +79,7 @@ export default {
       const _this = this;
       getMoreMusic()
         .then((response) => {
-          _this.addMore(response._playlist);
+          _this.addMore(response._playList);
           _this.hasChange = true;
         })
         .catch(function (error) {
@@ -101,7 +100,7 @@ export default {
         let data = new FormData();
         data.append("method", "save");
         data.append("play", JSON.stringify(_this._play));
-        data.append("playlist", JSON.stringify(_this._playlist));
+        data.append("playlist", JSON.stringify(_this._playList));
         setSavedList(data, {
           headers: {
             "Content-Type": "multipart/form-data; charset=UTF-8", //将表单数据传递转化为form-data类型
@@ -364,7 +363,7 @@ $pink_border_color: var(--pink_border_color);
     }
 
     &.playing {
-      box-shadow: clear;
+      box-shadow: none;
       /*css3动画无限制的旋转*/
       -webkit-animation: music_disc 40s linear infinite;
       animation: music_disc 40s linear infinite;

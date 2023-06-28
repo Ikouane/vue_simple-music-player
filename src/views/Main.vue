@@ -18,19 +18,17 @@
     <!--v-if="showInput" :isShow="showInput"-->
     <Chat v-if="_chatContainerShow" @click-chat="switchChatContainerShow()"></Chat>
     <transition name="Modal">
-      <Modal v-if="_play.message.show" :title="
-        _play.message.title ||
+      <Modal v-if="_play.message.show" :title="_play.message.title ||
         (_play.message.content
           ? '通知'
           : _play.isPlaying
             ? '正在播放'
             : '已同步上次播放')
-      " :aod="_play.message.duration == 0" :time="getNowTime()" :content="
-  _play.message.content ||
-  _playlist[_play.nowPlaying].musicName +
-  ' - ' +
-  _playlist[_play.nowPlaying].musicAuthor
-" />
+        " :aod="_play.message.duration == 0" :time="getNowTime()" :content="_play.message.content ||
+    _playList[_play.nowPlaying].name +
+    ' - ' +
+    formatArtists(_playList[_play.nowPlaying].artist)
+    " />
     </transition>
     <template v-if="_miniMode">
       <div class="flex flex-column">
@@ -51,16 +49,16 @@
   </div>
 </template>
 <script>
-import AppBar from "./AppBar";
-import InfoBlock from "./MusicInfo";
-import PlayBar from "./PlayBar";
-import PlayList from "./PlayList";
-import MusicImage from "./MusicImage";
+import AppBar from "@/components/AppBar";
+import InfoBlock from "@/components/MusicInfo";
+import PlayBar from "@/components/PlayBar";
+import PlayList from "@/components/PlayList";
+import MusicImage from "@/components/MusicImage";
 import { mapActions, mapMutations, mapState } from "vuex";
-import Modal from "./Modal";
-import InputModal from "./InputForm";
-import MessageBox from "./MessageBox";
-import Chat from "./Chat.vue";
+import Modal from "@/components/Modal";
+import InputModal from "@/components/InputForm";
+import MessageBox from "@/components/MessageBox";
+import Chat from "@/components/Chat.vue";
 import { getSavedList } from "@/api/api";
 
 export default {
@@ -88,13 +86,14 @@ export default {
   computed: {
     ...mapState([
       "_play",
-      "_playlist",
+      "_playList",
       "_success",
       "_pid",
       "_rid",
       "_miniMode",
       "_chatContainerShow",
       "_inputMode",
+      "formatArtists"
     ]),
   },
   methods: {
@@ -103,7 +102,7 @@ export default {
       "setSuccess",
       "setPid",
       "setRid",
-      "switchChatContainerShow",
+      "switchChatContainerShow"
     ]),
     ...mapActions(["playSync"]),
     // showInputSwitch() {
@@ -120,7 +119,7 @@ export default {
     getList(pid) {
       getSavedList(pid)
         .then((response) => {
-          if (response._playlist) {
+          if (response._playList) {
             this.setStore(response);
             this.isWrong = false;
             this.showInputSwitch();

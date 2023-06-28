@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import Main from "./components/Main";
+import Main from "./views/Main";
 import "@/assets/index.css";
 import { mapActions, mapMutations, mapState } from "vuex";
 import { getData, getSingleMusic, getMusicList, getSavedList } from "@/api/api"
@@ -15,11 +15,10 @@ import { getData, getSingleMusic, getMusicList, getSavedList } from "@/api/api"
 export default {
   name: "App",
   components: {
-    // HelloWorld,
     Main,
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_dailyMode", "_userTouch", "_miniMode", "_mainColor", "_inputMode", "_loaded"]),
+    ...mapState(["_play", "_playList", "_dailyMode", "_userTouch", "_miniMode", "_mainColor", "_inputMode", "_loaded"]),
   },
   methods: {
     ...mapMutations([
@@ -90,10 +89,10 @@ export default {
         if (startTime) {
           console.log("精准空降", startTime);
           _this.goTime({ desTime: startTime });
-          _this._playlist[0].playStartTime = startTime;
+          _this._playList[0].playStartTime = startTime;
 
           if (endTime) {
-            _this._playlist[0].playEndTime = endTime;
+            _this._playList[0].playEndTime = endTime;
             _this.setMsg({
               message: "已进入区间播放模式，拖动进度条即可退出",
               duration: 0,

@@ -5,13 +5,14 @@
         <p class="music-name" ref="music-name__wrapper">
           <span :style="musicNameOverflowWidth" :class="{ animation: musicNameOverflowWidth, paused: !_isPlaying }"
             ref="music-name">{{
-              _playlist[_play.nowPlaying].musicName
+              _playList[_play.nowPlaying].name
             }} {{
-  _playlist[_play.nowPlaying].musicAlia ? "(" + _playlist[_play.nowPlaying].musicAlia + ")" : ""
+  _playList[_play.nowPlaying].alia || _playList[_play.nowPlaying].tns ? "(" + _playList[_play.nowPlaying].alia
+|| _playList[_play.nowPlaying].tns + ")" : ""
 }}</span>
         </p>
         <p class="music-author">
-          {{ _playlist[_play.nowPlaying].musicAuthor }}
+          {{ formatArtists(_playList[_play.nowPlaying].artist) }}
           <span v-if="!_miniMode" id="aboutAuthor">{{ aboutAuthor }}</span>
         </p>
       </div>
@@ -19,13 +20,13 @@
     <template v-else>
       <p class="music-name" ref="music-name__wrapper">
         <span :style="musicNameOverflowWidth" :class="{ animation: musicNameOverflowWidth, paused: !_isPlaying }"
-          ref="music-name">{{ _playlist[_play.nowPlaying].musicName }}</span>
+          ref="music-name">{{ _playList[_play.nowPlaying].name }}</span>
         <span class="alia" id="music-alia">{{
-          _playlist[_play.nowPlaying].musicAlia
+          _playList[_play.nowPlaying].alia || _playList[_play.nowPlaying].tns
         }}</span>
       </p>
       <p class="music-author">
-        {{ _playlist[_play.nowPlaying].musicAuthor }}
+        {{ formatArtists(_playList[_play.nowPlaying].artist) }}
         <span v-if="!_miniMode" id="aboutAuthor">{{ aboutAuthor }}</span>
       </p>
     </template>
@@ -119,7 +120,7 @@
         <span id="music-tlrc" ref="music-tlrc">{{ tlrc_line.now }}</span>
       </label>
     </div>
-    <audio ref="music" :src="_playlist[_play.nowPlaying].musicUrl" id="music" :autoplay="_isPlaying"
+    <audio ref="music" :src="_playList[_play.nowPlaying].url" id="music" :autoplay="_isPlaying"
       crossorigin="anonymous"></audio>
     <!-- :autoplay="_isPlaying ? 'autoplay' : 'false'" 
       -->
@@ -173,7 +174,7 @@ export default {
     },
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_userTouch", "_miniMode", "_mainColor"]),
+    ...mapState(["_play", "_playList", "_userTouch", "_miniMode", "_mainColor", "formatArtists"]),
     ...mapGetters(["getAnonymous", "getPlayMode", "getNextMusicIndex", "getSakuraModeByMusicName", "getSakuraModeByMusicName"]),
     _nowPlaying() {
       return this._play.nowPlaying;
@@ -182,7 +183,7 @@ export default {
       return this._play.isPlaying;
     },
     getTimeBarLength() {
-      if (this._playlist[this._nowPlaying].playStartTime) {
+      if (this._playList[this._nowPlaying].playStartTime) {
         return Math.floor((this._play.playTime / this.musicDuration) * 100 - this.offsetLeft) + '%'
       }
       return Math.floor((this._play.playTime / this.musicDuration) * 100) + '%'
@@ -203,9 +204,7 @@ export default {
       "setMsg",
       "setPlayCount"
     ]),
-
     ...mapActions(["retryAfterPlayFail", "getMusicUrl"]),
-
     formatTime(timeNum) {
       //补0，格式化数字
       if (timeNum < 10) return "0" + timeNum;
@@ -250,12 +249,12 @@ export default {
       }); //不能使用 offsetLeft 代替 jq.offset().left
       this.nowLength = this.nowLengthCal(music);
       this.$nextTick(() => {
-        if (this._playlist[this._nowPlaying].playEndTime && (music.currentTime > this._playlist[this._nowPlaying].playEndTime || music.currentTime < this._playlist[this._nowPlaying].playStartTime)) {
+        if (this._playList[this._nowPlaying].playEndTime && (music.currentTime > this._playList[this._nowPlaying].playEndTime || music.currentTime < this._playList[this._nowPlaying].playStartTime)) {
           this.setMsg({
             message: "您将进度调整到了区间外，区间播放已取消",
           });
-          this._playlist[this._nowPlaying].playStartTime = null;
-          this._playlist[this._nowPlaying].playEndTime = null;
+          this._playList[this._nowPlaying].playStartTime = null;
+          this._playList[this._nowPlaying].playEndTime = null;
         }
       })
     },
@@ -379,9 +378,9 @@ export default {
     getLrc() {
       const _this = this;
 
-      if (this.musicId != _this._playlist[_this._play.nowPlaying].musicId) {
-        this.musicId = _this._playlist[_this._play.nowPlaying].musicId;
-        getLyric(this.musicId)
+      if (this.id != _this._playList[_this._play.nowPlaying].id) {
+        this.id = _this._playList[_this._play.nowPlaying].id;
+        getLyric(this.id)
           .then((response) => {
             if (response.nolyric) {
               _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
@@ -459,13 +458,12 @@ export default {
     },
 
     getAuthor() {
-      getAuthorData(this._playlist[this._play.nowPlaying].musicId)
+      getAuthorData(this._playList[this._play.nowPlaying].artist[0].id)
         .then((response) => {
-          if (response.status === "200") {
-            if (response.des == "") {
-              this.aboutAuthor = "";
-            } else this.aboutAuthor = "[作者介绍]" + response.des;
-          }
+          if (response.artist.briefDesc == null) {
+            this.aboutAuthor = "";
+          } else this.aboutAuthor = "[作者介绍]" + response.artist.briefDesc;
+          console.log(this.aboutAuthor);
         })
         .catch((error) => console.log(error));
     },
@@ -509,15 +507,16 @@ export default {
 
       if ("mediaSession" in window.navigator) {
         let {
-          musicName: title,
-          musicAuthor: artist,
-          musicImage: artwork,
-        } = this._playlist[this._nowPlaying];
+          name,
+          artist,
+          cover: artwork,
+          album
+        } = this._playList[this._nowPlaying];
 
         window.navigator.mediaSession.metadata = new window.MediaMetadata({
-          title,
+          name,
           artist,
-          album: "Podcast Name",
+          album,
           artwork: [{ src: artwork.replace("http:", "") }],
         });
 
@@ -534,8 +533,8 @@ export default {
           this.next({ isForce: true });
         });
 
-        this.offsetLeft = this._playlist[this._nowPlaying].playStartTime / this.musicDuration * 100;
-        this.offsetRight = this._playlist[this._nowPlaying].playEndTime / this.musicDuration * 100;
+        this.offsetLeft = this._playList[this._nowPlaying].playStartTime / this.musicDuration * 100;
+        this.offsetRight = this._playList[this._nowPlaying].playEndTime / this.musicDuration * 100;
       }
 
       this.getLrc();
@@ -645,7 +644,7 @@ export default {
 
     $music.addEventListener("error", () => {
       console.log("无法播放，重新获取链接");
-      // if (this._playlist.length == 1) {
+      // if (this._playList.length == 1) {
       //   this.pause(false);
       //   this.setMsg({
       //     message: `播放出错，已为您暂停`,
@@ -659,11 +658,11 @@ export default {
 
     $music.addEventListener("timeupdate", () => {
       if (
-        this._playlist[this._nowPlaying].playEndTime &&
-        $music.currentTime >= this._playlist[this._nowPlaying].playEndTime
+        this._playList[this._nowPlaying].playEndTime &&
+        $music.currentTime >= this._playList[this._nowPlaying].playEndTime
       ) {
         this.goTime({
-          desTime: this._playlist[this._nowPlaying].playStartTime,
+          desTime: this._playList[this._nowPlaying].playStartTime,
         });
         this.setMsg({ message: "已回到区间起始点" });
         // TODO: 记录播放次数，弹出是否喜欢提示 
@@ -672,17 +671,17 @@ export default {
 
       if ($music.currentTime >= $music.duration - 30) {
         // 预载歌曲
-        if (!this._playlist[this.getNextMusicIndex].musicUrl && this.getPlayMode == "list")
+        if (!this._playList[this.getNextMusicIndex].url && this.getPlayMode == "list")
           this.getMusicUrl({ musicIndex: this.getNextMusicIndex }).then((res) => {
             Axios.get(res);
-            Axios.get(this._playlist[this.getNextMusicIndex].musicImage.replace("http://", "https://"));
+            Axios.get(this._playList[this.getNextMusicIndex].cover.replace("http://", "https://"));
 
             // TODO: 预告所有歌曲播放 
             this.setMsg(
               {
                 title: "即将播放",
                 duration: 30000,
-                message: `${this._playlist[this.getNextMusicIndex].musicName}(${this._playlist[this.getNextMusicIndex].musicAuthor})`
+                message: `${this._playList[this.getNextMusicIndex].name}(${this.formatArtists(this._playList[this.getNextMusicIndex].artist)})`
               }
             )
           })

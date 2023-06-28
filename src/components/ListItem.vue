@@ -8,9 +8,9 @@
 -->
 <template>
   <div class="list-card" :class="{ active, skip }" :data-index="listIndex" v-mouse-menu="{
-    params: listIndex,
-    ...options,
-  }" :title="label">
+      params: listIndex,
+      ...options,
+    }" :title="label">
     <div class="music-info">
       <div class="title__wrapper">
         <span class="label" v-if="label">{{ formatLabel(label) }}</span>
@@ -56,7 +56,7 @@ export default {
     listIndex: Number,
   },
   computed: {
-    ...mapState(["_play", "_playlist"]),
+    ...mapState(["_play", "_playList"]),
   },
   methods: {
     ...mapMutations(["play", "pause", "setMsg"]), //B,使用时间代理（冒泡）由父元素处理

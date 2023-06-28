@@ -8,13 +8,13 @@
 -->
 <template>
   <div class="player-bottom" :class="{ mini: _miniMode }">
-    <Button :disabled="_playlist.length <= 1" :size="_miniMode ? 'small' : 'large'" title="上一首(↑)" type="fa fa-backward"
+    <Button :disabled="_playList.length <= 1" :size="_miniMode ? 'small' : 'large'" title="上一首(↑)" type="fa fa-backward"
       :bindtap="prev" />
     <Button :size="_miniMode ? 'small' : 'large'" title="暂停(空格)" v-if="_play.isPlaying" active type="fa fa-pause"
       :bindtap="musicFadeOut" id="pauseButton" />
     <Button :size="_miniMode ? 'small' : 'large'" title="播放(空格)" v-else active type="fa fa-play" :bindtap="musicFadeIn"
       id="playButton" />
-    <Button :disabled="_playlist.length <= 1" :size="_miniMode ? 'small' : 'large'" title="下一首(↓)" type="fa fa-forward"
+    <Button :disabled="_playList.length <= 1" :size="_miniMode ? 'small' : 'large'" title="下一首(↓)" type="fa fa-forward"
       :bindtap="forceNext" />
   </div>
 </template>
@@ -30,7 +30,7 @@ export default {
   computed: mapState([
     // 映射 this.isPlaying 为 store.state.isPlaying
     "_play",
-    "_playlist",
+    "_playList",
     "_miniMode"
   ]),
   methods: {

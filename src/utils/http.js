@@ -1,7 +1,7 @@
 /*
  * @Author: ikouane
  * @Date: 2023-01-17 15:22:21
- * @LastEditTime: 2023-01-17 15:30:55
+ * @LastEditTime: 2023-06-28 14:38:44
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -28,7 +28,6 @@ request.interceptors.request.use(
     if (userCookie && !isToken) {
       config.headers["Authorization"] = window.encodeURIComponent(userCookie);
     }
-    console.log(config);
     return config;
   },
   function (error) {
@@ -62,8 +61,8 @@ const errorHandle = (status, other) => {
 // 添加响应拦截器
 request.interceptors.response.use(
   function (response) {
-    if (response.status === 200) {
-      if (response.data) return Promise.resolve(response.data);
+    if (response.status === 200 && response.data.code === 200) {
+      if (response.data.data) return Promise.resolve(response.data.data);
       return Promise.reject(response);
     }
   },
@@ -71,7 +70,7 @@ request.interceptors.response.use(
     // 对响应错误做点什么
     const { response } = error;
     if (response) {
-      errorHandle(response.status, response.data.message);
+      errorHandle(response.data.code, response.data.message);
       return Promise.reject(response.data);
     } else {
       console.log("[Fail]: Api");

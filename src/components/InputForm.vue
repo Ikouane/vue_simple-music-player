@@ -28,7 +28,7 @@ export default {
     // isWrong: Boolean,
   },
   computed: {
-    ...mapState(["_play", "_playlist", "_success"]),
+    ...mapState(["_play", "_playList", "_success"]),
   },
   mounted() {
     const u_input = document.getElementsByClassName("input-union")[0],
@@ -83,7 +83,7 @@ export default {
       const _this = this;
       getSavedList(pid)
         .then((response) => {
-          if (response._playlist) {
+          if (response._playList) {
             if (
               !document.getElementById("music").paused &&
               this._play.isPlaying
