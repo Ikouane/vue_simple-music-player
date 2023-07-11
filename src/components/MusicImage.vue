@@ -4,7 +4,7 @@
     <div class="flexbox_part">
       <Button v-show="!_miniMode && smallSize" size="middle" title="我喜欢" :bindtap="switchLike"
         @click="this.hasChange = true" type="fa fa-heart" :active="_playList[_play.nowPlaying].isLike" />
-      <Button v-show="!_miniMode && smallSize" size="middle" title="更多" :disabled="_dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
+      <Button v-show="!_miniMode && smallSize" size="middle" title="更多" :disabled="true || _dailyMode || Boolean(_rid) || Boolean(_pid) || Boolean(_mid)
         " :bindtap="getMore" type="fa fa-ellipsis-h" />
     </div>
     <div class="music-image" :class="{ small: smallSize, playing: _play.isPlaying }" @click="playSwitchFade()"
@@ -18,9 +18,9 @@
         }" crossorigin="anonymous" />
     </div>
     <div class="flexbox_part">
-      <Button v-show="!_miniMode && smallSize" size="middle" title="备份数据到云端" :disabled="Boolean(_pid)" :bindtap="saveList"
-        type="fas fa-cloud-upload-alt" />
-      <Button v-show="!_miniMode && smallSize" size="middle" title="从云端还原数据" @click="setSuccess(true)"
+      <Button v-show="!_miniMode && smallSize" size="middle" title="备份数据到云端" :disabled="true || Boolean(_pid)"
+        :bindtap="saveList" type="fas fa-cloud-upload-alt" />
+      <Button v-show="!_miniMode && smallSize" size="middle" title="从云端还原数据" :disabled="true" :bindtap="setSuccess"
         type="fas fa-cloud-download-alt" />
       <!-- FIXME: @click="setSuccess(true)" -->
     </div>
@@ -31,7 +31,7 @@ import Button from "./Button";
 import { mapState, mapMutations } from "vuex";
 import Modal from "./Modal";
 import ColorThief from "colorthief";
-import { setSavedList, getMoreMusic } from "@/api/api"
+import { setSavedListApi, getMoreMusicApi } from "@/api/api"
 
 export default {
   name: "MusicImage",
@@ -77,7 +77,7 @@ export default {
     ]),
     getMore() {
       const _this = this;
-      getMoreMusic()
+      getMoreMusicApi()
         .then((response) => {
           _this.addMore(response._playList);
           _this.hasChange = true;
@@ -101,7 +101,7 @@ export default {
         data.append("method", "save");
         data.append("play", JSON.stringify(_this._play));
         data.append("playlist", JSON.stringify(_this._playList));
-        setSavedList(data, {
+        setSavedListApi(data, {
           headers: {
             "Content-Type": "multipart/form-data; charset=UTF-8", //将表单数据传递转化为form-data类型
           },

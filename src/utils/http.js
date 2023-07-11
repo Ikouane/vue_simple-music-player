@@ -1,12 +1,13 @@
 /*
  * @Author: ikouane
  * @Date: 2023-01-17 15:22:21
- * @LastEditTime: 2023-06-28 14:38:44
+ * @LastEditTime: 2023-07-07 10:19:16
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
  */
 import axios from "axios";
+import { ElMessage } from "element-plus";
 
 let baseAPI = process.env.VUE_APP_BASE_API || window.location.origin;
 let baseURL = process.env.VUE_APP_BASE_URL;
@@ -74,6 +75,11 @@ request.interceptors.response.use(
       return Promise.reject(response.data);
     } else {
       console.log("[Fail]: Api");
+      ElMessage({
+        message: "网络连接异常",
+        type: "error",
+        duration: 0
+      });
     }
   }
 );

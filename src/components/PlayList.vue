@@ -9,7 +9,6 @@
 <script>
 import ListItem from "./ListItem";
 import { mapState, mapMutations, mapActions } from "vuex";
-import $ from "jquery";
 import "@/assets/index.css";
 export default {
   name: "PlayList",
@@ -78,16 +77,15 @@ export default {
   mounted() {
     let timer = null;
 
-    document.getElementById("list").addEventListener("scroll", (e) => {
+    document.getElementById("list").addEventListener("scroll", () => {
       if (timer) return;
       timer = setTimeout(() => {
-        $("#list").css("--scrollbar_color_light", "transparent");
-        $("#list").css("--scrollbar_color_dark", "transparent");
+        document.querySelector("#list").style.setProperty("--scrollbar_color_light", "transparent");
+        document.querySelector("#list").style.setProperty("--scrollbar_color_dark", "transparent");
         timer = null;
       }, 1500);
-      console.log(e);
-      $("#list").css("--scrollbar_color_light", "#bfbfbf");
-      $("#list").css("--scrollbar_color_dark", " #333");
+      document.querySelector("#list").style.setProperty("--scrollbar_color_light", "#bfbfbf");
+      document.querySelector("#list").style.setProperty("--scrollbar_color_dark", "#333333");
     });
 
     document.getElementsByClassName("mask")[0].style.top =

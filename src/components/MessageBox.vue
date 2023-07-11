@@ -163,7 +163,7 @@ export default {
   font-size: 10px;
   overflow: hidden;
   color: var(--title_color);
-  padding: 0 10px 20px 10px;
+  padding: 0 10px 10px 10px;
 
   .dark & {
     background-color: rgba(0, 0, 0, 0.72);
@@ -171,7 +171,7 @@ export default {
 
     .button {
       background-color: rgba(0, 0, 0, 0.72);
-      color: white;
+      color: var(--dark_active_color);
 
       &:hover {
         background-color: var(--dark_active_color);
@@ -209,9 +209,12 @@ export default {
     -webkit-backdrop-filter: saturate(180%) blur(20px);
     cursor: pointer;
     transition: all 0.2s ease-in-out;
+    border-radius: 0 0 6px 6px;
+    overflow: hidden;
+    color: var(--active_color);
+    font-weight: bold;
 
     &:hover {
-      font-weight: bold;
       background-color: var(--active_color);
       color: white;
     }

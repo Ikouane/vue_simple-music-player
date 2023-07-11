@@ -10,7 +10,7 @@
 
 <script>
 import { mapMutations, mapState } from "vuex";
-import { getSavedList } from "@/api/api"
+import { getSavedListApi } from "@/api/api"
 export default {
   data() {
     return {
@@ -81,7 +81,7 @@ export default {
     ...mapMutations(["setStore", "setSuccess", "pause"]),
     getList(pid) {
       const _this = this;
-      getSavedList(pid)
+      getSavedListApi(pid)
         .then((response) => {
           if (response._playList) {
             if (

@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-11-22 00:18:51
+ * @LastEditTime: 2023-07-02 19:26:52
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -18,10 +18,10 @@
     }" title="正在播放" @click="if (_rid) $emit('rid-click-action');">
       {{
           _rid === null
-            ? _play.nowPage
-            : _play.nowPage === "PLAYING NOW"
-              ? "PLAYING TOGETHER"
-              : "PLAYLIST"
+          ? _play.nowPage
+          : _play.nowPage === "PLAYING NOW"
+            ? "PLAYING TOGETHER"
+            : "PLAYLIST"
       }}
     </div>
     <Button size="middle" title="播放列表" :bindtap="listSwitch" type="fa fa-bars" />
@@ -104,6 +104,7 @@ $pink_border_color: var(--pink_border_color);
       border-radius: 50%;
       top: 50%;
       transform: translateY(-50%);
+      transition: .2s;
     }
 
     &.green::before {

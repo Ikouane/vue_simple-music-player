@@ -54,12 +54,12 @@ import InfoBlock from "@/components/MusicInfo";
 import PlayBar from "@/components/PlayBar";
 import PlayList from "@/components/PlayList";
 import MusicImage from "@/components/MusicImage";
-import { mapActions, mapMutations, mapState } from "vuex";
 import Modal from "@/components/Modal";
 import InputModal from "@/components/InputForm";
 import MessageBox from "@/components/MessageBox";
 import Chat from "@/components/Chat.vue";
-import { getSavedList } from "@/api/api";
+import { mapActions, mapMutations, mapState } from "vuex";
+import { getSavedListApi } from "@/api/api";
 
 export default {
   name: "Main",
@@ -101,7 +101,6 @@ export default {
       "setStore",
       "setSuccess",
       "setPid",
-      "setRid",
       "switchChatContainerShow"
     ]),
     ...mapActions(["playSync"]),
@@ -117,7 +116,7 @@ export default {
       this.moreActionShow = !this.moreActionShow;
     },
     getList(pid) {
-      getSavedList(pid)
+      getSavedListApi(pid)
         .then((response) => {
           if (response._playList) {
             this.setStore(response);

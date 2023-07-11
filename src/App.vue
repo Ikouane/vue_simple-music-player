@@ -1,6 +1,10 @@
 <template>
   <div id="app">
     <Main v-if="_loaded" />
+    <div v-else class="welcome__wrapper">
+      <button @click="goToPage('daily')">每日推荐</button>
+      <button @click="goToPage('room')">一起听</button>
+    </div>
     <div class="snow__wrapper" :style="`--mainColor: ${_play.isPlaying ? _mainColor : 'white'}`"></div>
   </div>
 </template>
@@ -9,7 +13,7 @@
 import Main from "./views/Main";
 import "@/assets/index.css";
 import { mapActions, mapMutations, mapState } from "vuex";
-import { getData, getSingleMusic, getMusicList, getSavedList } from "@/api/api"
+import { getDateApi, getSingleMusicApi, getMusicListApi, getSavedListApi } from "@/api/api"
 // import wx from "weixin-js-sdk";
 
 export default {
@@ -49,6 +53,22 @@ export default {
         document.querySelector("html").style.fontSize = window.innerHeight + "px";
       }
     },
+    goToPage(page) {
+      let date = new Date();
+      let year = date.getFullYear();
+      let month = date.getMonth() + 1;
+      let day = date.getDate();
+      let today = year + (month < 10 ? "0" + month : month) + (day < 10 ? "0" + day : day);
+
+      switch (page) {
+        case "daily":
+          window.location.href += `?daily=1`;
+          break;
+        case "room":
+          window.location.href += `?rid=${today}`;
+          break;
+      }
+    }
   },
   created() {
     function getQueryVariable(variable) {
@@ -78,7 +98,7 @@ export default {
       console.log("单音乐模式");
       const _this = this;
 
-      getSingleMusic(mid).then((response) => {
+      getSingleMusicApi(mid).then((response) => {
         _this.setStore(response);
         _this.setSingleMusicMode();
         if (response._play.mode === "night")
@@ -107,7 +127,7 @@ export default {
     } else if (lid) {
       console.log("歌单模式");
       const _this = this;
-      getMusicList(lid).then((response) => {
+      getMusicListApi(lid).then((response) => {
         _this.setStore(response);
         if (response._play.mode === "night")
           document
@@ -124,37 +144,39 @@ export default {
           console.log("发现本地数据");
           this.getLocal();
         } else {
-          if (dailyMode) this.setDailyMode();
-          const _this = this;
-          getData(dailyMode)
-            .then((response) => {
-              _this.setStore(response);
-              if (response._play.mode === "night")
-                document
-                  .querySelector("body")
-                  .setAttribute(
-                    "style",
-                    "background-color:var(--dark_main_color)"
-                  );
-              console.warn("歌单编号格式错误");
-
-              if (rid.length != 4) {
-                console.warn("房间号码格式错误");
-              } else {
-                this.setRid(rid); //alert(`欢迎进入${rid}房间!`);
-                this.playSync();
-              }
-            })
-            .catch(function (error) {
-              // 请求失败处理
-              console.log(error);
-            });
+          if (dailyMode) {
+            this.setDailyMode();
+            const _this = this;
+            getDateApi(dailyMode)
+              .then((response) => {
+                _this.setStore(response);
+                if (response._play.mode === "night")
+                  document
+                    .querySelector("body")
+                    .setAttribute(
+                      "style",
+                      "background-color:var(--dark_main_color)"
+                    );
+                console.warn("歌单编号格式错误");
+              })
+              .catch(function (error) {
+                // 请求失败处理
+                console.log(error);
+              });
+          } else {
+            if (!rid) {
+              console.warn("房间号码格式错误");
+            } else {
+              this.setRid({ rid });
+              this.playSync();
+            }
+          }
         }
       } else {
         this.setPid(pid);
         console.log("获取目标歌单");
         const _this = this;
-        getSavedList(pid)
+        getSavedListApi(pid)
           .then((response) => {
             if (response.status == "wrong")
               this.setMsg({
@@ -406,5 +428,39 @@ body {
 .helper {
   position: fixed;
   top: 0;
+}
+
+.welcome__wrapper {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  height: 100%;
+
+  button {
+    // 去除默认样式
+    appearance: none;
+    outline: none;
+    padding: 10px;
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background: $player_color;
+    color: $title_color;
+    font-size: 20px;
+    font-weight: bold;
+    transition: all 0.3s ease-in-out;
+    letter-spacing: 4px;
+    // 去除 letter-spacing 对中文的影响
+    text-rendering: optimizeLegibility;
+    border: 2px solid $border_color;
+
+    &:hover {
+      cursor: pointer;
+      background: $active_color;
+      color: $border_color;
+    }
+  }
 }
 </style>

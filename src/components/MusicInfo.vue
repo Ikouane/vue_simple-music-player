@@ -13,7 +13,7 @@
         </p>
         <p class="music-author">
           {{ formatArtists(_playList[_play.nowPlaying].artist) }}
-          <span v-if="!_miniMode" id="aboutAuthor">{{ aboutAuthor }}</span>
+          <!-- <span v-if="!_miniMode" id="aboutAuthor">{{ aboutAuthor }}</span> -->
         </p>
       </div>
     </template>
@@ -25,11 +25,21 @@
           _playList[_play.nowPlaying].alia || _playList[_play.nowPlaying].tns
         }}</span>
       </p>
-      <p class="music-author">
+      <p class="music-author" @click="showAboutArtist">
         {{ formatArtists(_playList[_play.nowPlaying].artist) }}
-        <span v-if="!_miniMode" id="aboutAuthor">{{ aboutAuthor }}</span>
+        <!-- <span v-if="!_miniMode" id="aboutAuthor">{{ aboutAuthor }}</span> -->
       </p>
     </template>
+    <transition name="fade">
+      <div class="mask" v-if="aboutArtistShow" @click.self="hideAboutArtist">
+        <div class="about-artist">
+          <p class="title">作者介绍</p>
+          <p class="content">
+            {{ aboutAuthor }}
+          </p>
+        </div>
+      </div>
+    </transition>
     <div class="progressbar">
       <div class="timetext">
         <span id="now">
@@ -122,15 +132,12 @@
     </div>
     <audio ref="music" :src="_playList[_play.nowPlaying].url" id="music" :autoplay="_isPlaying"
       crossorigin="anonymous"></audio>
-    <!-- :autoplay="_isPlaying ? 'autoplay' : 'false'" 
-      -->
   </div>
 </template>
 <script>
 import { mapState, mapMutations, mapActions, mapGetters } from "vuex";
-import { getLyric, getAuthorData } from "@/api/api";
+import { getLyricApi, getAuthorDataApi, testOrPreloadUrlApi } from "@/api/api";
 import Axios from "axios";
-import $ from "jquery";
 import { loadScript } from "@/utils/loadJs.js"
 export default {
   name: "MusicInfo",
@@ -164,7 +171,8 @@ export default {
       musicNameOverflowWidth: 0,
       audioCtx: null,
       offsetLeft: null,
-      offsetRight: null
+      offsetRight: null,
+      aboutArtistShow: false,
     };
   },
   props: {
@@ -380,7 +388,7 @@ export default {
 
       if (this.id != _this._playList[_this._play.nowPlaying].id) {
         this.id = _this._playList[_this._play.nowPlaying].id;
-        getLyric(this.id)
+        getLyricApi(this.id)
           .then((response) => {
             if (response.nolyric) {
               _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
@@ -458,14 +466,21 @@ export default {
     },
 
     getAuthor() {
-      getAuthorData(this._playList[this._play.nowPlaying].artist[0].id)
-        .then((response) => {
-          if (response.artist.briefDesc == null) {
-            this.aboutAuthor = "";
-          } else this.aboutAuthor = "[作者介绍]" + response.artist.briefDesc;
-          console.log(this.aboutAuthor);
-        })
-        .catch((error) => console.log(error));
+      return new Promise((resolve) => {
+        getAuthorDataApi(this._playList[this._play.nowPlaying].artist[0].id)
+          .then((response) => {
+            if (response.artist.briefDesc == null) {
+              this.aboutAuthor = "";
+            } else {
+              this.aboutAuthor = response.artist.briefDesc.replace(
+                /\s+/g,
+                ""
+              );
+              resolve();
+            }
+          })
+          .catch((error) => console.log(error));
+      });
     },
 
     animationEnded() {
@@ -492,11 +507,19 @@ export default {
             }px`;
         } else this.musicNameOverflowWidth = 0;
       });
+    },
+
+    async showAboutArtist() {
+      await this.getAuthor();
+      this.aboutArtistShow = true;
+    },
+
+    hideAboutArtist() {
+      this.aboutArtistShow = false;
     }
   },
 
   mounted() {
-    //window.vue = this; //开放Vue
     const $music = this.$refs["music"];
 
     $music.addEventListener("canplay", () => {
@@ -515,16 +538,16 @@ export default {
 
         window.navigator.mediaSession.metadata = new window.MediaMetadata({
           name,
-          artist,
+          artist: artist.map((item) => item.name).join(" / "),
           album,
           artwork: [{ src: artwork.replace("http:", "") }],
         });
 
         window.navigator.mediaSession.setActionHandler("play", () => {
-          this.musicFadeIn();
+          this.musicFadeIn({});
         });
         window.navigator.mediaSession.setActionHandler("pause", () => {
-          this.musicFadeOut();
+          this.musicFadeOut({});
         });
         window.navigator.mediaSession.setActionHandler("previoustrack", () => {
           this.prev();
@@ -553,7 +576,7 @@ export default {
       //监听音乐播放
       if (!this._play.isPlaying) {
         console.log("音乐已播放（外部）");
-        this.musicFadeIn();
+        this.musicFadeIn({});
       } else console.log("音乐已播放（内部）");
 
       this.scrollMusicName();
@@ -638,7 +661,6 @@ export default {
       if (this._isPlaying) {
         this.nowLength = this.nowLengthCal($music);
         this.setTime($music.currentTime);
-        //console.log(this.$refs["music"].currentTime);
       }
     }, 100);
 
@@ -673,6 +695,7 @@ export default {
         // 预载歌曲
         if (!this._playList[this.getNextMusicIndex].url && this.getPlayMode == "list")
           this.getMusicUrl({ musicIndex: this.getNextMusicIndex }).then((res) => {
+            testOrPreloadUrlApi(res);
             Axios.get(res);
             Axios.get(this._playList[this.getNextMusicIndex].cover.replace("http://", "https://"));
 
@@ -736,7 +759,8 @@ export default {
       this.setImageBackground();
 
       this.getLrc();
-      this.getAuthor();
+
+      if (!this.aboutArtistShow) this.getAuthor();
 
       this.scrollMusicName();
     },
@@ -816,22 +840,10 @@ export default {
       });
     },
 
-    // TODO: 修复scroll计算不准的问题
     aboutAuthor() {
-      //计算介绍滚动距离
-      $("#aboutAuthor").css(
-        "--overflow_time_aboutAuthor",
-        parseInt(document.getElementById("aboutAuthor").offsetWidth) * 0.05 +
-        "s"
-      );
-      $("#aboutAuthor").css(
-        "--overflow_width_aboutAuthor",
-        -this.$refs["music-lrc__wrapper"].getBoundingClientRect().width +
-        36 -
-        20 -
-        parseInt(document.getElementById("aboutAuthor").offsetWidth) +
-        "px"
-      );
+      this.$nextTick(() => {
+
+      })
     },
   },
 };
@@ -860,6 +872,16 @@ $pink_active_color: var(--pink_active_color);
 $pink_title_color: var(--pink_title_color);
 $pink_text_color: var(--pink_text_color);
 $pink_border_color: var(--pink_border_color);
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity .2s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
+}
 
 .player-middle {
   &.mini {
@@ -938,6 +960,11 @@ $pink_border_color: var(--pink_border_color);
 
     overflow: hidden;
     width: 100%;
+    height: 60px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 
     span {
       &.alia {
@@ -999,6 +1026,11 @@ $pink_border_color: var(--pink_border_color);
     line-height: var(--title_size);
     overflow: hidden;
     height: 60px;
+    cursor: pointer;
+
+    &:hover {
+      text-decoration: underline;
+    }
 
     span {
       font-size: 12px;
@@ -1044,6 +1076,60 @@ $pink_border_color: var(--pink_border_color);
 
     .pink & {
       color: var(--pink_text_color);
+    }
+  }
+
+  .mask {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    backdrop-filter: saturate(180%) blur(30px);
+    z-index: 2;
+  }
+
+  .about-artist {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    background-color: rgba(255, 255, 255, 0.72);
+    width: 70%;
+    max-height: 61.8%;
+    overflow-y: auto;
+    padding: 20px;
+    z-index: 2;
+    border: 1px solid var(--border_color);
+    border-radius: 20px;
+    box-shadow: 0 0 10px rgba(255, 255, 255, .8);
+    transform: translate(-50%, -50%);
+    font-size: 14px;
+    line-height: 200%;
+    text-align: initial;
+    color: var(--text_color);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.72);
+
+    @media (max-width: 768px) {
+      font-size: 13px;
+    }
+
+    .title {
+      font-size: 15px;
+      margin-bottom: 10px;
+      font-weight: bold;
+      color: var(--title_color);
+      text-align: center;
+    }
+
+    .content {
+      text-indent: 2em;
+    }
+
+    .dark & {
+      background-color: rgba(0, 0, 0, 0.72);
+      border: 1px solid var(--dark_border_color);
+      box-shadow: 0 0 10px rgba(0, 0, 0, .8);
+      text-shadow: 0 0 10px rgba(0, 0, 0, 0.72);
     }
   }
 
