@@ -16,7 +16,9 @@
     <!-- <InputModal v-if="showInput" :isShow="showInput" :isWrong="isWrong" /> -->
     <!-- <InputModal v-if="false" :isShow="_success" :isWrong="isWrong" /> -->
     <!--v-if="showInput" :isShow="showInput"-->
-    <Chat v-if="_chatContainerShow" @click-chat="switchChatContainerShow()"></Chat>
+    <transition name="fade">
+      <Chat v-if="_chatContainerShow" @click-chat="switchChatContainerShow()"></Chat>
+    </transition>
     <transition name="Modal">
       <Modal v-if="_play.message.show" :title="_play.message.title ||
         (_play.message.content
@@ -28,7 +30,11 @@
     _playList[_play.nowPlaying].name +
     ' - ' +
     formatArtists(_playList[_play.nowPlaying].artist)
-    " />
+    " :buttons="_play.message.buttons" />
+    </transition>
+    <transition name="fade">
+      <Popup v-if="_showPopup && !_play.isPlaying" @close-handler="updateShowPopup({ showPopup: false })"
+        title="欢迎使用「一起听」" content="本房间正在播放音乐，是否同步播放？" />
     </transition>
     <template v-if="_miniMode">
       <div class="flex flex-column">
@@ -58,6 +64,7 @@ import Modal from "@/components/Modal";
 import InputModal from "@/components/InputForm";
 import MessageBox from "@/components/MessageBox";
 import Chat from "@/components/Chat.vue";
+import Popup from "@/components/Popup.vue";
 import { mapActions, mapMutations, mapState } from "vuex";
 import { getSavedListApi } from "@/api/api";
 
@@ -73,6 +80,7 @@ export default {
     InputModal,
     MessageBox,
     Chat,
+    Popup,
   },
   data() {
     return {
@@ -80,7 +88,7 @@ export default {
       isWrong: false,
       urlText: "",
       boxShow: false,
-      moreActionShow: false,
+      moreActionShow: false
     };
   },
   computed: {
@@ -93,7 +101,8 @@ export default {
       "_miniMode",
       "_chatContainerShow",
       "_inputMode",
-      "formatArtists"
+      "formatArtists",
+      "_showPopup"
     ]),
   },
   methods: {
@@ -101,7 +110,8 @@ export default {
       "setStore",
       "setSuccess",
       "setPid",
-      "switchChatContainerShow"
+      "switchChatContainerShow",
+      "updateShowPopup"
     ]),
     ...mapActions(["playSync"]),
     // showInputSwitch() {
@@ -148,6 +158,8 @@ export default {
     if (this._rid) {
       this.urlText = `${window.location.origin}${window.location.pathname}?rid=${this._rid}`;
     }
+
+    // 判断是否是第一次打开新版本
   },
   watch: {
     // _success(val, oldVal) {
@@ -205,6 +217,16 @@ export default {
   &.pink {
     background-color: var(--pink_player_color);
     border: 2px solid var(--pink_border_color);
+  }
+
+  .fade-enter-active,
+  .fade-leave-active {
+    transition: .2s;
+  }
+
+  .fade-enter,
+  .fade-leave-to {
+    opacity: 0;
   }
 
   @media (max-width: 768px) {

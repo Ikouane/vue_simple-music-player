@@ -250,7 +250,6 @@ export default {
         } else if (key == 191) {
           window.event.preventDefault();
           this.switchChatContainerShow();
-          console.log("输入命令");
         }
       }
     })

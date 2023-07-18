@@ -210,7 +210,9 @@ export default {
       "skipMusic",
       "setImageBackground",
       "setMsg",
-      "setPlayCount"
+      "clearMsg",
+      "setPlayCount",
+      "updateLyric"
     ]),
     ...mapActions(["retryAfterPlayFail", "getMusicUrl"]),
     formatTime(timeNum) {
@@ -393,8 +395,10 @@ export default {
             if (response.nolyric) {
               _this.lrc = "[00:00.000]暂无歌词\n[99:99.999]暂无歌词";
             } else {
-              _this.lrc = response.lrc.lyric;
-              _this.tlrc = response.tlyric.lyric;
+              if (response?.lrc?.lyric) _this.lrc = response.lrc.lyric;
+              else _this.lrc = null;
+              if (response?.tlyric?.lyric) _this.tlrc = response.tlyric.lyric;
+              else _this.tlrc = null;
             }
             _this.transToArray(_this.lrc, _this.tlrc); //Fix
           })
@@ -472,6 +476,7 @@ export default {
             if (response.artist.briefDesc == null) {
               this.aboutAuthor = "";
             } else {
+              // FIXME: 去除连续空格bug  
               this.aboutAuthor = response.artist.briefDesc.replace(
                 /\s+/g,
                 ""
@@ -587,11 +592,11 @@ export default {
         console.warn("功能受限，不使用频谱");
         // 
       } else {
-        // 获取 ID 为 "oscilloscope" 的画布
         let canvas = document.querySelector(".visualizations");
         let cxt = canvas.getContext("2d");
 
-        if (this._userTouch && !this.audioCtx) {
+        // FIXME: this._userTouch &&
+        if (!this.audioCtx) {
           this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
           let analyser = this.audioCtx.createAnalyser();
@@ -660,7 +665,7 @@ export default {
     this.intPlaying = setInterval(() => {
       if (this._isPlaying) {
         this.nowLength = this.nowLengthCal($music);
-        this.setTime($music.currentTime);
+        this.setTime({ time: $music.currentTime });
       }
     }, 100);
 
@@ -744,6 +749,8 @@ export default {
       //监听歌曲改变
       console.log("nowPlaying: " + val, oldVal);
 
+      if (this._play.message.title == "即将播放") this.clearMsg();
+
       if (!this._play.sakuraMode) {
         if (this.getSakuraModeByMusicName) {
           if (document.querySelectorAll("script[src='sakura-small.js']").length) window.startSakura();
@@ -787,6 +794,11 @@ export default {
         }, 250);
 
         console.warn("歌词变更");
+
+        this.updateLyric({
+          lrc: this.lrc_line.now,
+          tlrc: this.tlrc_line.now,
+        })
 
         this.lrc_line__prev = this.lrc_line.prev;
         this.lrc_line__next = this.lrc_line.now;

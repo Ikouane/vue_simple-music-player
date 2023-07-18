@@ -154,7 +154,7 @@ export default {
   background-color: rgba(255, 255, 255, 0.72);
   backdrop-filter: saturate(180%) blur(20px);
   -webkit-backdrop-filter: saturate(180%) blur(20px);
-  z-index: 999;
+  z-index: 3;
   border-radius: 10px;
   top: 50%;
   left: 50%;
@@ -164,6 +164,7 @@ export default {
   overflow: hidden;
   color: var(--title_color);
   padding: 0 10px 10px 10px;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
 
   .dark & {
     background-color: rgba(0, 0, 0, 0.72);
@@ -221,11 +222,12 @@ export default {
   }
 
   #qrcode {
-    padding: 10px 0;
+    padding: 10px;
     width: 100%;
     display: flex;
     justify-content: center;
     background: #fff;
+    aspect-ratio: 1;
   }
 }
 </style>

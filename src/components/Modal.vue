@@ -4,12 +4,15 @@
     modalHide: !isShow,
     dark: _play.mode === 'night',
     mini: _miniMode
-  }" @click="handleClose">
+  }" @click="handleClose" @mousemove="cancelAutoClose">
     <label v-if="!_miniMode" class="modal-title">{{ title }}</label>
     <div class="modal-content">{{ content }}</div>
-    <div class="modal-button" v-if="okmsg && cancelmsg">
-      <button class="button-ok">{{ okmsg }}</button>
-      <button class="button-cancel" @click="handleClose()">
+    <div class="modal-button" v-if="okmsg || cancelmsg || buttons.length > 0">
+      <template v-for="(item) in buttons">
+        <button v-if="item === 'jumpToRoom'" @click="jumpToRoom" :key="item">进入房间</button>
+      </template>
+      <button class="button-ok" v-if="okmsg">{{ okmsg }}</button>
+      <button class="button-cancel" v-if="cancelmsg" @click="handleClose()">
         {{ cancelmsg }}
       </button>
     </div>
@@ -34,15 +37,26 @@ export default {
       type: Boolean,
       default: false,
     },
+    buttons: {
+      type: Array,
+      default: () => [],
+    }
   },
   computed: { ...mapState(["_play", "_timer", "_miniMode"]) },
   methods: {
+    ...mapMutations(["clearMsg", "set_Timer", "switchChatContainerShow"]),
+    ...mapActions(["getContent"]),
     handleClose() {
       this.clearMsg();
       this.isShow = false;
     },
-    ...mapMutations(["clearMsg", "set_Timer"]),
-    ...mapActions(["getContent"]),
+    jumpToRoom() {
+      this.switchChatContainerShow();
+      this.handleClose();
+    },
+    cancelAutoClose() {
+      if (this._timer) clearTimeout(this._timer);
+    }
   },
   created() {
     setTimeout(() => {
@@ -106,7 +120,7 @@ export default {
   margin: 25px 0;
   padding: 15px;
   box-sizing: border-box;
-  z-index: 9999;
+  z-index: 5;
 
   background-color: rgba(255, 255, 255, 0.72);
   backdrop-filter: saturate(180%) blur(20px);
@@ -153,28 +167,36 @@ export default {
   }
 
   &-button {
-    width: 460px;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
+    margin-top: 10px;
+
+    button {
+      border: none;
+      background-color: var(--player_color);
+      color: var(--active_color);
+      transition: all 0.3s ease;
+      border-radius: 20px;
+      padding: 6px 10px;
+      min-width: 30px;
+      font-size: 12px;
+      font-weight: bold;
+
+      .dark & {
+        background-color: var(--dark_player_color);
+        color: var(--dark_active_color);
+      }
+
+      &:hover {
+        color: white;
+        background-color: var(--active_color);
+        cursor: pointer;
+
+        .dark & {
+          background-color: var(--dark_active_color);
+        }
+      }
+    }
   }
-}
-
-button {
-  margin-top: 20px;
-  width: 80px;
-  height: 35px;
-  border: none;
-  background-color: #000;
-  color: #fff;
-  transition: all 0.3s ease;
-  margin-bottom: 20px;
-  border-radius: 5px;
-}
-
-button:hover {
-  background-color: #fff;
-  color: #000;
-  border: 1px solid #000;
-  cursor: pointer;
 }
 </style>
