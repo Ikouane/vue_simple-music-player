@@ -62,10 +62,10 @@ export default {
 
       switch (page) {
         case "daily":
-          window.location.href += `?daily=1`;
+          window.location.href = window.location.href.split("?")[0] + `?daily=1`;
           break;
         case "room":
-          window.location.href += `?rid=${today}`;
+          window.location.href = window.location.href.split("?")[0] + `?rid=${today}`;
           break;
       }
     }
@@ -336,6 +336,10 @@ $dark_border_color: var(--dark_border_color);
   -webkit-tap-highlight-color: transparent;
 }
 
+.el-message {
+  font-size: 14px;
+}
+
 img {
   user-select: none;
 }
@@ -408,7 +412,7 @@ body {
 
 #app {
   width: 100%;
-  max-width: min(1400px, 80vw);
+  max-width: min(1080px, 80vw);
 
   .mplayer {
     width: 100%;

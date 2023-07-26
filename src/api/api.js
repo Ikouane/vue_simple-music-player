@@ -1,7 +1,7 @@
 /*
  * @Author: ikouane
  * @Date: 2023-01-17 15:32:01
- * @LastEditTime: 2023-07-06 15:16:26
+ * @LastEditTime: 2023-07-23 16:27:43
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -72,5 +72,17 @@ export function getMyLoveApi() {
 export function testOrPreloadUrlApi(url) {
   return request.get(`${url}`, {
     baseURL: "",
+  });
+}
+
+// 上传图片
+export function uploadImgApi(data) {
+  // 将 axios 设置为 form-data
+  const formData = new FormData();
+  formData.append("file", data);
+  return request.post(`/api/upload`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
   });
 }

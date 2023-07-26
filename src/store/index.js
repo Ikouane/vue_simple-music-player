@@ -9,6 +9,7 @@ import { io } from "socket.io-client";
 import { baseAPI } from "../utils/http";
 import { useLocalStorage } from "@vueuse/core";
 import confetti from "canvas-confetti";
+import { ElMessage } from "element-plus";
 let confettiInstance = confetti.create(
   document.getElementById("confetti-canvas"),
   {
@@ -404,6 +405,13 @@ export default createStore({
     goPlay(state, { desIndex, needSync = true, needPlay = true }) {
       state._play.isPlaying = false;
       this.commit("setTime", { stopFlag: true });
+      // 如果播放的歌曲和当前歌曲相同，则将播放时间同步
+      if (needPlay && state._play.nowPlaying == desIndex) {
+        this.commit("goTime", {
+          desTime: state._play.playTime,
+          needSync: false
+        })
+      }
       if (state._playList[desIndex].skip) {
         // 跳过歌曲时处理
         console.log("该歌曲无法播放，已为您播放下一首");
@@ -819,31 +827,35 @@ export default createStore({
         type: "room",
       }
 
-      // 解析网易云音乐链接
-      // 使用正则表达式匹配网易云音乐链接
-      let reg = /https:\/\/music.163.com\/song\?id=(\d+)/;
-      let match = msg.match(reg);
-      if (match) {
-        // 匹配成功
-        let id = match[1];
-        // 获取歌曲信息
-        data.addition = {
-          platform: "netease",
-          kind: "song",
-          id
-        };
-        data.type = "room:addSong";
-      } else {
-        // 匹配失败
-        data.msg = msg;
-      }
-
-      // 房间特效
-      if (msg == "room:effect") {
-        data.type = "room:effect";
-        data.addition = {
-          effect: "confetti"
+      if (typeof msg === "string") {
+        // 解析网易云音乐链接
+        // 使用正则表达式匹配网易云音乐链接
+        let reg = /https:\/\/music.163.com\/song\?id=(\d+)/;
+        let match = msg.match(reg);
+        if (match) {
+          // 匹配成功
+          let id = match[1];
+          // 获取歌曲信息
+          data.addition = {
+            platform: "netease",
+            kind: "song",
+            id
+          };
+          data.type = "room:addSong";
+        } else {
+          // 匹配失败
+          data.msg = msg;
         }
+
+        // 房间特效
+        if (msg == "room:effect") {
+          data.type = "room:effect";
+          data.addition = {
+            effect: "confetti"
+          }
+        }
+      } else if (typeof msg === "object") {
+        data.msg = msg;
       }
 
       if (needSync && state._ws)
@@ -869,6 +881,17 @@ export default createStore({
           type: "room:effect",
           addition: {
             effect
+          }
+        })
+    },
+
+    // 发送房间游戏
+    sendRoomGame(state, { game }) {
+      if (state._ws)
+        state._ws.emit("message", {
+          type: "room:game",
+          addition: {
+            game
           }
         })
     },
@@ -983,6 +1006,11 @@ export default createStore({
       // , config = null
       let defaults = {};
 
+      // 重置已存在的特效
+      state._confettiInstance.reset();
+      // 清除所有未完成的 confetti 动画
+      // TODO: 修复连续点击特效按钮时的 bug 
+
       function shoot() {
         state._confettiInstance({
           ...defaults,
@@ -1072,6 +1100,19 @@ export default createStore({
         default:
           break;
       }
+    },
+
+    // 房间游戏处理
+    roomGameHandler(state, { game }) {
+
+      switch (game) {
+        case "luck:rock-paper-scissors":
+          console.log("即将开始猜拳游戏");
+          break;
+
+        default:
+          break;
+      }
     }
   },
   actions: {
@@ -1101,8 +1142,8 @@ export default createStore({
         commit("setSignalColor", "green");
 
         try {
-          if (!rootState._store.account || !rootState._store.account.uuid) {
-            console.log("数据异常，尝试恢复...");
+          if (rootState._store.account || rootState._store.account.uuid) {
+            // 无异常
           }
         } catch (error) {
           if (localStorage.getItem("weyoung-music")) localStorage.setItem("weyoung-music-backup", localStorage.getItem("weyoung-music"));
@@ -1133,8 +1174,25 @@ export default createStore({
 
           let typeMap = {
             "room:message": "房间消息",
+            "room:addSong": "房间添加歌曲",
             "room:effect": "房间特效",
+            "room:game": "房间游戏",
+            "room:join-fail": "房间加入失败",
           };
+
+          if (type == "room:join-fail") {
+            ElMessage({
+              message: msg,
+              type: "info",
+              duration: 0,
+            });
+            return;
+          }
+
+          if (type == "room:addSong") {
+            let { addition } = data;
+            message.addition = addition;
+          }
 
           if (type == "room:effect") {
             let { addition: { effect } } = data;
@@ -1144,13 +1202,50 @@ export default createStore({
             }
           }
 
+          if (type == "room:game") {
+            let { addition: { game } } = data;
+            commit("roomGameHandler", { game });
+            message.addition = {
+              game
+            }
+          }
+
+          const generateMessage = type => {
+            switch (type) {
+              case "room:effect":
+                return `${username} 发送了一个特效`;
+              case "room:game":
+                return `${username} 发起了一个游戏`;
+              default:
+                return msg;
+            }
+          }
+
           if (!rootState._chatContainerShow)
             commit("setMsg", {
               title: typeMap[type],
-              message: type === 'room:effect' ? `${username} 发送了一个特效` : msg,
+              message: generateMessage(type),
               duration: 3000,
               buttons: type.indexOf("room:") != -1 ? ['jumpToRoom'] : null
             });
+
+          // 请求浏览器通知权限
+          if (Notification.permission != "granted") {
+            Notification.requestPermission();
+          }
+
+          if (type == "room:message") {
+            // 发送通知
+            if (Notification.permission == "granted") {
+              let notification = new Notification(`${username}：`, {
+                body: msg,
+                icon: "/favicon.ico",
+              });
+              notification.onclick = () => {
+                window.focus();
+              };
+            }
+          }
 
           rootState._message.push(message);
 
@@ -1240,13 +1335,35 @@ export default createStore({
           if (data.roomData) {
             commit("setStore", data.roomData);
 
-            rootState._message.push({
-              id,
-              msg,
-              time,
-              type: "room:join",
-              uuid,
+            // 获取上次离开的时间
+            let lastLeaveTime = null;
+            let tempMessage = Array.from(rootState._message);
+            tempMessage.reverse().find((message, index) => {
+              if (message.type == "room:leave" && message.uuid == uuid) {
+                lastLeaveTime = new Date(message.time);
+                if (lastLeaveTime != null && new Date() - lastLeaveTime < 10000) {
+                  // 删除最近一次离开房间的消息
+                  rootState._message.splice(rootState._message.length - index - 1, 1);
+                  rootState._message.push({
+                    id,
+                    msg,
+                    time,
+                    type: "room:rejoin",
+                    uuid
+                  });
+                } else lastLeaveTime = null;
+                return true;
+              }
             });
+
+            if (lastLeaveTime == null)
+              rootState._message.push({
+                id,
+                msg,
+                time,
+                type: "room:join",
+                uuid,
+              });
 
             rootState._store.account.uuid = data.uuid;
             rootState._roomInfo.count = data.count;

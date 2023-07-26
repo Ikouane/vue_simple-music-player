@@ -680,7 +680,7 @@ export default {
       // this.setMsg({
       //   message: `播放出错，尝试重新播放`,
       // });
-      this.retryAfterPlayFail({ index: this._nowPlaying, needPlay: this._userTouch });
+      this.retryAfterPlayFail({ index: this._nowPlaying, needPlay: this._userTouch && this._play.isPlaying });
     });
 
     $music.addEventListener("timeupdate", () => {
@@ -1037,7 +1037,6 @@ $pink_border_color: var(--pink_border_color);
     font-size: var(--text_size);
     line-height: var(--title_size);
     overflow: hidden;
-    height: 60px;
     cursor: pointer;
 
     &:hover {

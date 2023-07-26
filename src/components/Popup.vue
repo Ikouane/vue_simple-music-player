@@ -2,7 +2,7 @@
  * @Author: ikouane
  * @PoweredBy: 未央宫©WeYounG
  * @Date: 2023-07-13 17:12:48
- * @LastEditTime: 2023-07-17 16:16:31
+ * @LastEditTime: 2023-07-20 09:50:03
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -14,7 +14,7 @@
       <p class="title" v-html="formatString(title, '「一起听」')"></p>
       <p class="content">{{ content }}</p>
       <div class="button-wrapper">
-        <button @click="musicFadeIn">
+        <button class="shine" @click="musicFadeIn">
           <i class="fa fa-play"></i>
           立即播放
         </button>
@@ -140,6 +140,34 @@ const formatString = (str, keyword) => {
         font-weight: bold;
         cursor: pointer;
         transition: .2s;
+        overflow: hidden;
+
+        &.shine {
+          position: relative;
+        }
+
+        &.shine::after {
+          position: absolute;
+          content: '';
+          display: block;
+          width: 100px;
+          height: 40px;
+          background: linear-gradient(0deg, rgba(0, 0, 0, 0), rgba(255, 255, 255, .3), rgba(0, 0, 0, 0));
+          left: 0;
+          top: 0;
+          transform: rotate(-45deg) translate(0, -100px);
+          animation: 3s slide infinite;
+        }
+
+        @keyframes slide {
+          0% {
+            transform: rotate(-45deg) translate(0, -100px);
+          }
+
+          100% {
+            transform: rotate(-45deg) translate(0, 100px);
+          }
+        }
 
         .dark & {
           background-color: var(--dark_active_color);

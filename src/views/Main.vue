@@ -186,7 +186,7 @@ export default {
   padding: 25px;
   border-radius: 36px;
   border: 2px solid white;
-  height: 842px;
+  height: 813px;
 
   overflow: hidden;
   position: relative;
