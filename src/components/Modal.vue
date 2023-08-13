@@ -51,7 +51,7 @@ export default {
       this.isShow = false;
     },
     jumpToRoom() {
-      this.switchChatContainerShow();
+      this.switchChatContainerShow(true);
       this.handleClose();
     },
     cancelAutoClose() {
@@ -182,19 +182,10 @@ export default {
       font-size: 12px;
       font-weight: bold;
 
-      .dark & {
-        background-color: var(--dark_player_color);
-        color: var(--dark_active_color);
-      }
-
       &:hover {
         color: white;
         background-color: var(--active_color);
         cursor: pointer;
-
-        .dark & {
-          background-color: var(--dark_active_color);
-        }
       }
     }
   }

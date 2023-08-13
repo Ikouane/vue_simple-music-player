@@ -1,19 +1,24 @@
 :root {
-    /* 日间模式 */
-    --title_color: #6d7b94;
-    --text_color: #a1b1c9;
-    --main_color: #ccdefa;
-    --player_color: #e9f1fc;
-    --border_color: #e4edfd;
-    --active_color: #84a4ff;
     --title_size: 30px;
     --text_size: 16px;
     --time_size: 12px;
+    --scrollbar_width: 0px;
+
+    /* 日间模式 */
+    --main_color: #ccdefa;
+    --player_color: #e9f1fc;
+    --active_color: #84a4ff;
+    --secondary_color: #9bade4;
+    --title_color: #6d7b94;
+    --text_color: #a1b1c9;
+    --border_color: #e4edfd;
+
 
     /* 夜间模式 */
     --dark_main_color: #26282b;
     --dark_player_color: #25282d;
     --dark_active_color: #ed5210;
+    --dark_secondary_color: #e69877;
     --dark_title_color: #adaeaf;
     --dark_text_color: #7c7d7f;
     --dark_border_color: #202428;
@@ -22,11 +27,30 @@
     --pink_main_color: #f9e7f0;
     --pink_player_color: #f8e7f1;
     --pink_active_color: #eda6c8;
+    --pink_secondary_color: #f4c9e1;
     --pink_title_color: #675f63;
     --pink_text_color: #bcaeb3;
     --pink_border_color: #e6d5dd;
 
-    --scrollbar_width: 0px;
+    .dark {
+        --title_color: var(--dark_title_color);
+        --text_color: var(--dark_text_color);
+        --main_color: var(--dark_main_color);
+        --player_color: var(--dark_player_color);
+        --border_color: var(--dark_border_color);
+        --active_color: var(--dark_active_color);
+        --secondary_color: var(--dark_secondary_color);
+    }
+
+    .pink {
+        --title_color: var(--pink_title_color);
+        --text_color: var(--pink_text_color);
+        --main_color: var(--pink_main_color);
+        --player_color: var(--pink_player_color);
+        --border_color: var(--pink_border_color);
+        --active_color: var(--pink_active_color);
+        --secondary_color: var(--pink_secondary_color);
+    }
 }
 
 @font-face {

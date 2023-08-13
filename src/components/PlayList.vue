@@ -122,11 +122,6 @@ div {
   position: fixed;
   width: 356px;
   height: 45px;
-  background: -webkit-gradient(linear,
-      bottom,
-      top,
-      from(var(--player_color)),
-      to(transparent));
   background: linear-gradient(to top, var(--player_color), transparent);
   left: 50%;
   transform: translate(-50%);
@@ -135,13 +130,6 @@ div {
   border-top-left-radius: 10px;
   border-top-right-radius: 10px;
   pointer-events: none;
-
-  .dark & {
-    background: -webkit-linear-gradient(top,
-        transparent,
-        var(--dark_player_color));
-    background: linear-gradient(to top, var(--dark_player_color), transparent);
-  }
 }
 
 .slide-up {

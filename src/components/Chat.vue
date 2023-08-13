@@ -2,7 +2,7 @@
  * @Author: ikouane
  * @PoweredBy: 未央宫©WeYounG
  * @Date: 2023-03-15 16:39:14
- * @LastEditTime: 2023-07-26 15:02:31
+ * @LastEditTime: 2023-08-13 15:14:05
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -27,9 +27,27 @@
     <div class="chat__container" v-else>
       <div class="chat__container-header">
         <div class="flex">
-          <span class="title">{{ store.state._rid }} ({{ store.state._roomInfo.count }})</span>
-          <span class="icon" @click="inputContainerShow = true;">
-            <i class="fa fa-pen" aria-hidden="true"></i>
+          <span class="title">{{ store.state._rid }} <el-popover placement="top-start" title="房间成员" :width="200"
+              trigger="hover">
+              <template #reference>
+                <span class="room-count">({{ store.state._roomInfo.count }})</span>
+              </template>
+              <template #default>
+                <div class="chat-member">
+                  <div class="chat-member-item" v-for="(member) in store.state._roomInfo.onlineUserList" :key="member"
+                    :class="{ active: member.uuid == store.state._store.account.uuid }">
+                    <el-avatar v-if="store.state._roomInfo.avatarList[member.uuid]" :size="32"
+                      :class="{ useSquare: store.state._roomInfo.avatarList[member.uuid]?.useSquare }"
+                      :src="`./avatar/${store.state._roomInfo.avatarList[member.uuid]?.type}`" />
+                    <el-avatar v-else :size="32"> {{ member.username[0] }} </el-avatar>
+                    {{ member.username }}
+                  </div>
+                </div>
+              </template>
+            </el-popover>
+          </span>
+          <span class="icon" @click="settingContainerShow = true;">
+            <i class="fa fa-cog" aria-hidden="true"></i>
           </span>
         </div>
         <transition name="fade">
@@ -51,11 +69,17 @@
         <el-scrollbar class="message__wrapper" :height="scrollBarHeight + 'px'">
           <!-- 消息列表 -->
           <div v-for="(item, index) in store.state._message" :key="item" class="message__item"
-            :class="{ 'room-change-message': item.type === 'room:join' || item.type === 'room:leave' || item.type === 'room:create' || item.type === 'room:rejoin', leave: item.type === 'room:leave', right: item.uuid == store.state._store.account.uuid }">
+            v-show="item.type != 'room:recalled'" :class="{
+              'room-change-message': item.type === 'room:join' || item.type === 'room:leave' || item.type === 'room:create' || item.type === 'room:rejoin' || item.type === 'room:recall' || item.type === 'room:recalled', leave: item.type === 'room:leave', right: item.uuid == store.state._store.account.uuid,
+              'hide-room-change-message': getHideRoomChangeMessage(item)
+            }">
             <!-- 发送时间 -->
             <span class="message__item-time"
-              v-if="index == 0 || (index >= 1 && generateRelativeTime(item.time) != generateRelativeTime(store.state._message[index - 1].time))">{{
-                generateRelativeTime(item.time) }}</span>
+              v-if="index == 0 || (index >= 1 && generateRelativeTime(item.time) != generateRelativeTime(getPrevMessage(index)))">
+              {{ generateRelativeTime(item.time) }}
+            </span>
+
+            <!-- FIXME: 同一时间多条消息间距统一 -->
 
             <!-- 创建房间 -->
             <template v-if="item.type === 'room:create'">
@@ -86,35 +110,118 @@
                 "离开了房间"
               }}</span>
             </template>
+
             <template v-if="checkType(item.type, 'room:addSong')">
-              <span class="message__item-content add-song"
-                :class="{ isPlaying: store.state._playList[store.state._play.nowPlaying].id == item.addition.id && store.state._play.isPlaying }">
-                <div class="cover__wrapper" @click="playMusicById(item.addition.id)">
-                  <img class="cover" :src="formatMusicInfo(item.addition.id)?.cover" alt="" srcset="">
-                  <i class="fa fa-play cover_mask" aria-hidden="true"></i>
+              <div class="message__item-wrapper">
+                <!-- 头像昵称 -->
+                <template
+                  v-if="store.state._store.config.room.alwaysShowUsername || (store.state._store.config.room.autoShowUserUsernameInMoreThanTwoPeople && store.state._roomInfo.userList.length >= 3)">
+                  <el-avatar v-if="store.state._roomInfo.avatarList[item.uuid].avatar" :size="32"
+                    class="message__item-avatar"
+                    :class="{ useSquare: store.state._roomInfo.avatarList[item.uuid].avatar?.useSquare }"
+                    :src="`./avatar/${store.state._roomInfo.avatarList[item.uuid].avatar?.type}`" />
+                  <el-avatar v-else :size="32"> {{ item.username[0] }}</el-avatar>
+                </template>
+                <div class="message__item-right-box">
+                  <span
+                    v-if="store.state._store.config.room.alwaysShowUsername || (store.state._store.config.room.autoShowUserUsernameInMoreThanTwoPeople && store.state._roomInfo.userList.length >= 3)"
+                    class="message__item-username">{{
+                      item.username }}</span>
+                  <div class="message__item-content add-song"
+                    :class="{ isPlaying: store.state._playList[store.state._play.nowPlaying].id == item.addition.musicId && store.state._play.isPlaying }">
+
+                    <div class="cover__wrapper" @click="playMusicById(item.addition.musicId)">
+                      <img class="cover" :src="formatMusicInfo(item.addition.musicId)?.cover" alt="" srcset="">
+                      <i class="fa fa-play cover_mask" aria-hidden="true"></i>
+                    </div>
+                    <span class="music_info">
+                      <span class="scroll-item">{{ formatMusicInfo(item.addition.musicId)?.name + " - " +
+                        store.state.formatArtists(formatMusicInfo(item.addition.musicId)?.artist) }}</span>
+                    </span>
+                  </div>
                 </div>
-                <span class="music_info">
-                  <span class="scroll-item">{{ formatMusicInfo(item.addition.id)?.name + " - " +
-                    store.state.formatArtists(formatMusicInfo(item.addition.id)?.artist) }}</span>
-                </span>
-              </span>
+              </div>
             </template>
             <template v-if="checkType(item.type, 'room:effect')">
-              <span class="room-effect">
+              <span class="room-effect" v-mouse-menu="{
+                params: item,
+                ...options.value,
+                ...menuList.value['effect']
+              }">
                 <span class="inline">{{ (item.uuid === store.state._store.account.uuid ? '你' : item.username) }}使用了房间特效
                   <span class="highlight" @click="playRoomEffect(item)" title="点击重播">&quot;{{
                     formatEffectName(item.addition.effect)
                   }}&quot;</span></span>
               </span>
             </template>
+
             <!-- 图片 -->
             <template v-if="checkType(item.type, 'room:message') && item.msg.type === 'image'">
-              <span v-for="(img) in item.msg.content" :key="img" v-viewer class="message__item-content no-border">
-                <img :src="img" alt="图片">
-              </span>
+              <div class="message__item-wrapper">
+                <!-- 头像昵称 -->
+                <template
+                  v-if="store.state._store.config.room.alwaysShowUsername || (store.state._store.config.room.autoShowUserUsernameInMoreThanTwoPeople && store.state._roomInfo.userList.length >= 3)">
+                  <el-avatar v-if="store.state._roomInfo.avatarList[item.uuid]" :size="32" class="message__item-avatar"
+                    :class="{ useSquare: store.state._roomInfo.avatarList[item.uuid]?.useSquare }"
+                    :src="`./avatar/${store.state._roomInfo.avatarList[item.uuid]?.type}`" />
+                  <el-avatar v-else :size="32"> {{ item?.username[0] }}</el-avatar>
+                </template>
+                <div class="message__item-right-box">
+                  <span
+                    v-if="store.state._store.config.room.alwaysShowUsername || (store.state._store.config.room.autoShowUserUsernameInMoreThanTwoPeople && store.state._roomInfo.userList.length >= 3)"
+                    class="message__item-username">{{
+                      item.username }}</span>
+                  <div v-for="(img) in item.msg.content" :key="img" v-viewer class="message__item-content no-border"
+                    v-mouse-menu="{
+                      params: index,
+                      ...options.value,
+                      ...menuList.value['message']
+                    }">
+                    <img :src="img" alt="图片">
+                  </div>
+                </div>
+              </div>
             </template>
-            <span v-if="checkType(item.type, 'room:message') && typeof item.msg === 'string'" v-html="formatMessage(item)"
-              class="message__item-content"></span>
+
+            <!-- 文字 -->
+            <transition name="backOutRight" v-if="checkType(item.type, 'room:message') && typeof item.msg === 'string'">
+              <div class="message__item-wrapper">
+                <!-- 头像昵称 -->
+                <template
+                  v-if="store.state._store.config.room.alwaysShowUsername || (store.state._store.config.room.autoShowUserUsernameInMoreThanTwoPeople && store.state._roomInfo.userList.length >= 3)">
+                  <el-avatar v-if="store.state._roomInfo.avatarList[item.uuid]" :size="32" class="message__item-avatar"
+                    :class="{ useSquare: store.state._roomInfo.avatarList[item.uuid]?.useSquare }"
+                    :src="`./avatar/${store.state._roomInfo.avatarList[item.uuid]?.type}`" />
+                  <el-avatar v-else :size="32"> {{ item?.username[0] }}</el-avatar>
+                </template>
+                <div class="message__item-right-box">
+                  <span
+                    v-if="store.state._store.config.room.alwaysShowUsername || (store.state._store.config.room.autoShowUserUsernameInMoreThanTwoPeople && store.state._roomInfo.userList.length >= 3)"
+                    class="message__item-username">{{
+                      item.username }}</span>
+                  <span v-html="formatMessage(item)" class="message__item-content" v-mouse-menu="{
+                    params: index,
+                    ...options.value,
+                    ...menuList.value['message']
+                  }"></span>
+                </div>
+              </div>
+            </transition>
+
+            <!-- <transition name="fade">
+              <span v-if="checkType(item.type, 'room:recalled')" class="message__item-content">
+                已撤回的消息
+              </span>
+            </transition> -->
+            <!-- 
+            {{ item }}
+            {{ index }} -->
+
+            <span v-if="checkType(item.type, 'room:recall')" class="message__item-content">
+              {{ (item.uuid === store.state._store.account.uuid ? '你' : item.username) }}撤回了{{
+                formatRecallMessage(item)
+              }}
+            </span>
           </div>
         </el-scrollbar>
       </div>
@@ -184,15 +291,168 @@
           </div>
         </div>
       </transition>
+
+      <transition name="fade">
+        <div class="room-setting select__wrapper" v-if="settingContainerShow">
+          <div class="room-setting-header">
+            <span class="title">设置</span>
+
+            <!-- 关闭图标 -->
+            <span class="close" @click="settingContainerShow = false;">
+              <i class="fa fa-times"></i>
+            </span>
+          </div>
+
+          <el-scrollbar :height="550">
+
+            <div class="setting-item" :class="{ inline: !item.children && !item.options }"
+              v-for="(item) in roomSettingsList" :key="item">
+              <p class="item__title flex">
+                {{ item.label }}
+                <!-- ElTooltip -->
+                <el-tooltip v-if="item.tips" class="item__tooltip" effect="light" :content="item.tips" placement="bottom">
+                  <div><i class="fa fa-question-circle"></i></div>
+                </el-tooltip>
+              </p>
+
+              <!-- {{ item }} -->
+
+              <template v-if="item.type == 'select'">
+                <div class="group">
+                  <p class="group__title">{{ item.options.name }}</p>
+                  <div class="item__wrapper">
+                    <div class="item" v-for="(child) in item.options.children" :key="child"
+                      :class="{ active: getValueByStoreKey(item.value) == child.value }"
+                      @click="handleSettingChange(item, child.value)">
+                      <i v-if="item.value == '_store.config.room.newMessageSound' && child.value != 'none'"
+                        class="fa fa-play"></i>
+                      <i v-if="item.value == '_store.config.room.newMessageSound' && child.value == 'none'"
+                        class="fa fa-ban"></i>
+                      {{ child.name }}
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template v-if="item.type == 'group'">
+                <div class="group">
+                  <div class="group__item__wrapper">
+                    <div class="group__item" :class="{ 'second-group': child.options }" v-for="(child) in item.children"
+                      :key="child">
+                      <span class="group__item__title" v-if="!child?.hideTitle">{{ child.label }}
+                        <el-tooltip v-if="child.tips" class="item__tooltip" :content="child.tips" effect="light"
+                          placement="bottom">
+                          <div><i class="fa fa-question-circle"></i></div>
+                        </el-tooltip>
+                        <el-tooltip v-if="child?.isBeta" class="item__tooltip" effect="light" content="该功能测试中，仅供尝鲜使用"
+                          placement="bottom">
+                          <el-badge v-if="child?.isBeta" value="BETA" class="item__badge"></el-badge>
+                        </el-tooltip>
+                      </span>
+                      <template v-if="child.type == 'switch'">
+                        <el-switch size="small" :model-value="getValueByStoreKey(child.value)"
+                          @change="handleSettingChange(child, $event)"
+                          :disabled="child.follow && !getValueByStoreKey(child.follow)"
+                          :active-color="store.state._play.mode == 'night' ? 'var(--dark_active_color)' : 'var(--active_color)'"
+                          :inactive-color="store.state._play.mode == 'night' ? 'var(--dark_title_color)' : 'var(--title_color)'"></el-switch>
+                      </template>
+                      <template v-else-if="child.type == 'input'">
+                        <input type="text" :value="getValueByStoreKey(child.value)"
+                          @input="handleSettingChange(child, $event.target.value)" placeholder="请输入" />
+                      </template>
+                      <template v-else-if="child.type == 'color'">
+                        <el-color-picker :model-value="getValueByStoreKey(child.value)" size="small"
+                          @change="handleSettingChange(child, $event)" :show-alpha="false">
+                          <!-- :predefine="store.state._play.mode == 'night' ? ['#000000', '#ffffff'] : ['#ffffff', '#000000']" -->
+                        </el-color-picker>
+                      </template>
+                      <template v-else-if="child.type == 'select'">
+                        <div class="group" v-for="(group) in child.options" :key="group">
+                          <p class="group__title">{{ group.name }}</p>
+                          <div class="item__wrapper">
+                            <div class="item" v-for="(option) in  group.children" :key="option" :class="{
+                              active: getValueByStoreKey(child.value) == option.value, 'avatar-selector': child.className == 'avatar', square: store.state._store.account.avatar.useSquare,
+                              notAllow: generateLevelAndScoreLimit(option)
+                            }"
+                              @click="!generateLevelAndScoreLimit(option) && handleSettingChange(child, option.value)">
+                              <!-- 头像选框 -->
+                              <el-tooltip :disabled="!generateLevelAndScoreLimit(option)" effect="light"
+                                :content="generateLevelAndScoreLimit(option)" placement="bottom" :show-after="200">
+                                <img :class="child.className" :src="`./avatar/${option.value}`" alt="" srcset="">
+                              </el-tooltip>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                      <template v-else-if="child.type == 'level-progress'">
+                        <el-tooltip effect="light" :content="`升级还需${1000 - store.state.userInfo.exp}经验`"
+                          placement="bottom" :show-after="200">
+                          <el-progress type="dashboard" :percentage="store.state.userInfo.exp / 1000 * 100" :width="32"
+                            :stroke-width="4" :color="getValueByStoreKey('_store.config.player.activeColor')">
+                            <template #default>
+                              <span class="percentage-label">{{ store.state.userInfo.level }}</span>
+                            </template>
+                          </el-progress>
+                        </el-tooltip>
+                      </template>
+                      <template v-else-if="child.type == 'string'">
+                        <span class="group__item__content">{{ getValueByStoreKey(child.value) }}
+                          <template class="suffix" v-if="child?.suffix">
+                            {{ child.suffix }}
+                          </template>
+                        </span>
+                      </template>
+                      <template v-else-if="child.type == 'task-progress'">
+                        <el-collapse v-if="store.state.userInfo.beginnerTask">
+                          <el-collapse-item :title="`任务进度：${store.state.userInfo.beginnerTask?.length} / 5`" name="1">
+                            <div class="beginner-task">
+                              <div class="task-lists" v-if="store.state.userInfo.beginnerTask">
+                                <div class="task-item" v-for="(task, index) in beginnerTaskList" :key="task"
+                                  :class="{ active: store.state.userInfo.beginnerTask.includes(index) }">
+                                  <i class="fa fa-check-circle"></i>
+                                  <i class="far fa-circle"></i>
+                                  <span>{{ task.label }}</span>
+                                </div>
+                              </div>
+                            </div>
+                          </el-collapse-item>
+                        </el-collapse>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </template>
+              <template v-else-if="item.type == 'switch'" :class="{ active: getValueByStoreKey(item.value) }"
+                @click="handleSettingChange(getValueByStoreKey(item.value), !getValueByStoreKey(item.value))">
+                <el-switch size="small" :model-value="getValueByStoreKey(item.value)"
+                  @change="handleSettingChange(item, $event)" :disabled="item.follow && !getValueByStoreKey(item.follow)"
+                  :active-color="store.state._play.mode == 'night' ? 'var(--dark_active_color)' : 'var(--active_color)'"
+                  :inactive-color="store.state._play.mode == 'night' ? 'var(--dark_title_color)' : 'var(--title_color)'"
+                  :active-text="item.options && item.options[0].name"
+                  :inactive-text="item.options && item.options[1].name">
+                  >
+                </el-switch>
+              </template>
+              <template v-else-if="item.type == 'input'">
+                <div class="item__wrapper">
+                  <input type="text" :model-value="getValueByStoreKey(item.value)"
+                    @input="handleSettingChange(item, $event.target.value)" placeholder="请输入" />
+                </div>
+              </template>
+            </div>
+          </el-scrollbar>
+        </div>
+      </transition>
     </div>
   </div>
 </template>
 <script setup>
-import { ref, nextTick, defineEmits, onUnmounted, watch, watchEffect, onMounted } from "vue";
+import { ref, nextTick, defineEmits, onUnmounted, watch, watchEffect, onMounted, reactive } from "vue";
 import { useStore } from "vuex";
 import moment from "moment";
-import { getSingleMusicApi, uploadImgApi } from "@/api/api"
+import { getSingleMusicApi, uploadImgApi, getUserInfoApi } from "@/api/api"
 import html2canvas from 'html2canvas';
+import { MouseMenuDirective as vMouseMenu } from "@howdyjs/mouse-menu";
+import { ElTooltip, ElSwitch, ElScrollbar, ElColorPicker, ElBadge } from "element-plus";
 
 const checkType = (type, rule) => {
   return type == rule || type == `${rule}-reply`;
@@ -200,27 +460,13 @@ const checkType = (type, rule) => {
 
 var opts = { useCORS: true };
 
-document.addEventListener('keydown', (e) => {
-  if (e.key == 'F10') {
-    e.preventDefault();
-    scrollBarHeight.value = document.querySelector(".el-scrollbar__wrap").scrollHeight;
-    nextTick(() => {
-      document.querySelector(".el-scrollbar__wrap").scrollTop = scrollBarHeight.value;
-      html2canvas(document.querySelector(".el-scrollbar__wrap"), opts).then(function (canvas) {
-        // 另存为图片下载
-        let link = document.createElement('a');
-        link.download = `聊天记录导出.png`;
-        link.href = canvas.toDataURL("image/png");
-        link.click();
-
-        scrollBarHeight.value = 440;
-        store.commit("setMsg", { message: "聊天记录导出成功", title: "通知", duration: 0 })
-      });
-    })
-  }
-})
-
 const store = useStore();
+
+getUserInfoApi().then(res => {
+  store.commit("updateUserInfo", {
+    userInfo: res
+  });
+})
 
 const emit = defineEmits(["click-chat"]);
 
@@ -232,7 +478,7 @@ const getInputRef = (el) => {
   inputRef.value = el
 }
 
-const inputContainerShow = ref(!store.state._store.account.username);
+const inputContainerShow = ref(!store.state._store.account.username), settingContainerShow = ref(false);
 
 const hideInputContainer = () => {
   if (!store.state._store.account.username) {
@@ -243,6 +489,12 @@ const hideInputContainer = () => {
   store.commit("setMsg", { message: `欢迎你，${store.state._store.account.username}`, title: `欢迎使用「一起听」`, duration: 0 })
   // 更新服务器 username 信息
   store.commit("updateUsername");
+  // 再次获取用户信息
+  getUserInfoApi().then(res => {
+    store.commit("updateUserInfo", {
+      userInfo: res
+    });
+  })
 }
 
 const nowDate = ref(moment().format("YYYY-MM-DD HH:mm:ss"));
@@ -256,7 +508,32 @@ let interval = setInterval(() => {
 // 页面卸载时清除定时器
 onUnmounted(() => {
   clearInterval(interval);
+  document.removeEventListener("keydown", keyDownListener.value);
 })
+
+const getHideRoomChangeMessage = ({ type, time }) => {
+  return (type === 'room:join' || type === 'room:leave' || type === 'room:rejoin') && (
+    !store.state._store.config.room.showRoomChangeMessage
+    || (!store.state._store.config.room.showPreviousRoomChangeMessage && moment(time).isBefore(store.state._roomInfo.joinTime))
+  )
+}
+
+// 在数组中向前查找符合条件的元素
+const findPrevItem = (index, fn) => {
+  for (let i = index - 1; i >= 0; i--) {
+    if (fn(store.state._message[i])) {
+      return store.state._message[i];
+    }
+  }
+}
+
+const getPrevMessage = (index) => {
+  return findPrevItem(index, (item) => {
+    if (store.state._store.config.room.showPreviousRoomChangeMessage)
+      return store.state._message[index - 1]
+    return !(item.type === 'room:join' || item.type === 'room:leave' || item.type === 'room:create' || item.type === 'room:rejoin' || item.type === 'room:recall' || item.type === 'room:recalled')
+  })?.time
+}
 
 const generateRelativeTime = (time) => {
   // 判断是否是今天
@@ -266,9 +543,11 @@ const generateRelativeTime = (time) => {
       // 判断是否是同一分钟
       if (moment(time).format("mm") == moment(nowDate.value).format("mm")) {
         return "刚刚"
-      } else if (Math.abs(moment(time).format("mm") - moment(nowDate.value).format("mm")) <= 5) {
-        return moment(time).from(nowDate.value);
       }
+      // FIXME: 几分钟内会导致页面滚动 
+      // else if (Math.abs(moment(time).format("mm") - moment(nowDate.value).format("mm")) <= 5) {
+      //   return moment(time).from(nowDate.value);
+      // }
     }
     return moment(time).format("HH:mm");
   }
@@ -404,6 +683,8 @@ const sendMessage = (e) => {
     return;
   }
 
+  // 判断上一次发送的时间是否超过 1 秒
+
   // 判断信息是否是普通文本
   if (typeof msg.value == "string") {
     sendTextMessage();
@@ -455,6 +736,10 @@ const handleMouseDown = (e) => {
 
 const closePopup = () => {
   if (!isMouseDowned.value) {
+    return;
+  }
+  if (settingContainerShow.value) {
+    settingContainerShow.value = false;
     return;
   }
   if (inputContainerShow.value && store.state._store.account.username) {
@@ -578,6 +863,535 @@ const sendRoomGame = () => {
   roomGameSelectorShow.value = false;
 }
 
+const roomSettingsList = reactive([
+  {
+    label: "账号",
+    tips: null,
+    value: null,
+    type: "group",
+    children: [
+      {
+        label: "账号等级",
+        tips: "账号等级越高，可用的功能越多",
+        value: "userInfo.exp",
+        type: "level-progress"
+      },
+      {
+        label: "账号积分",
+        tips: "发言（房间消息、点歌、房间效果）可得 1 积分，积分可以兑换头像等装饰，退出房间后自动结算",
+        value: "userInfo.score",
+        type: "string",
+        suffix: "pts"
+      },
+      {
+        label: "最后活跃时间",
+        tips: null,
+        value: "userInfo.lastLogin",
+        type: "string"
+      },
+      {
+        label: "用户标识",
+        tips: null,
+        value: "userInfo.uuid",
+        type: "string"
+      },
+      {
+        label: "任务进度",
+        tips: "完成任务可获得大量经验",
+        value: "userInfo.beginnerTask",
+        type: "task-progress",
+        hideTitle: true
+      }
+    ]
+  },
+
+  {
+    label: "昵称与头像",
+    tips: null,
+    value: null,
+    type: "group",
+    children: [
+      {
+        label: "修改昵称",
+        tips: "修改昵称后，实时生效",
+        value: "_store.account.username",
+        type: "input"
+      },
+      {
+        label: "方形头像",
+        tips: "默认使用圆形头像",
+        value: "_store.account.avatar.useSquare",
+        type: "switch",
+      },
+      {
+        label: "修改头像",
+        tips: "修改头像后，实时生效",
+        value: "_store.account.avatar.type",
+        type: "select",
+        className: "avatar",
+        options: [
+          {
+            name: "简约",
+            value: "simple",
+            children: [
+              {
+                name: "",
+                value: "s_1-0.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-1.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-2.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-3.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-4.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-5.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-6.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-7.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-8.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-9.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-10.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-11.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-12.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-13.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-14.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-15.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-16.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "s_1-17.jpg",
+                needLevel: 0,
+                scoreCost: 0
+              },
+            ]
+          },
+          {
+            name: "粉色（三丽鸥）",
+            value: "pink",
+            children: [
+              {
+                name: "",
+                value: "p_1-0.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "p_1-1.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "p_1-2.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "p_1-3.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "p_1-4.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "p_1-5.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+            ]
+          },
+          {
+            name: "帕恰狗（三丽鸥）",
+            value: "dog",
+            children: [
+              {
+                name: "",
+                value: "d_1-0.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "d_1-1.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "d_1-2.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "d_1-3.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "d_1-4.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "d_1-5.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "d_1-6.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "d_1-7.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+              {
+                name: "",
+                value: "d_1-8.jpg",
+                needLevel: 1,
+                scoreCost: 0
+              },
+            ]
+          },
+          {
+            name: "动态（等待开放兑换）",
+            value: "dynamic",
+            children: [
+              {
+                name: "托莉",
+                value: "dynamic/托莉.gif",
+                needLevel: 2,
+                scoreCost: 100
+              },
+              {
+                name: "Cassia",
+                value: "dynamic/Cassia.gif",
+                needLevel: 2,
+                scoreCost: 100
+              },
+              {
+                name: "Cat Face",
+                value: "dynamic/Cat Face.gif",
+                needLevel: 2,
+                scoreCost: 100
+              },
+              {
+                name: "Line Face",
+                value: "dynamic/Line Face.gif",
+                needLevel: 2,
+                scoreCost: 100
+              },
+              {
+                name: "Hellebore",
+                value: "dynamic/Hellebore.gif",
+                needLevel: 2,
+                scoreCost: 100
+              },
+              {
+                name: "Mabinogi Avatar",
+                value: "dynamic/Mabinogi Avatar.gif",
+                needLevel: 2,
+                scoreCost: 100
+              },
+              {
+                name: "Happy Friend",
+                value: "dynamic/Happy Friend.gif",
+                needLevel: 2,
+                scoreCost: 100
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    label: "显示与效果",
+    tips: "设置房间内的显示与效果",
+    value: null,
+    type: "group",
+    children: [
+      {
+        label: "主题色",
+        tips: "修改主题色后，实时生效，但不再支持暗色主题",
+        value: "_store.config.player.activeColor",
+        type: "color",
+        isBeta: true
+      }
+    ]
+  },
+  {
+    label: "新消息提示",
+    tips: "当有新消息时，是否播放提示音",
+    value: "_store.config.room.newMessageSound",
+    type: "select",
+    options: {
+      name: "默认系列",
+      value: "default",
+      children: [
+        {
+          name: "静音",
+          value: "none"
+        },
+        {
+          name: "气泡",
+          value: "message-1.mp3"
+        },
+        {
+          name: "灵动",
+          value: "message-2.mp3"
+        }
+      ]
+    }
+  },
+  {
+    label: "用户昵称与头像",
+    tips: null,
+    value: null,
+    type: "group",
+    children: [
+      {
+        label: "总是显示",
+        tips: "如果打开，将总是显示用户昵称与头像",
+        value: "_store.config.room.alwaysShowUsername",
+        type: "switch"
+      },
+      {
+        label: "自动显示",
+        tips: "当房间内人数超过两人时，自动显示用户昵称与头像",
+        value: "_store.config.room.autoShowUserUsernameInMoreThanTwoPeople",
+        type: "switch"
+      }
+    ]
+  },
+  {
+    label: "进出房间提示",
+    tips: null,
+    value: null,
+    type: "group",
+    children: [
+      {
+        label: "显示提示",
+        tips: "如果关闭，将隐藏所有进出房间提示",
+        value: "_store.config.room.showRoomChangeMessage",
+        type: "switch"
+      },
+      {
+        label: "显示历史提示",
+        tips: "如果关闭，将隐藏进入房间前的进出提示",
+        value: "_store.config.room.showPreviousRoomChangeMessage",
+        type: "switch",
+        follow: "_store.config.room.showRoomChangeMessage"
+      }
+    ]
+  }
+]);
+
+const getValueByStoreKey = (keyStr) => {
+  if (!keyStr) {
+    return null;
+  }
+
+  // 将 keyStr 拆解
+  let keys = keyStr.split('.');
+  let value = store.state;
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index];
+    value = value[key];
+  }
+
+  if (keyStr == "_store.config.player.activeColor") {
+    if (!value) {
+      if (store.state._play.mode == 'night') value = "#ed5210";
+      else if (store.state._play.mode == 'day') value = "#84a4ff";
+      else if (store.state._play.mode == 'pink') value = "#eda6c8";
+    }
+  }
+
+  return value;
+}
+
+const setValueByStoreKey = (keyStr, value) => {
+  // 将 keyStr 拆解
+  let keys = keyStr.split('.');
+  let _store = store.state;
+  for (let index = 0; index < keys.length; index++) {
+    const key = keys[index];
+    if (index == keys.length - 1) {
+      _store[key] = value;
+    } else {
+      _store = _store[key];
+    }
+  }
+}
+
+const handleSettingChange = (item, value) => {
+  switch (item.value) {
+    case '_store.config.room.newMessageSound':
+      if (value != 'none' && value != getValueByStoreKey(item.value)) {
+        // 播放声音
+        let audio = new Audio();
+        audio.src = require(`@/assets/sound/${value}`);
+        audio.play();
+      }
+      break;
+    case '_store.account.username':
+      store.commit('updateUsername', {
+        username: value
+      });
+      break;
+    case '_store.account.avatar.useSquare':
+    case '_store.account.avatar.type':
+      break;
+    case '_store.config.room.showRoomChangeMessage':
+      if (!value) {
+        store.state._store.config.room.showPreviousRoomChangeMessage = false;
+      }
+      break;
+    default:
+      break;
+  }
+  setValueByStoreKey(item.value, value);
+
+  if (item.value == '_store.account.avatar.useSquare' || item.value == '_store.account.avatar.type') {
+    // 重置头像
+    store.commit('updateAvatar', {
+      avatar: store.state._store.account.avatar
+    });
+  }
+}
+
+// 生成等级及积分限制
+const generateLevelAndScoreLimit = ({ needLevel, scoreCost }) => {
+  let str = [];
+
+  if (store.state.userInfo.level >= needLevel) {
+    needLevel = -1;
+  }
+
+  if (needLevel >= 0) str.push(`${needLevel}级可用`);
+
+  if (scoreCost > 0) str.push(`消耗${scoreCost}积分`);
+  return str.join("，");
+}
+
+// 任务列表
+const beginnerTaskList = [
+  {
+    label: "设置昵称",
+    status: "pending",
+  },
+  {
+    label: "设置头像",
+    status: "pending",
+  },
+  {
+    label: "发送消息",
+    status: "pending",
+  },
+  {
+    label: "添加歌曲",
+    status: "pending",
+  },
+  {
+    label: "发送房间效果",
+    status: "pending",
+  }
+];
+
 // 判断是否粘贴图片
 const handlePaste = (e) => {
   if (e.clipboardData && e.clipboardData.items[0].type.indexOf('image') > -1) {
@@ -686,28 +1500,64 @@ const playRoomEffect = ({ addition: { effect } }) => {
   store.commit("roomEffectHandler", { effect });
 }
 
-let scrollBarHeight = ref(440);
-
-// let scrollTop = ref(0);
-
-onMounted(() => {
-  // document.querySelector(".el-scrollbar__wrap")?.addEventListener("scroll", e => {
-  //   console.log(e.target.scrollTop);
-  //   scrollTop.value = e.target.scrollTop;
-  // })
-})
+let scrollBarHeight = ref(500);
 
 watchEffect(() => {
   console.log(store.state._currentLrc.lrc, store.state._currentLrc.tlrc, store.state._play.isPlaying);
-  // 没有歌词或者暂停时
-  if (!store.state._play.isPlaying || !store.state._currentLrc.lrc) {
-    scrollBarHeight.value = 440;
-    document.querySelector(".message__wrapper")?.style.setProperty("--top", 0);
-    return;
-  }
   nextTick(() => {
-    scrollBarHeight.value = 440 - (document.querySelector(".currentLrc")?.getBoundingClientRect().height || 0);
-    document.querySelector(".message__wrapper")?.style.setProperty("--top", (document.querySelector(".currentLrc")?.getBoundingClientRect().height || 0) + "px");
+    // FIXME: 当页面超长时切换播放状态导致top值不刷新 
+    if (document.querySelector(".el-scrollbar__view")?.getBoundingClientRect().height <= scrollBarHeight.value || document.querySelector(".el-scrollbar__wrap")?.scrollTop <= document.querySelector(".currentLrc")?.getBoundingClientRect().height) {
+      document.querySelector(".currentLrc")?.classList.add("fixed");
+      document.querySelector(".message__wrapper")?.style.setProperty("--top", (document.querySelector(".currentLrc")?.getBoundingClientRect().height || 0) + "px");
+    }
+  })
+})
+
+
+let keyDownListener = reactive({});
+
+onMounted(() => {
+  // 输入任意内容，聚焦到输入框
+
+  keyDownListener.value = document.addEventListener("keydown", (e) => {
+    if (store.state._chatContainerShow) {
+
+      if (e.key == 'F10') {
+        e.preventDefault();
+        scrollBarHeight.value = document.querySelector(".el-scrollbar__wrap").scrollHeight;
+        nextTick(() => {
+          document.querySelector(".el-scrollbar__wrap").scrollTop = scrollBarHeight.value;
+          html2canvas(document.querySelector(".el-scrollbar__wrap"), opts).then(function (canvas) {
+            // 另存为图片下载
+            let link = document.createElement('a');
+            link.download = `聊天记录导出.png`;
+            link.href = canvas.toDataURL("image/png");
+            link.click();
+
+            scrollBarHeight.value = 500;
+            store.commit("setMsg", { message: "聊天记录导出成功", title: "通知", duration: 0 })
+          });
+        })
+
+        return
+      }
+
+      if (!inputContainerShow.value && !settingContainerShow.value) {
+        // 重新获取 inputRef
+        inputRef.value = document.querySelector(".input-wrapper") || document.querySelector(".input-send-wrapper input");
+        inputRef.value?.focus();
+      }
+    }
+  })
+
+  document.querySelector(".el-scrollbar__wrap")?.addEventListener("scroll", e => {
+    if (e.target.scrollTop <= document.querySelector(".currentLrc")?.getBoundingClientRect().height) {
+      document.querySelector(".currentLrc")?.classList.add("fixed");
+      document.querySelector(".message__wrapper")?.style.setProperty("--top", (document.querySelector(".currentLrc")?.getBoundingClientRect().height || 0) + "px");
+    } else {
+      document.querySelector(".currentLrc")?.classList.remove("fixed");
+      document.querySelector(".message__wrapper")?.style.setProperty("--top", 0);
+    }
   })
 })
 
@@ -734,6 +1584,116 @@ watch(msg, (newVal, oldVal) => {
   }
 })
 
+// 注册自定义指令 MouseMenuDirective
+
+
+const options = reactive({});
+options.value = {
+  // useLongPressInMobile: true,
+  menuWidth: 140,
+  menuWrapperCss: {
+    padding: "6px"
+  },
+  menuItemCss: {
+    height: "22px",
+    labelFontSize: "12px",
+    padding: "3px 6px",
+    hoverLabelColor: "#fff",
+    hoverTipsColor: "#fff",
+  }
+}
+
+const menuList = reactive({});
+menuList.value = {
+  "message": {
+    menuList: [
+      {
+        label: "复制",
+        tips: "Copy",
+        fn: (params) => {
+          // 复制文字到剪贴板
+          store.commit(
+            "copyToClipBoard",
+            {
+              text: store.state._message[params].msg
+            }
+          );
+        },
+        hidden: (params) => {
+          return store.state._message[params].type != "room:message" && store.state._message[params].type != "room:message-reply";
+        },
+      },
+      {
+        label: "撤回",
+        tips: "Recall",
+        fn: (params) => {
+          console.log(store.state._message[params])
+          store.commit("recallMessage", { index: params });
+        },
+        hidden: (params) => {
+          let time = new Date().getTime();
+          return !store.state._roomInfo.isAdmin && (store.state._message[params].uuid != store.state._store.account.uuid || time - new Date(store.state._message[params].time).getTime() > 1000 * 60 * 2)
+        },
+        disabled: (params) => {
+          return !store.state._roomInfo.isAdmin && store.state._message[params].uuid != store.state._store.account.uuid;
+        },
+      },
+      {
+        label: "编辑",
+        tips: "Edit",
+        fn: (params) => {
+          console.log(params);
+          // 暂未开放提示
+          store.commit("setMsg", { message: "该功能暂未开放", title: "提示", duration: 0 })
+        },
+        hidden: (params) => {
+          return store.state._message[params].uuid != store.state._store.account.uuid;
+        },
+        disabled: (params) => {
+          return store.state._message[params].uuid != store.state._store.account.uuid;
+        }
+      },
+      // 回复
+      {
+        label: "回复",
+        tips: "Reply",
+        fn: (params) => {
+          console.log(params);
+          // 暂未开放提示
+          store.commit("setMsg", { message: "该功能暂未开放", title: "提示", duration: 0 })
+        },
+        hidden: (params) => {
+          return store.state._message[params].uuid == store.state._store.account.uuid;
+        },
+        disabled: (params) => {
+          return store.state._message[params].uuid == store.state._store.account.uuid;
+        }
+      }
+    ]
+  },
+  "effect": {
+    menuList: [
+      {
+        label: "我也要发",
+        tips: "Send",
+        fn: () => {
+          roomEffectSelectorShow.value = true;
+        }
+      },
+      {
+        label: "重播",
+        tips: "Replay",
+        fn: (params) => {
+          playRoomEffect(params);
+        }
+      }]
+  }
+}
+
+const formatRecallMessage = (msgItem) => {
+  return `${msgItem.uuid === store.state._message[msgItem.addition.index].uuid ? '一条消息' : (store.state._message[msgItem.addition.index].uuid == store.state._store.account.uuid ? '你' : store.state._message[msgItem.addition.index].username) + "的消息"}`
+}
+
 </script>
 <style lang='scss' scoped>
 * {
@@ -744,14 +1704,58 @@ watch(msg, (newVal, oldVal) => {
   font-size: 14px;
 }
 
+// vue3 transition fade
 .fade-enter-active,
 .fade-leave-active {
-  transition: .5s;
+  transition: .2s;
 }
 
-.fade-enter,
+.fade-enter-from,
 .fade-leave-to {
   opacity: 0;
+}
+
+.fade-enter-to,
+.fade-leave-from {
+  opacity: 1;
+}
+
+// vue3 transition backOutRight
+.backOutRight-enter-active,
+.backOutRight-leave-active {
+  transition: .2s;
+}
+
+.backOutRight-enter-from,
+.backOutRight-leave-to {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.backOutRight-enter-to,
+.backOutRight-leave-from {
+  opacity: 1;
+  transform: scale(1);
+  background: transparent !important;
+}
+
+// vue3 transition slide-from-left-to-right
+.slide-from-left-to-right-enter-active,
+.slide-from-left-to-right-leave-active {
+  transition: transform .2s;
+}
+
+.slide-from-left-to-right-enter-from {
+  transform: translateX(-100%);
+}
+
+.slide-from-left-to-right-enter-to,
+.slide-from-left-to-right-leave-from {
+  transform: translateX(0);
+}
+
+.slide-from-left-to-right-leave-to {
+  transform: translateX(100%);
 }
 
 .chat-mask {
@@ -791,10 +1795,6 @@ watch(msg, (newVal, oldVal) => {
     padding: 0;
     font-size: 13px;
     color: var(--title_color);
-
-    .dark & {
-      color: var(--dark_title_color);
-    }
   }
 
   .flex {
@@ -835,12 +1835,9 @@ watch(msg, (newVal, oldVal) => {
       }
 
       .dark & {
-        background-color: var(--dark_player_color);
-        color: var(--dark_active_color);
 
         &.active,
         &:hover {
-          background-color: var(--dark_active_color);
           color: white;
         }
       }
@@ -866,21 +1863,11 @@ watch(msg, (newVal, oldVal) => {
       &:focus {
         border-color: var(--active_color);
       }
-
-      .dark & {
-        background-color: var(--dark_player_color);
-        color: var(--dark_title_color);
-
-        &:focus {
-          border-color: var(--dark_active_color);
-        }
-      }
     }
   }
 
   .dark & {
     background-color: rgba(0, 0, 0, 0.72);
-    color: var(--dark_title_color);
   }
 }
 
@@ -892,25 +1879,21 @@ watch(msg, (newVal, oldVal) => {
   top: 50%;
   left: 50%;
   width: 340px;
-  padding: 20px;
   transform: translate(-50%, -50%);
   border-radius: 20px;
+  // overflow: hidden;
   z-index: 4;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
-  gap: 10px;
 
   .chat__container-header {
     color: var(--title_color);
     display: flex;
     justify-content: space-between;
     align-items: center;
-    height: 20px;
-
-    .dark & {
-      color: var(--dark_title_color);
-    }
+    padding: 14px 14px 10px 14px;
+    line-height: 20px;
 
     .flex {
       display: flex;
@@ -920,22 +1903,29 @@ watch(msg, (newVal, oldVal) => {
       .title {
         font-size: 16px;
         font-weight: bold;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+
+        .room-count {
+          font-size: inherit;
+          cursor: pointer;
+        }
       }
 
       .icon {
-        font-size: 13px;
         cursor: pointer;
         transition: .2s;
         display: flex;
         justify-content: center;
         align-items: center;
 
+        svg {
+          font-size: 15px;
+        }
+
         &:hover {
           color: var(--active_color);
-
-          .dark & {
-            color: var(--dark_active_color);
-          }
         }
       }
     }
@@ -949,9 +1939,9 @@ watch(msg, (newVal, oldVal) => {
 
   .select__wrapper {
     position: absolute;
-    top: 50px;
+    top: 44px;
     left: 50%;
-    width: calc(100% - 40px);
+    width: calc(100% - 28px);
     transform: translate(-50%);
     padding: 10px;
     box-sizing: border-box;
@@ -965,12 +1955,7 @@ watch(msg, (newVal, oldVal) => {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 0 10px 2px rgba(0, 0, 0, 0.1);
-    z-index: 1;
-
-    .dark & {
-      background-color: var(--dark_player_color);
-      color: var(--dark_title_color);
-    }
+    z-index: 3;
 
     * {
       font-size: 13px;
@@ -978,6 +1963,100 @@ watch(msg, (newVal, oldVal) => {
 
     .title {
       text-align: center;
+    }
+
+    &.room-setting {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 100%;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba($color: #000000, $alpha: .1);
+      justify-content: initial;
+      height: 600px;
+      display: block;
+
+      .room-setting-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px;
+
+        .title {
+          text-align: initial;
+          font-size: 14px;
+          font-weight: bold;
+        }
+
+        svg {
+          font-size: 15px;
+          cursor: pointer;
+          transition: .2s;
+
+          &:hover {
+            color: var(--active_color);
+          }
+        }
+      }
+
+      :deep .el-scrollbar__wrap {
+        border-radius: 10px;
+        overflow: hidden;
+        overflow-y: auto;
+
+        .el-scrollbar__view {
+          display: flex;
+          flex-direction: column;
+          gap: 5px;
+          padding: 4px 0;
+        }
+      }
+
+      .group {
+        padding: 6px 10px;
+
+        .group__title {
+          font-size: 12px;
+        }
+      }
+
+      .setting-item {
+        &.inline {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          min-height: 28px;
+
+          .item__title {
+            margin-bottom: 0;
+          }
+        }
+
+        .item__title {
+          font-size: 13px;
+          margin-bottom: 6px;
+
+          &.flex {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+
+            justify-content: center;
+            position: sticky;
+            top: 0;
+            background: var(--player_color);
+            padding: 5px 0;
+            z-index: 1;
+
+            svg {
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+            }
+          }
+        }
+      }
     }
 
     .group {
@@ -993,6 +2072,175 @@ watch(msg, (newVal, oldVal) => {
       .group__title {
         font-size: 13px;
         margin-bottom: 6px;
+
+        &.flex {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+
+          svg {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+          }
+        }
+      }
+
+      .group__item__wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+
+        .group__item {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          min-height: 28px;
+          line-height: 100%;
+
+          &.second-group {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+
+            .group {
+              width: 100%;
+              font-size: 12px;
+
+              .group__title {
+                font-size: inherit;
+              }
+
+              .item__wrapper {
+                grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+              }
+            }
+          }
+
+          .group__item__title {
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            min-height: 28px;
+
+            svg {
+              display: flex;
+              align-items: center;
+              cursor: pointer;
+            }
+
+            .item__badge {
+              transform: scale(.7);
+              transform-origin: center left;
+
+              :deep .el-badge__content {
+                background-color: var(--active_color);
+              }
+            }
+          }
+
+          .group__item__content {}
+
+          :deep .el-progress {
+            transform: translateX(5px);
+
+            .el-progress__text {
+              min-width: 100%;
+
+              .percentage-label {
+                color: var(--active_color);
+                font-weight: bold;
+                font-size: 12px;
+              }
+            }
+          }
+
+          :deep .el-collapse {
+            width: 100%;
+            border: none;
+
+            * {
+              font-family: "Yuanti SC", "Microsoft Yahei", "Helvetica Neue", Helvetica, Arial, sans-serif !important;
+            }
+
+            .el-collapse-item__arrow {
+              margin-right: 0;
+            }
+
+            .el-collapse-item {
+              border: none;
+
+              &:last-child {
+                margin-bottom: 0;
+              }
+
+              &.is-active {
+                border: none;
+              }
+            }
+
+            .el-collapse-item__header {
+              height: 28px;
+              font-size: 12px;
+              color: var(--title_color);
+              border: none;
+              background: none;
+              line-height: 100%;
+
+              &.is-active {
+                border: none;
+              }
+            }
+
+            .el-collapse-item__wrap {
+              border: none;
+              background: none;
+            }
+
+            .el-collapse-item__content {
+              padding-bottom: 0;
+            }
+
+            .task-lists {
+              display: grid;
+              grid-template-columns: repeat(3, 1fr);
+              row-gap: 3px;
+              column-gap: 10px;
+
+              .task-item {
+                color: var(--title_color);
+                display: flex;
+                align-items: center;
+                gap: 4px;
+
+                span {
+                  font-size: 12px;
+                }
+
+                .fa-circle {
+                  display: block;
+                }
+
+                .fa-check-circle {
+                  display: none;
+                }
+
+                &.active {
+                  color: var(--active_color);
+
+                  .fa-circle {
+                    display: none;
+                  }
+
+                  .fa-check-circle {
+                    display: block;
+                  }
+                }
+              }
+            }
+          }
+        }
       }
 
       .item__wrapper {
@@ -1014,11 +2262,6 @@ watch(msg, (newVal, oldVal) => {
           gap: 2px;
           align-items: center;
 
-          .dark & {
-            border-color: var(--dark_active_color);
-            color: var(--dark_active_color);
-          }
-
           svg {
             transform: scale(.65);
             transform-origin: center;
@@ -1028,11 +2271,59 @@ watch(msg, (newVal, oldVal) => {
           &:hover {
             background-color: var(--active_color);
             color: white;
+          }
 
-            .dark & {
-              background-color: var(--dark_active_color);
+          &.avatar-selector {
+            border-radius: 50%;
+            overflow: hidden;
+            padding: 0;
+            border-width: 2px;
+            border-color: transparent;
+
+            &.square {
+              border-radius: 10px;
+            }
+
+            &.notAllow {
+              opacity: .5;
+              cursor: not-allowed;
+            }
+
+            &:hover {
+              transform: scale(1.2);
+              border-width: 1px;
+
+              .avatar {
+                transform: scale(1.1);
+              }
+            }
+
+            .avatar {
+              width: 100%;
+              height: 100%;
+              object-fit: contain;
             }
           }
+        }
+      }
+
+      input {
+        appearance: none;
+        border: none;
+        outline: none;
+        background-color: transparent;
+        overflow: hidden;
+        height: 100%;
+        line-height: 100%;
+        transition: .2s;
+        cursor: pointer;
+        font-size: 12px;
+        color: var(--active_color);
+        text-align: right;
+        border: 1px solid transparent;
+
+        &:hover {
+          opacity: .8;
         }
       }
     }
@@ -1059,7 +2350,6 @@ watch(msg, (newVal, oldVal) => {
 
         .dark & {
           background-color: rgba(0, 0, 0, 0.72);
-          color: var(--dark_title_color);
         }
 
         &:hover {
@@ -1076,10 +2366,6 @@ watch(msg, (newVal, oldVal) => {
             font-weight: bold;
             filter: initial;
             pointer-events: initial;
-
-            .dark & {
-              background-color: var(--dark_active_color);
-            }
           }
         }
       }
@@ -1094,16 +2380,19 @@ watch(msg, (newVal, oldVal) => {
     }
   }
 
-
   .content__wrapper {
     position: relative;
-    height: 440px;
+    height: 500px;
     overflow: hidden;
 
     .currentLrc {
+      position: absolute;
+      left: 0;
+      z-index: 2;
       background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(233, 241, 252, 0.28) 30% 70%, rgba(255, 255, 255, 0) 100%);
+      background-color: rgba(255, 255, 255, .72);
+      backdrop-filter: blur(20px) saturate(120%);
       color: var(--active_color);
-      border-radius: 10px;
       overflow: hidden;
       width: 100%;
       max-width: 100%;
@@ -1111,28 +2400,15 @@ watch(msg, (newVal, oldVal) => {
       transition: .2s;
       text-align: center;
 
-      // vue3 transition slide-from-left-to-right
-      &.slide-from-left-to-right-enter-active,
-      &.slide-from-left-to-right-leave-active {
-        transition: .2s ease;
-      }
-
-      &.slide-from-left-to-right-enter-from {
-        transform: translateX(-100%);
-      }
-
-      &.slide-from-left-to-right-enter-to,
-      &.slide-from-left-to-right-leave-from {
-        transform: translateX(0);
-      }
-
-      &.slide-from-left-to-right-leave-to {
-        transform: translateX(100%);
+      &.fixed {
+        background-color: initial;
+        backdrop-filter: initial;
+        padding: 0;
       }
 
       .dark & {
         background: linear-gradient(90deg, rgba(255, 255, 255, 0) 0%, rgba(37, 40, 45, .28) 30% 70%, rgba(255, 255, 255, 0) 100%);
-        color: var(--dark_active_color);
+        background-color: rgba(0, 0, 0, 0.72);
       }
 
       span {
@@ -1145,27 +2421,23 @@ watch(msg, (newVal, oldVal) => {
           line-height: 150%;
 
           &:nth-child(2) {
-            color: #9bade4;
-
-            .dark & {
-              color: #e69877;
-            }
+            color: var(--secondary_color);
           }
         }
       }
     }
 
     .message__wrapper {
-      position: absolute;
       top: var(--top, 0);
       width: 100%;
       transition: .2s;
+      padding: 0 14px;
 
-      &::v-deep .el-scrollbar__wrap {
+      &:deep .el-scrollbar__wrap {
         transition: .2s;
       }
 
-      &::v-deep .el-scrollbar__view {
+      &:deep .el-scrollbar__view {
         display: flex;
         flex-direction: column;
         gap: 4px;
@@ -1184,6 +2456,14 @@ watch(msg, (newVal, oldVal) => {
 
           &:not(.room-change-message).right {
             align-items: flex-end;
+
+            .message__item-wrapper {
+              flex-direction: row-reverse;
+
+              .message__item-username {
+                display: none;
+              }
+            }
           }
 
           >span {
@@ -1199,10 +2479,6 @@ watch(msg, (newVal, oldVal) => {
               text-align: center;
               width: 100%;
               margin-top: 6px;
-
-              .dark & {
-                color: var(--dark_title_color);
-              }
             }
           }
 
@@ -1222,37 +2498,77 @@ watch(msg, (newVal, oldVal) => {
           &.room-change-message {
             text-align: center;
 
+            &.hide-room-change-message {
+              display: none;
+            }
+
             span {
               color: var(--title_color);
               font-size: 12px;
-
-              .dark & {
-                color: var(--dark_title_color);
-              }
             }
 
             &.right {
               &.leave {
                 .message__item-content {
-                  color: #9bade4;
-
-                  .dark & {
-                    color: #e69877;
-                  }
+                  color: var(--secondary_color);
                 }
               }
 
               .message__item-content {
                 color: var(--active_color);
-
-                .dark & {
-                  color: var(--dark_active_color);
-                }
               }
             }
           }
 
           &:not(.room-change-message) {
+            .message__item-wrapper {
+              display: flex;
+              align-items: flex-start;
+              gap: 6px;
+              max-width: 80%;
+
+              &:nth-child(1) {
+                margin-top: 6px;
+              }
+
+              &:nth-child(2) {
+                margin-top: 4px;
+              }
+
+              &:not(:last-child) {
+                margin-bottom: 10px;
+              }
+            }
+
+            .message__item-avatar {
+              width: 32px;
+              min-width: 32px;
+              object-fit: contain;
+              overflow: hidden;
+              border-radius: 50%;
+
+              &.useSquare {
+                border-radius: 10px;
+              }
+            }
+
+            .message__item-right-box {
+              display: flex;
+              flex-direction: column;
+              width: fit-content;
+              max-width: 100%;
+              gap: 4px;
+
+              .message__item-username {
+                color: var(--title_color);
+                font-size: 12px;
+              }
+
+              .message__item-content {
+                margin-top: 0;
+              }
+            }
+
             .message__item-content {
               padding: 6px 12px;
               width: fit-content;
@@ -1260,8 +2576,10 @@ watch(msg, (newVal, oldVal) => {
               color: var(--title_color);
               border-radius: 10px;
               margin-top: 4px;
-              max-width: 80%;
+              max-width: 100%;
               min-height: 32px;
+              word-break: break-all;
+              font-size: 14px;
 
               a {
                 color: inherit;
@@ -1271,10 +2589,6 @@ watch(msg, (newVal, oldVal) => {
 
                 &:hover {
                   color: var(--active_color);
-
-                  .dark & {
-                    color: var(--dark_active_color);
-                  }
                 }
               }
 
@@ -1316,6 +2630,7 @@ watch(msg, (newVal, oldVal) => {
                 border: 2px solid var(--active_color);
                 box-shadow: inset 6px 6px 12px #708bd9, inset -6px -6px 12px #98bdff;
                 overflow: hidden;
+                max-width: initial;
 
                 &.isPlaying {
                   .cover__wrapper {
@@ -1367,10 +2682,6 @@ watch(msg, (newVal, oldVal) => {
                         -o-transform: translate(-50%, -50%) rotate(360deg);
                         transform: translate(-50%, -50%) rotate(360deg);
                       }
-                    }
-
-                    .dark & {
-                      border-color: var(--dark_border_color);
                     }
                   }
 
@@ -1433,15 +2744,8 @@ watch(msg, (newVal, oldVal) => {
                 }
 
                 .dark & {
-                  background-color: var(--dark_active_color);
-                  border: 2px solid var(--dark_active_color);
                   box-shadow: inset 6px 6px 12px #c9460e, inset -6px -6px 12px #ff5e12;
                 }
-              }
-
-              .dark & {
-                background-color: var(--dark_player_color);
-                color: var(--dark_title_color);
               }
             }
 
@@ -1464,16 +2768,7 @@ watch(msg, (newVal, oldVal) => {
                   &:hover {
                     filter: brightness(1.1);
                   }
-
-                  .dark & {
-                    color: var(--dark_active_color);
-                    border-color: var(--dark_active_color);
-                  }
                 }
-              }
-
-              .dark & {
-                color: var(--dark_title_color);
               }
             }
 
@@ -1493,7 +2788,6 @@ watch(msg, (newVal, oldVal) => {
                 }
 
                 .dark & {
-                  background-color: var(--dark_active_color);
                   color: white;
                 }
               }
@@ -1509,22 +2803,18 @@ watch(msg, (newVal, oldVal) => {
     align-items: center;
     gap: 10px;
     position: relative;
+    padding: 10px 14px 14px 14px;
 
     .preCheck-musicInfo {
       position: absolute;
-      bottom: calc(100% + 10px);
-      left: 0;
+      bottom: calc(100%);
+      left: 15px;
       background-color: var(--player_color);
       color: var(--active_color);
       border-radius: 10px;
       overflow: hidden;
       max-width: 100%;
       z-index: 2;
-
-      .dark & {
-        background-color: var(--dark_player_color);
-        color: var(--dark_active_color);
-      }
 
       span {
         font-size: 12px;
@@ -1601,6 +2891,11 @@ watch(msg, (newVal, oldVal) => {
       box-sizing: border-box;
       transition: .2s;
 
+      &:hover {
+        background-color: transparent;
+        border-color: var(--border_color);
+      }
+
       &:focus {
         border-color: var(--active_color);
       }
@@ -1608,10 +2903,6 @@ watch(msg, (newVal, oldVal) => {
       &::placeholder {
         color: var(--title_color);
         opacity: .3;
-
-        .dark & {
-          color: var(--dark_title_color);
-        }
       }
     }
 
@@ -1641,21 +2932,6 @@ watch(msg, (newVal, oldVal) => {
       }
     }
 
-    .dark & {
-      input {
-        background-color: var(--dark_player_color);
-        color: var(--dark_title_color);
-
-        &:focus {
-          border-color: var(--dark_active_color);
-        }
-      }
-
-      button {
-        background-color: var(--dark_active_color);
-      }
-    }
-
     .input-wrapper {
       flex: 1;
       @extend input;
@@ -1679,7 +2955,7 @@ watch(msg, (newVal, oldVal) => {
         }
       }
 
-      &::v-deep img {
+      &:deep img {
         max-width: 90%;
         max-height: 100%;
         object-fit: contain;
@@ -1691,6 +2967,30 @@ watch(msg, (newVal, oldVal) => {
           filter: brightness(1.05);
         }
       }
+    }
+  }
+}
+
+.chat-member {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(50px, 1fr));
+
+  .chat-member-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
+
+    &.active {
+      color: var(--active_color);
+
+      .el-avatar {
+        border: 2px solid var(--active_color);
+      }
+    }
+
+    .useSquare {
+      border-radius: 10px;
     }
   }
 }

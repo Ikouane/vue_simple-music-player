@@ -1,7 +1,7 @@
 /*
  * @Author: ikouane
  * @Date: 2023-01-17 15:22:21
- * @LastEditTime: 2023-07-07 10:19:16
+ * @LastEditTime: 2023-08-10 15:37:23
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -19,15 +19,17 @@ const request = axios.create({
   timeout: 30000
 })
 
-let userCookie = localStorage.getItem("cookie");
+let userCookie = localStorage.getItem("cookie") || JSON.parse(localStorage.getItem("weyoung-music"))?.account.uuid;
 
 // 添加请求拦截器
 request.interceptors.request.use(
   function (config) {
     // 是否需要设置 token
-    const isToken = (config.headers || {}).isToken === false;
+    const isToken = config.isToken === false;
+    // const isToken = (config.headers || {}).isToken === false;
     if (userCookie && !isToken) {
-      config.headers["Authorization"] = window.encodeURIComponent(userCookie);
+
+      config.headers["Weyoung-Music-Token"] = window.encodeURIComponent(userCookie);
     }
     return config;
   },
@@ -36,6 +38,26 @@ request.interceptors.request.use(
     return Promise.reject(error);
   }
 );
+
+const setRequestHeader = (uuid) => {
+  console.log("setRequestHeader", uuid);
+  // 重新设置请求拦截器
+  request.interceptors.request.use(
+    function (config) {
+      // 是否需要设置 token
+      const isToken = config.isToken === false;
+      // const isToken = (config.headers || {}).isToken === false;
+      if (!isToken) {
+        config.headers["Weyoung-Music-Token"] = window.encodeURIComponent(uuid);
+      }
+      return config;
+    },
+    function (error) {
+      // 对请求错误做些什么
+      return Promise.reject(error);
+    }
+  );
+};
 
 // 错误信息处理
 const errorHandle = (status, other) => {
@@ -83,4 +105,4 @@ request.interceptors.response.use(
     }
   }
 );
-export { request, baseURL, baseAPI };
+export { request, baseURL, baseAPI, setRequestHeader };

@@ -1,7 +1,7 @@
 /*
  * @Author: ikouane
  * @Date: 2023-01-17 15:32:01
- * @LastEditTime: 2023-07-23 16:27:43
+ * @LastEditTime: 2023-08-10 01:04:26
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -72,6 +72,7 @@ export function getMyLoveApi() {
 export function testOrPreloadUrlApi(url) {
   return request.get(`${url}`, {
     baseURL: "",
+    isToken: false,
   });
 }
 
@@ -85,4 +86,14 @@ export function uploadImgApi(data) {
       "Content-Type": "multipart/form-data",
     },
   });
+}
+
+// 用户信息接口
+export function getUserInfoApi() {
+  return request.post(`/api/user/info`);
+}
+
+// 设置任务进度
+export function setTaskProgressApi(taskIndex) {
+  return request.post(`/api/user/task/${taskIndex}`);
 }

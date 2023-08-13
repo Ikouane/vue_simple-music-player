@@ -1,9 +1,8 @@
 <template>
   <div class="mplayer" :class="{
-    dark: _play.mode == 'night',
-    pink: _play.mode == 'pink',
     mini: _miniMode,
-  }">
+  }
+    " :style="_store?.config?.player?.activeColor ? `--active_color: ${_store.config.player.activeColor}` : ''">
     <transition>
       <InputModal v-if="_success" :isShow="_success" :isWrong="isWrong" />
     </transition>
@@ -34,7 +33,11 @@
     </transition>
     <transition name="fade">
       <Popup v-if="_showPopup && !_play.isPlaying" @close-handler="updateShowPopup({ showPopup: false })"
-        title="欢迎使用「一起听」" content="本房间正在播放音乐，是否同步播放？" />
+        title="欢迎使用「一起听」" content="本房间正在播放音乐，是否同步播放？" :buttons="['welcome-musicPlay', 'welcome-skip']" />
+    </transition>
+    <transition name="fade">
+      <Popup v-if="_tips.show" @close-handler="updateShowTips({ showTips: false })" :title="_tips.title"
+        :icon="_tips.icon" :content="_tips.content" :buttons="_tips.buttons" />
     </transition>
     <template v-if="_miniMode">
       <div class="flex flex-column">
@@ -102,7 +105,9 @@ export default {
       "_chatContainerShow",
       "_inputMode",
       "formatArtists",
-      "_showPopup"
+      "_showPopup",
+      "_tips",
+      "_store"
     ]),
   },
   methods: {
@@ -209,14 +214,12 @@ export default {
     }
   }
 
-  &.dark {
-    background-color: var(--dark_player_color);
-    border: 2px solid black;
+  .dark & {
+    border-color: black;
   }
 
-  &.pink {
-    background-color: var(--pink_player_color);
-    border: 2px solid var(--pink_border_color);
+  .pink & {
+    border-color: var(--pink_border_color);
   }
 
   .fade-enter-active,

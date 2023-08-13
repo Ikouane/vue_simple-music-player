@@ -39,34 +39,10 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-$title_color: var(--title_color);
-$text_color: var(--text_color);
-$main_color: var(--main_color);
-$player_color: var(--player_color);
-$border_color: var(--border_color);
-$active_color: var(--active_color);
-$title_size: 30px;
-$text_size: 16px;
-$time_size: 12px;
-
-$dark_main_color: var(--dark_main_color);
-$dark_player_color: var(--dark_player_color);
-$dark_active_color: var(--dark_active_color);
-$dark_title_color: var(--dark_title_color);
-$dark_text_color: var(--dark_text_color);
-$dark_border_color: var(--dark_border_color);
-
-$pink_main_color: var(--pink_main_color);
-$pink_player_color: var(--pink_player_color);
-$pink_active_color: var(--pink_active_color);
-$pink_title_color: var(--pink_title_color);
-$pink_text_color: var(--pink_text_color);
-$pink_border_color: var(--pink_border_color);
-
 .player-button {
   border-radius: 50px;
   background: linear-gradient(145deg, #f9ffff, #d2d9e3);
-  border: 2px solid $border_color;
+  border: 2px solid var(--border_color);
   box-shadow: 6px 6px 12px #c6cdd6, -6px -6px 12px #ffffff;
   cursor: pointer;
   display: flex;
@@ -80,12 +56,9 @@ $pink_border_color: var(--pink_border_color);
   &.disabled {
     cursor: not-allowed;
     filter: grayscale(1);
-
-    .dark & {}
   }
 
   .dark & {
-    border: 2px solid $dark_border_color;
     background: linear-gradient(145deg, #2a2e33, #23272b);
     box-shadow: 5px 5px 10px #212529, -5px -5px 10px #2d3137;
 
@@ -101,16 +74,13 @@ $pink_border_color: var(--pink_border_color);
 
       &:hover,
       &.active {
-        background: var(--dark_active_color) !important;
         box-shadow: none;
-        border: 2px solid var(--dark_active_color);
         box-shadow: inset 6px 6px 12px #c9460e, inset -6px -6px 12px #ff5e12;
       }
     }
   }
 
   .pink & {
-    border: 2px solid $pink_border_color;
     background: linear-gradient(145deg, #ffebf3, #f7f0f4);
     box-shadow: 5px 5px 20px #f9e7f0, -5px -5px 15px #ffffff;
 
@@ -122,16 +92,10 @@ $pink_border_color: var(--pink_border_color);
 
       &:hover,
       &.active {
-        background: var(--pink_active_color) !important;
         box-shadow: none;
         border: 2px solid var(--pink_active_color);
         box-shadow: inset 6px 6px 12px #eda6c8, inset -6px -6px 12px #f4c0da;
       }
-    }
-
-    svg {
-      color: $pink_text_color;
-      pointer-events: none; //点击穿透
     }
   }
 
@@ -175,7 +139,7 @@ $pink_border_color: var(--pink_border_color);
   }
 
   svg {
-    color: $text_color;
+    color: var(--text_color);
     pointer-events: none; //点击穿透
   }
 }

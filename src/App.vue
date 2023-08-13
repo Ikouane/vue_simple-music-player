@@ -6,13 +6,14 @@
       <button @click="goToPage('room')">一起听</button>
     </div>
     <div class="snow__wrapper" :style="`--mainColor: ${_play.isPlaying ? _mainColor : 'white'}`"></div>
+    <canvas v-show="getRainModeByMusicName" id="rain" class="rain__wrapper"></canvas>
   </div>
 </template>
 
 <script>
 import Main from "./views/Main";
 import "@/assets/index.css";
-import { mapActions, mapMutations, mapState } from "vuex";
+import { mapActions, mapGetters, mapMutations, mapState } from "vuex";
 import { getDateApi, getSingleMusicApi, getMusicListApi, getSavedListApi } from "@/api/api"
 // import wx from "weixin-js-sdk";
 
@@ -23,6 +24,7 @@ export default {
   },
   computed: {
     ...mapState(["_play", "_playList", "_dailyMode", "_userTouch", "_miniMode", "_mainColor", "_inputMode", "_loaded"]),
+    ...mapGetters(["getRainModeByMusicName"]),
   },
   methods: {
     ...mapMutations([
@@ -45,7 +47,8 @@ export default {
       "setAlreadyTouch",
       "setMiniMode",
       "setInputMode",
-      "switchChatContainerShow"
+      "switchChatContainerShow",
+      "upgradeLocalStorage"
     ]),
     ...mapActions(["playSync"]),
     initScreen() {
@@ -210,6 +213,8 @@ export default {
     window
       .matchMedia("(prefers-color-scheme: light)")
       .addListener(listeners.light);
+
+    this.upgradeLocalStorage();
   },
 
   mounted() {
@@ -309,23 +314,6 @@ export default {
 };
 </script>
 <style lang="scss">
-$title_color: var(--title_color);
-$text_color: var(--text_color);
-$main_color: var(--main_color);
-$player_color: var(--player_color);
-$border_color: var(--border_color);
-$active_color: var(--active_color);
-$title_size: 30px;
-$text_size: 16px;
-$time_size: 12px;
-
-$dark_main_color: var(--dark_main_color);
-$dark_player_color: var(--dark_player_color);
-$dark_active_color: var(--dark_active_color);
-$dark_title_color: var(--dark_title_color);
-$dark_text_color: var(--dark_text_color);
-$dark_border_color: var(--dark_border_color);
-
 // #app {
 //   font-family: Avenir, Helvetica, Arial, sans-serif;
 //   -webkit-font-smoothing: antialiased;
@@ -347,6 +335,7 @@ img {
 body {
   min-height: 100vh;
   overflow: hidden;
+  background-color: var(--main_color);
 
   &.imgBg {
     background-image: var(--backgroundImage);
@@ -408,6 +397,16 @@ body {
       }
     }
   }
+
+  .rain__wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
 }
 
 #app {
@@ -449,21 +448,45 @@ body {
     width: 150px;
     height: 150px;
     border-radius: 50%;
-    background: $player_color;
-    color: $title_color;
+    background: var(--player_color);
+    color: var(--title_color);
     font-size: 20px;
     font-weight: bold;
     transition: all 0.3s ease-in-out;
     letter-spacing: 4px;
     // 去除 letter-spacing 对中文的影响
     text-rendering: optimizeLegibility;
-    border: 2px solid $border_color;
+    border: 2px solid var(--border_color);
 
     &:hover {
       cursor: pointer;
-      background: $active_color;
-      color: $border_color;
+      background: var(--active_color);
+      color: var(--border_color);
     }
   }
+}
+
+.__menu__wrapper {
+  backdrop-filter: saturate(180%) blur(20px);
+  border-radius: 10px !important;
+  overflow: hidden;
+  box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1) !important;
+  --menu-background: rgba(255, 255, 255, 0.72) !important;
+  --menu-item-hoverBackground: var(--active_color) !important;
+  --menu-item-labelColor: var(--title_color) !important;
+  --menu-item-tipsColor: var(--text_color) !important;
+
+  .__menu__item {
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .dark & {
+    --menu-background: rgba(0, 0, 0, 0.72) !important;
+  }
+}
+
+.el-popover__title {
+  font-size: 13px !important;
 }
 </style>

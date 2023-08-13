@@ -183,7 +183,7 @@ export default {
   },
   computed: {
     ...mapState(["_play", "_playList", "_userTouch", "_miniMode", "_mainColor", "formatArtists"]),
-    ...mapGetters(["getAnonymous", "getPlayMode", "getNextMusicIndex", "getSakuraModeByMusicName", "getSakuraModeByMusicName"]),
+    ...mapGetters(["getAnonymous", "getPlayMode", "getNextMusicIndex", "getSakuraModeByMusicName", "getSakuraModeByMusicName", "getRainModeByMusicName"]),
     _nowPlaying() {
       return this._play.nowPlaying;
     },
@@ -763,6 +763,18 @@ export default {
         } else if (document.querySelector("#canvas_sakura")) window.stopp();
       }
 
+      if (this.getRainModeByMusicName) {
+        if (document.querySelectorAll("script[src='rain.js']").length) {
+          // 
+        }
+        else
+          loadScript("rain.js", () => { });
+        this.setMsg({
+          title: "主题效果",
+          message: "已应用「雨」效果"
+        });
+      }
+
       this.setImageBackground();
 
       this.getLrc();
@@ -861,30 +873,6 @@ export default {
 };
 </script>
 <style lang='scss' scoped>
-$title_color: var(--title_color);
-$text_color: var(--text_color);
-$main_color: var(--main_color);
-$player_color: var(--player_color);
-$border_color: var(--border_color);
-$active_color: var(--active_color);
-$title_size: 30px;
-$text_size: 16px;
-$time_size: 12px;
-
-$dark_main_color: var(--dark_main_color);
-$dark_player_color: var(--dark_player_color);
-$dark_active_color: var(--dark_active_color);
-$dark_title_color: var(--dark_title_color);
-$dark_text_color: var(--dark_text_color);
-$dark_border_color: var(--dark_border_color);
-
-$pink_main_color: var(--pink_main_color);
-$pink_player_color: var(--pink_player_color);
-$pink_active_color: var(--pink_active_color);
-$pink_title_color: var(--pink_title_color);
-$pink_text_color: var(--pink_text_color);
-$pink_border_color: var(--pink_border_color);
-
 .fade-enter-active,
 .fade-leave-active {
   transition: opacity .2s;
@@ -948,16 +936,7 @@ $pink_border_color: var(--pink_border_color);
   margin: auto;
   margin-bottom: 40px; //100px
   width: 90%;
-
-  color: $text_color;
-
-  .dark & {
-    color: $dark_text_color;
-  }
-
-  .pink & {
-    color: $pink_text_color;
-  }
+  color: var(--text_color);
 
   p {
     margin: 0;
@@ -1017,14 +996,6 @@ $pink_border_color: var(--pink_border_color);
         }
       }
     }
-
-    .dark & {
-      color: var(--dark_title_color);
-    }
-
-    .pink & {
-      color: var(--pink_title_color);
-    }
   }
 
   .music-author {
@@ -1080,14 +1051,6 @@ $pink_border_color: var(--pink_border_color);
       white-space: nowrap;
       animation: gothrough_author var(--overflow_time_aboutAuthor) linear infinite 3s;
     }
-
-    .dark & {
-      color: var(--dark_text_color);
-    }
-
-    .pink & {
-      color: var(--pink_text_color);
-    }
   }
 
   .mask {
@@ -1138,7 +1101,6 @@ $pink_border_color: var(--pink_border_color);
 
     .dark & {
       background-color: rgba(0, 0, 0, 0.72);
-      border: 1px solid var(--dark_border_color);
       box-shadow: 0 0 10px rgba(0, 0, 0, .8);
       text-shadow: 0 0 10px rgba(0, 0, 0, 0.72);
     }
@@ -1280,7 +1242,6 @@ $pink_border_color: var(--pink_border_color);
 
       .dark & {
         background-color: #e5bc28;
-        border: 5px solid var(--dark_player_color);
         box-shadow: 2px 2px 6px #000000;
       }
 
@@ -1326,14 +1287,6 @@ $pink_border_color: var(--pink_border_color);
       width: 100%;
 
       color: var(--text_color);
-
-      .dark & {
-        color: var(--dark_text_color);
-      }
-
-      .pink & {
-        color: var(--pink_text_color);
-      }
     }
 
     .lrc_wrapper::before,
@@ -1437,22 +1390,6 @@ $pink_border_color: var(--pink_border_color);
       &:last-child {
         margin-top: 4px;
         color: var(--text_color);
-      }
-
-      .dark & {
-        color: var(--dark_title_color);
-
-        &:last-child {
-          color: var(--dark_text_color);
-        }
-      }
-
-      .pink & {
-        color: var(--pink_title_color);
-
-        &:last-child {
-          color: var(--pink_text_color);
-        }
       }
     }
   }

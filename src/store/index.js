@@ -1,15 +1,25 @@
 import { createStore } from "vuex";
 import useClipboard from "vue-clipboard3";
 import { nextTick } from "vue";
-import { getDateApi, getMusicUrlApi, getSvipMusicUrlApi, loveSongApi, getSingleMusicApi } from "@/api/api"
-import { loadScript } from "@/utils/loadJs.js"
-import { formatArtists } from "@/utils/public.js"
+import {
+  getDateApi,
+  getMusicUrlApi,
+  getSvipMusicUrlApi,
+  loveSongApi,
+  getSingleMusicApi,
+  setTaskProgressApi,
+  getUserInfoApi
+} from "@/api/api";
+import { loadScript } from "@/utils/loadJs.js";
+import { formatArtists } from "@/utils/public.js";
 // import { ElNotification } from 'element-plus'
 import { io } from "socket.io-client";
-import { baseAPI } from "../utils/http";
+import { baseAPI, setRequestHeader } from "../utils/http";
 import { useLocalStorage } from "@vueuse/core";
 import confetti from "canvas-confetti";
 import { ElMessage } from "element-plus";
+import { compareVersions, validate } from "compare-versions";
+
 let confettiInstance = confetti.create(
   document.getElementById("confetti-canvas"),
   {
@@ -18,15 +28,94 @@ let confettiInstance = confetti.create(
   }
 );
 
+const setMode = (mode) => {
+  if (mode === "night") {
+    document.body.className = "dark";
+    document.documentElement.classList.add("dark");
+  } else if (mode === "day") {
+    document.body.className = "";
+    document.documentElement.classList.remove("dark");
+  } else if (mode === "pink") {
+    document.body.className = "pink";
+    document.documentElement.classList.remove("dark");
+  }
+};
+
+const VERSION = "0.0.78-beta+20230813";
+let storeObj = {
+  account: {
+    uuid: null,
+    username: null,
+    avatar: { useSquare: false, type: "default" },
+  },
+  config: {
+    room: {
+      newMessageSound: "message-1.mp3",
+      showRoomChangeMessage: true,
+      showPreviousRoomChangeMessage: true,
+      alwaysShowUsername: false,
+      autoShowUserUsernameInMoreThanTwoPeople: true,
+    },
+    player: {
+      activeColor: null,
+    },
+  },
+  version: VERSION,
+};
+
+// 遍历校验 obj1 中的 key 是否都存在于 obj2 中
+const validateTwoObject = (obj1, obj2) => {
+  let result = true;
+  for (let key in obj1) {
+    if (Object.prototype.hasOwnProperty.call(obj2, key) === false) {
+      result = false;
+      break;
+    }
+    if (typeof obj1[key] === "object") {
+      if (!validateTwoObject(obj1[key], obj2[key])) {
+        result = false;
+        break;
+      }
+    }
+  }
+
+  return result;
+};
+
+// 合并两个对象中同名的值
+const mergeTwoObject = (obj1, obj2) => {
+  let result = {};
+  result.version = obj1.version;
+  for (let key in obj1) {
+    if (key === "version") continue;
+    if (Object.prototype.hasOwnProperty.call(obj2, key) === false) {
+      result[key] = obj1[key];
+    } else {
+      if (typeof obj1[key] === "object" && typeof obj2[key] === "object") {
+        result[key] = mergeTwoObject(obj1[key], obj2[key]);
+      } else {
+        result[key] = obj2[key];
+      }
+    }
+  }
+
+  return result;
+};
+
+// 校验数据是否升级完成
+const validateObj = (newObj) => {
+  return validateTwoObject(storeObj, newObj);
+}
+
 export default createStore({
   state: {
-    VERSION: "0.0.76_alpha_20230715",
+    VERSION,
     _loaded: false,
     _success: false,
     _pid: null,
     _rid: null,
     _uid: null,
-    _store: useLocalStorage("weyoung-music", { account: { uuid: null, username: null }, version: "0.0.76_alpha_20230715" }),
+    _store: useLocalStorage("weyoung-music", storeObj),
     _dailyMode: false,
     _signalColor: null,
     _ws: null,
@@ -54,6 +143,7 @@ export default createStore({
     _message: [],
     _roomInfo: {},
     _showPopup: false,
+    _tips: {},
     example_array: [
       {
         musicId: "musicId",
@@ -72,7 +162,9 @@ export default createStore({
       lrc: null,
       tlrc: null,
     },
-    _confettiInstance: confettiInstance
+    _confettiInstance: confettiInstance,
+    // 个人信息
+    userInfo: {}
   },
   mutations: {
     deepClone(obj = {}) {
@@ -101,18 +193,7 @@ export default createStore({
       state._play = o_Play._play;
       state._playList = o_Play._playList;
       state._message = o_Play._message;
-      if (state._play.mode === "night")
-        document
-          .querySelector("body")
-          .setAttribute("style", "background-color:var(--dark_main_color)");
-      else if (state._play.mode === "day")
-        document
-          .querySelector("body")
-          .setAttribute("style", "background-color:var(--main_color)");
-      if (state._play.mode === "pink")
-        document
-          .querySelector("body")
-          .setAttribute("style", "background-color:var(--pink_main_color)");
+      setMode(state._play.mode);
 
       let snowWrapper = document.querySelector(".snow__wrapper");
       if (state._play.snowMode) {
@@ -137,22 +218,23 @@ export default createStore({
           setTimeout(() => {
             this.commit("setMsg", {
               title: "主题效果",
-              message: "已应用「樱花」效果"
+              message: "已应用「樱花」效果",
             });
-          }, 3000)
+          }, 3000);
         });
       }
 
-      // TODO: 雪花数量根据音乐增减 
+      // TODO: 雪花数量根据音乐增减
       // state._play = this.commit('deepClone', o_Play._play)
       // state._playList = this.commit('deepClone', o_Play._playList)
       // this.commit('clearMsg');
       // this.commit("setMsg", "数据已更新");
 
       this.dispatch("getMusicUrl", {
-        musicIndex: 0
+        musicIndex: 0,
       }).then(() => {
-        document.querySelector("#music").src = state._playList[state._play.nowPlaying].url;
+        document.querySelector("#music").src =
+          state._playList[state._play.nowPlaying].url;
       });
 
       console.log("数据已更新");
@@ -184,8 +266,10 @@ export default createStore({
         if (state._ws) {
           // 获取最新进度
           state._ws.emit("sync", {
-            action: "getLatest"
-          })
+            action: "getLatest",
+          });
+
+          console.log("获取最新进度");
         }
 
         nextTick(() => {
@@ -199,14 +283,17 @@ export default createStore({
       //   message: "音乐已播放",
       // });
     },
-    musicFadeIn(state, { needSync = true } = {
-      needSync: true
-    }) {
+    musicFadeIn(
+      state,
+      { needSync = true } = {
+        needSync: true,
+      }
+    ) {
       this.commit("play");
       if (needSync && state._ws)
         state._ws.emit("sync", {
-          action: "musicFadeIn"
-        })
+          action: "musicFadeIn",
+        });
       document.getElementById("music").volume = 0;
       let v = document.getElementById("music").volume;
       let int = setInterval(() => {
@@ -219,13 +306,16 @@ export default createStore({
         document.getElementById("music").volume = v;
       }, 100);
     },
-    musicFadeOut(state, { needSync = true } = {
-      needSync: true
-    }) {
+    musicFadeOut(
+      state,
+      { needSync = true } = {
+        needSync: true,
+      }
+    ) {
       if (needSync && state._ws)
         state._ws.emit("sync", {
-          action: "musicFadeOut"
-        })
+          action: "musicFadeOut",
+        });
       //document.getElementById("music").volume = 1;
       let v = document.getElementById("music").volume;
       let int = setInterval(() => {
@@ -269,7 +359,8 @@ export default createStore({
         switch (this.getters.getPlayMode) {
           // 单曲循环
           case "cycle":
-            if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
+            if (state._play.nowPlaying - 1 >= 0)
+              desIndex = state._play.nowPlaying - 1;
             state._singleMusicMode = true;
             break;
           // 随机播放
@@ -279,7 +370,8 @@ export default createStore({
             break;
           // 列表循环
           case "list":
-            if ((state._play.nowPlaying - 1) >= 0) desIndex = state._play.nowPlaying - 1;
+            if (state._play.nowPlaying - 1 >= 0)
+              desIndex = state._play.nowPlaying - 1;
             state._singleMusicMode = false;
             break;
         }
@@ -288,11 +380,11 @@ export default createStore({
       if (needSync && state._ws)
         state._ws.emit("sync", {
           action: "prev",
-          desIndex
-        })
+          desIndex,
+        });
 
       this.dispatch("getMusicUrl", {
-        musicIndex: desIndex
+        musicIndex: desIndex,
       }).then(() => {
         let v = document.getElementById("music").volume;
         let int = setInterval(() => {
@@ -318,12 +410,20 @@ export default createStore({
             document.getElementById("music").volume = v;
           }
         }, 75);
-      })
+      });
 
       // if ((state._play.nowPlaying -= 1) < 0) state._play.nowPlaying = state._playList.length - 1
       // state._play.isPlaying = true
     },
-    next(state, { hasWrong = false, needSync = true, isForce = false, desIndex = null } = {}) {
+    next(
+      state,
+      {
+        hasWrong = false,
+        needSync = true,
+        isForce = false,
+        desIndex = null,
+      } = {}
+    ) {
       if (!desIndex) {
         desIndex = 0;
 
@@ -331,33 +431,39 @@ export default createStore({
         // 即使处于单曲循环也进行下一首
         // 若处于随机状态则随机下一首
 
-        switch (this.getters.getPlayMode) {
-          // 单曲循环
-          case "cycle":
-            if ((state._play.nowPlaying + 1) <= state._playList.length - 1) desIndex = state._play.nowPlaying + 1;
-            state._singleMusicMode = true;
-            break;
-          // 随机播放
-          case "random":
-            desIndex = Math.floor(Math.random() * state._playList.length);
-            state._singleMusicMode = false;
-            break;
-          // 列表循环
-          case "list":
-            if ((state._play.nowPlaying + 1) <= state._playList.length - 1) desIndex = state._play.nowPlaying + 1;
-            state._singleMusicMode = false;
-            break;
-        }
+        if (state._play.nextPlay) {
+          desIndex = state._play.nextPlay;
+          this.commit("clearNextPlay", {});
+        } else
+          switch (this.getters.getPlayMode) {
+            // 单曲循环
+            case "cycle":
+              if (state._play.nowPlaying + 1 <= state._playList.length - 1)
+                desIndex = state._play.nowPlaying + 1;
+              state._singleMusicMode = true;
+              break;
+            // 随机播放
+            case "random":
+              desIndex = Math.floor(Math.random() * state._playList.length);
+              state._singleMusicMode = false;
+              break;
+            // 列表循环
+            case "list":
+              if (state._play.nowPlaying + 1 <= state._playList.length - 1)
+                desIndex = state._play.nowPlaying + 1;
+              state._singleMusicMode = false;
+              break;
+          }
       }
 
       if (needSync && state._ws)
         state._ws.emit("sync", {
           action: "next",
-          desIndex
-        })
+          desIndex,
+        });
 
       this.dispatch("getMusicUrl", {
-        musicIndex: desIndex
+        musicIndex: desIndex,
       }).then(() => {
         let v = document.getElementById("music").volume;
         let int = setInterval(() => {
@@ -397,7 +503,7 @@ export default createStore({
             message: "播放出错，已为您跳过",
           });
         }
-      })
+      });
 
       // if ((state._play.nowPlaying += 1) > state._playList.length - 1) state._play.nowPlaying = 0
       // state._play.isPlaying = true
@@ -409,8 +515,8 @@ export default createStore({
       if (needPlay && state._play.nowPlaying == desIndex) {
         this.commit("goTime", {
           desTime: state._play.playTime,
-          needSync: false
-        })
+          needSync: false,
+        });
       }
       if (state._playList[desIndex].skip) {
         // 跳过歌曲时处理
@@ -420,11 +526,11 @@ export default createStore({
         if (needSync && state._ws)
           state._ws.emit("sync", {
             action: "goPlay",
-            desIndex
-          })
+            desIndex,
+          });
 
         this.dispatch("getMusicUrl", {
-          musicIndex: desIndex
+          musicIndex: desIndex,
         }).then(() => {
           const musicEl = document.getElementById("music");
           nextTick(() => {
@@ -463,7 +569,7 @@ export default createStore({
               }, 50);
             }
           });
-        })
+        });
       }
     },
     goTime(state, { desTime, needSync = true }) {
@@ -471,8 +577,8 @@ export default createStore({
       if (needSync && state._ws)
         state._ws.emit("sync", {
           action: "goTime",
-          desTime
-        })
+          desTime,
+        });
 
       nextTick(() => {
         if (desTime < 0) {
@@ -518,7 +624,8 @@ export default createStore({
         this.throttle = setTimeout(() => {
           state._ws.emit("sync", {
             action: "updatePlayTime",
-            playTime: time
+            playTime: time,
+            nowPlaying: state._play.nowPlaying,
           });
           this.throttle = null;
         }, 200);
@@ -535,17 +642,17 @@ export default createStore({
         state._play.nowPage = "PLAYLIST";
       else state._play.nowPage = "PLAYING NOW";
     },
-    modeSwitch(state, { target = null, needSync = true } = {
-      target: null,
-    }) {
+    modeSwitch(
+      state,
+      { target = null, needSync = true } = {
+        target: null,
+      }
+    ) {
       document.querySelector("body").classList.remove("imgBg");
 
       if (target === "night" || target === "day") {
         state._play.mode = target;
         if (state._play.mode === "day") {
-          document
-            .querySelector("body")
-            .setAttribute("style", "background-color:var(--main_color)");
           this.commit("setMsg", {
             message: "已切换至日间模式",
           });
@@ -553,9 +660,6 @@ export default createStore({
           this.commit("setMsg", {
             message: "已切换至夜间模式",
           });
-          document
-            .querySelector("body")
-            .setAttribute("style", "background-color:var(--dark_main_color)");
         }
       } else {
         if (state._play.mode === "day") {
@@ -563,13 +667,7 @@ export default createStore({
           this.commit("setMsg", {
             message: "已切换至夜间模式",
           });
-          document
-            .querySelector("body")
-            .setAttribute("style", "background-color:var(--dark_main_color)");
         } else {
-          document
-            .querySelector("body")
-            .setAttribute("style", "background-color:var(--main_color)");
           state._play.mode = "day";
           this.commit("setMsg", {
             message: "已切换至日间模式",
@@ -577,27 +675,35 @@ export default createStore({
         }
       }
 
+      setMode(state._play.mode);
+
       if (needSync && state._ws)
         state._ws.emit("sync", {
           action: "modeSwitch",
           target: state._play.mode,
-        })
+        });
     },
-    switchLike(state, { needSync = true } = {
-      needSync: true
-    }) {
+    switchLike(
+      state,
+      { needSync = true } = {
+        needSync: true,
+      }
+    ) {
       let _this = this;
       if (needSync && state._ws)
         state._ws.emit("sync", {
-          action: "switchLike"
-        })
+          action: "switchLike",
+        });
       if (state._playList[state._play.nowPlaying].isLike) {
         console.log("取消我喜欢");
       } else {
         console.log("我喜欢");
       }
 
-      loveSongApi(state._playList[state._play.nowPlaying].id, !state._playList[state._play.nowPlaying].isLike)
+      loveSongApi(
+        state._playList[state._play.nowPlaying].id,
+        !state._playList[state._play.nowPlaying].isLike
+      )
         .then((response) => {
           if (response.code == 200) {
             if (state._playList[state._play.nowPlaying].isLike)
@@ -630,7 +736,10 @@ export default createStore({
       state._play.message.show = false;
       state._play.message.content = null;
     },
-    setMsg(state, { message, duration = 3000, title = "通知", impact = false, buttons = [] }) {
+    setMsg(
+      state,
+      { message, duration = 3000, title = "通知", impact = false, buttons = [] }
+    ) {
       if (!state._play.message.impact || impact) this.commit("clearMsg");
       setTimeout(() => {
         state._play.message.show = true;
@@ -683,28 +792,29 @@ export default createStore({
         this.commit("setStore", _local);
       }
     },
-    setRid(state, {
-      rid,
-      status = "waiting"
-    }) {
+    setRid(state, { rid, status = "waiting" }) {
+      // FIXME: 修复概率出现两次提示的问题，第二次无法正常接收参数
       state._rid = rid;
       switch (status) {
         case "waiting":
+          console.log(`%c[WS]`, "color: #e78111", "正在连接至服务器");
           break;
         case "connected":
+          console.log(`%c[WS]`, "color: #00a1f1", "已连接至服务器");
           this.commit("setMsg", {
             title: `欢迎使用「一起听」`,
             message: `加入 ${rid} 房间`,
             duration: 0,
-            buttons: ['jumpToRoom']
+            buttons: ["jumpToRoom"],
           });
           break;
         case "failed":
+          console.log(`%c[WS]`, "color: #f00", "连接服务器失败");
           this.commit("setMsg", {
             title: `系统消息`,
             message: `获取房间数据失败，已进入离线模式`,
             duration: 0,
-            impact: true
+            impact: true,
           });
           break;
       }
@@ -761,13 +871,13 @@ export default createStore({
     },
 
     // 复制文本到剪贴板
-    async copyToClipBoard(state, text) {
+    async copyToClipBoard(state, { text, message = "已复制到剪贴板" }) {
       const { toClipboard } = useClipboard();
       try {
         //复制
         await toClipboard(text);
         this.commit("setMsg", {
-          message: `分享链接已复制到剪贴板`,
+          message,
         });
         //下面可以设置复制成功的提示框等操作
         //...
@@ -799,16 +909,18 @@ export default createStore({
           clearInterval(this.interval);
           state._signalColor = "green";
         }, 3000);
-
-      } else
-        state._signalColor = desColor;
+      } else state._signalColor = desColor;
     },
 
     // 替换音乐源（游客无法播放时）
     replaceMusicUrl(state, { musicIndex, musicUrl, needPlay }) {
       state._playList[musicIndex].url = musicUrl;
       state._playList[musicIndex].skip = false;
-      this.commit("goPlay", { desIndex: musicIndex, needPlay });
+      this.commit("goPlay", {
+        desIndex: musicIndex,
+        needPlay,
+        needSync: false,
+      });
     },
 
     // 设置已触碰
@@ -825,7 +937,7 @@ export default createStore({
     sendMessage(state, { msg, needSync = true }) {
       let data = {
         type: "room",
-      }
+      };
 
       if (typeof msg === "string") {
         // 解析网易云音乐链接
@@ -839,27 +951,18 @@ export default createStore({
           data.addition = {
             platform: "netease",
             kind: "song",
-            id
+            musicId: id,
           };
           data.type = "room:addSong";
         } else {
           // 匹配失败
           data.msg = msg;
         }
-
-        // 房间特效
-        if (msg == "room:effect") {
-          data.type = "room:effect";
-          data.addition = {
-            effect: "confetti"
-          }
-        }
       } else if (typeof msg === "object") {
         data.msg = msg;
       }
 
-      if (needSync && state._ws)
-        state._ws.emit("message", data)
+      if (needSync && state._ws) state._ws.emit("message", data);
     },
 
     // 设置正在输入信息
@@ -867,7 +970,7 @@ export default createStore({
       if (needSync && state._ws)
         state._ws.emit("message", {
           type: "room:setTyping",
-          isTyping
+          isTyping,
         });
 
       // 设置正在输入的用户
@@ -880,9 +983,9 @@ export default createStore({
         state._ws.emit("message", {
           type: "room:effect",
           addition: {
-            effect
-          }
-        })
+            effect,
+          },
+        });
     },
 
     // 发送房间游戏
@@ -891,14 +994,26 @@ export default createStore({
         state._ws.emit("message", {
           type: "room:game",
           addition: {
-            game
-          }
-        })
+            game,
+          },
+        });
+    },
+
+    // 撤回消息
+    recallMessage(state, { id, index }) {
+      if (state._ws)
+        state._ws.emit("message", {
+          type: "room:recall",
+          addition: {
+            id,
+            index,
+          },
+        });
     },
 
     // 设置主题色
     setMainColor(state, { mainColor }) {
-      state._mainColor = mainColor
+      state._mainColor = mainColor;
     },
 
     // 循环切换播放模式
@@ -907,9 +1022,10 @@ export default createStore({
       console.log(state._playModeCount, this.getters.getPlayMode);
     },
 
-    switchChatContainerShow(state) {
+    switchChatContainerShow(state, value) {
       if (state._rid) {
-        state._chatContainerShow = !state._chatContainerShow;
+        if (value != undefined) state._chatContainerShow = value;
+        else state._chatContainerShow = !state._chatContainerShow;
         this.commit("setInputMode", state._chatContainerShow);
       } else {
         this.commit("setMsg", {
@@ -926,59 +1042,76 @@ export default createStore({
     },
 
     // 追加歌曲至一起听列表
-    addToList(state, { needSync = true, musicId, needPlay = false, saveInRoom = false }) {
-      if (state._playList.every(({ id: listMusicId }) => listMusicId != musicId)) {
+    addToList(
+      state,
+      { needSync = true, musicId, needPlay = false, saveInRoom = false }
+    ) {
+      if (
+        state._playList.every(({ id: listMusicId }) => listMusicId != musicId)
+      ) {
         if (needSync && state._ws)
           state._ws.emit("sync", {
             action: "addToList",
             musicId,
-            needPlay
-          })
+            needPlay,
+          });
 
         getSingleMusicApi(musicId)
           .then((response) => {
             this.commit("addMore", response._playList);
-            if (needPlay) this.commit("goPlay", { desIndex: state._playList.length - 1, needSync: false })
+            if (needPlay)
+              this.commit("goPlay", {
+                desIndex: state._playList.length - 1,
+                needSync: false,
+              });
             if (saveInRoom) {
               state._ws.emit("sync", {
                 action: "updatePlayList",
                 play: Object.assign(state._play, {
-                  nowPlaying: needPlay ? state._playList.length - 1 : state._play.nowPlaying,
+                  nowPlaying: needPlay
+                    ? state._playList.length - 1
+                    : state._play.nowPlaying,
                 }),
-                playList: state._playList
-              })
+                playList: state._playList,
+              });
             }
           })
           .catch((error) => {
             console.log(error);
           });
-      }
-      else this.commit("setMsg", {
-        message: `歌曲已存在`,
-      });
+      } else
+        this.commit("setMsg", {
+          message: `歌曲已存在`,
+        });
     },
 
     // 设置播放次数
     setPlayCount(state, { musicIndex }) {
-      if (!state._playList[musicIndex]?.blockPlayCount) state._playList[musicIndex].blockPlayCount = 0;
+      if (!state._playList[musicIndex]?.blockPlayCount)
+        state._playList[musicIndex].blockPlayCount = 0;
       state._playList[musicIndex].blockPlayCount++;
       if (state._playList[musicIndex].blockPlayCount == 3) {
         this.commit("setMsg", {
           title: `您已经听了好几遍了哦`,
           message: `是否喜欢该歌曲？`,
           type: "ask-for-like",
-          duration: 0
+          duration: 0,
         });
       }
     },
 
     // 更新用户昵称
-    updateUsername(state, { needSync = true, uuid, oldUsername, username } = {}) {
+    updateUsername(
+      state,
+      { needSync = true, uuid, oldUsername, username } = {}
+    ) {
       if (needSync && state._ws && state._rid && state._store.account?.username)
         state._ws.emit("sync", {
           action: "updateUsername",
-          username: state._store.account.username
-        })
+          username: username || state._store.account.username,
+        });
+
+      this.commit('updateTaskProgress', { taskProgress: 0 });
 
       if (uuid && oldUsername && username) {
         state._message.forEach((message) => {
@@ -989,11 +1122,30 @@ export default createStore({
       }
     },
 
+    // 更新用户头像
+    updateAvatar(state, { needSync = true, avatar, uuid } = {}) {
+
+      // 若是他人更新头像，则更新头像列表中的头像
+      if (uuid && avatar) {
+        state._roomInfo.avatarList[uuid] = avatar;
+      }
+
+      if (needSync && state._ws && state._rid && state._store.account?.avatar) {
+        // 更新自己的头像
+        state._roomInfo.avatarList[state._store.account.uuid] = avatar;
+        this.commit('updateTaskProgress', { taskProgress: 1 });
+        state._ws.emit("sync", {
+          action: "updateAvatar",
+          avatar: avatar || state._store.account.avatar,
+        });
+      }
+    },
+
     // 更新歌词
     updateLyric(state, { lrc, tlrc }) {
       state._currentLrc = {
         lrc,
-        tlrc
+        tlrc,
       };
     },
 
@@ -1009,21 +1161,21 @@ export default createStore({
       // 重置已存在的特效
       state._confettiInstance.reset();
       // 清除所有未完成的 confetti 动画
-      // TODO: 修复连续点击特效按钮时的 bug 
+      // TODO: 修复连续点击特效按钮时的 bug
 
       function shoot() {
         state._confettiInstance({
           ...defaults,
           particleCount: 40,
           scalar: 1.2,
-          shapes: ['star']
+          shapes: ["star"],
         });
 
         state._confettiInstance({
           ...defaults,
           particleCount: 10,
           scalar: 0.75,
-          shapes: ['circle']
+          shapes: ["circle"],
         });
       }
 
@@ -1044,8 +1196,8 @@ export default createStore({
             gravity: 0,
             decay: 0.94,
             startVelocity: 30,
-            shapes: ['star'],
-            colors: ['FFE400', 'FFBD00', 'E89400', 'FFCA6C', 'FDFFB8']
+            shapes: ["star"],
+            colors: ["FFE400", "FFBD00", "E89400", "FFCA6C", "FDFFB8"],
           };
           setTimeout(shoot, 0);
           setTimeout(shoot, 100);
@@ -1058,7 +1210,7 @@ export default createStore({
 
           var randomInRange = (min, max) => {
             return Math.random() * (max - min) + min;
-          }
+          };
 
           var interval = setInterval(function () {
             var timeLeft = animationEnd - Date.now();
@@ -1069,33 +1221,43 @@ export default createStore({
 
             var particleCount = 50 * (timeLeft / duration);
             // since particles fall down, start a bit higher than random
-            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 } }));
-            confetti(Object.assign({}, defaults, { particleCount, origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 } }));
+            confetti(
+              Object.assign({}, defaults, {
+                particleCount,
+                origin: { x: randomInRange(0.1, 0.3), y: Math.random() - 0.2 },
+              })
+            );
+            confetti(
+              Object.assign({}, defaults, {
+                particleCount,
+                origin: { x: randomInRange(0.7, 0.9), y: Math.random() - 0.2 },
+              })
+            );
           }, 250);
           break;
         case "confetti:school-pride":
-          var end = Date.now() + (15 * 1000);
-          var colors = ['#bb0000', '#ffffff'];
+          var end = Date.now() + 15 * 1000;
+          var colors = ["#bb0000", "#ffffff"];
           (function frame() {
             confetti({
               particleCount: 2,
               angle: 60,
               spread: 55,
               origin: { x: 0 },
-              colors: colors
+              colors: colors,
             });
             confetti({
               particleCount: 2,
               angle: 120,
               spread: 55,
               origin: { x: 1 },
-              colors: colors
+              colors: colors,
             });
 
             if (Date.now() < end) {
               requestAnimationFrame(frame);
             }
-          }());
+          })();
           break;
         default:
           break;
@@ -1104,7 +1266,6 @@ export default createStore({
 
     // 房间游戏处理
     roomGameHandler(state, { game }) {
-
       switch (game) {
         case "luck:rock-paper-scissors":
           console.log("即将开始猜拳游戏");
@@ -1113,6 +1274,134 @@ export default createStore({
         default:
           break;
       }
+    },
+
+    // 设置下一首歌曲
+    setNextPlay(state, { musicIndex, needSync = true }) {
+      if (state._playList[musicIndex]) {
+        state._play.nextPlay = musicIndex;
+        this.commit("setMsg", {
+          title: "已设置下一首歌曲",
+          duration: 3000,
+          message: `${state._playList[musicIndex].name}(${state.formatArtists(
+            state._playList[musicIndex].artist
+          )})`,
+        });
+
+        if (state._ws && needSync) {
+          state._ws.emit("sync", {
+            action: "setNextPlay",
+            musicIndex,
+          });
+        }
+      }
+    },
+
+    // 清除下一首歌曲
+    clearNextPlay(state, { needSync = true }) {
+      state._play.nextPlay = null;
+      if (state._ws && needSync) {
+        state._ws.emit("sync", {
+          action: "clearNextPlay",
+        });
+      }
+    },
+
+    // 判断是否需要升级数据结构
+    upgradeLocalStorage(state) {
+      if (validate(state._store.version) && validateObj(state._store)) {
+        if (compareVersions(state.VERSION, state._store.version)) {
+          state._tips = {
+            icon: "fa fa-upload upAnimation",
+            show: true,
+            content: "数据文件正在升级",
+          };
+
+          // 将旧的数据进行备份
+          if (localStorage.getItem("weyoung-music"))
+            localStorage.setItem(
+              "weyoung-music-backup",
+              localStorage.getItem("weyoung-music")
+            );
+          // 清除旧的数据
+          localStorage.removeItem("weyoung-music");
+          if (localStorage.getItem("weyoung-music-backup")) {
+            // 将旧的数据进行升级，遍历新数据，将旧数据中的值赋值给新数据
+            state._store = mergeTwoObject(storeObj, JSON.parse(
+              localStorage.getItem("weyoung-music-backup")
+            ));
+          }
+        }
+      } else {
+        state._tips = {
+          icon: "fa fa-tools rotate",
+          show: true,
+          content: "数据文件出错，正在修复",
+        };
+
+        // 将旧的数据进行备份
+        if (localStorage.getItem("weyoung-music"))
+          localStorage.setItem(
+            "weyoung-music-backup",
+            localStorage.getItem("weyoung-music")
+          );
+        // 清除旧的数据
+        localStorage.removeItem("weyoung-music");
+        if (localStorage.getItem("weyoung-music-backup")) {
+          // 将旧的数据进行升级，遍历新数据，将旧数据中的值赋值给新数据
+          state._store = mergeTwoObject(storeObj, JSON.parse(
+            localStorage.getItem("weyoung-music-backup")
+          ));
+        }
+      }
+
+      // 校验数据
+      if (validateObj(state._store)) {
+        setTimeout(() => {
+          state._tips.content = "处理完成";
+          setTimeout(() => {
+            state._tips.show = false;
+          }, 2000);
+        }, 3000);
+        // 删除备份数据
+        localStorage.removeItem("weyoung-music-backup");
+      } else {
+        state._tips.content = "数据文件修复失败，请联系管理员";
+      }
+    },
+
+    // 更新用户信息
+    updateUserInfo(state, { userInfo }) {
+      state.userInfo = userInfo;
+    },
+
+    // 更新任务进度
+    updateTaskProgress(state, { taskProgress }) {
+      if (state.userInfo.beginnerTask?.includes(taskProgress)) {
+        return;
+      }
+      setTaskProgressApi(taskProgress).then((res) => {
+        state.userInfo.beginnerTask = res.beginnerTask;
+
+        if (res.beginnerTask.length == 5) {
+          this.commit("setMsg", {
+            title: "恭喜你完成所有任务",
+            duration: 0,
+            message: "获得了 1000 经验",
+          });
+
+          // 更新用户信息
+          getUserInfoApi().then(res => {
+            this.commit("updateUserInfo", {
+              userInfo: res
+            });
+          })
+
+          this.commit("roomEffectHandler", {
+            effect: "confetti:fireworks",
+          });
+        }
+      });
     }
   },
   actions: {
@@ -1120,24 +1409,38 @@ export default createStore({
       console.log("开始进度同步（一起听）");
       console.log("连接服务器...");
 
-      const socket = io(`${window.location.protocol == 'https:' ? 'wss' : 'ws'}:${baseAPI}`, {
-        reconnectionDelayMax: 10000,
-        auth: {
-          token: "123"
-        },
-        query: {
-          "my-key": "my-value"
-        },
-        withCredentials: true,
-        extraHeaders: {
-          "vue_simple-music-player-token": "abcd"
+      const socket = io(
+        `${window.location.protocol == "https:" ? "wss" : "ws"}:${baseAPI}`,
+        {
+          reconnectionDelayMax: 10000,
+          auth: {
+            token: "123",
+          },
+          query: {
+            "my-key": "my-value",
+          },
+          withCredentials: true,
+          extraHeaders: {
+            "vue_simple-music-player-token": "abcd",
+          },
         }
-      });
+      );
 
       rootState._ws = socket;
 
       //  加入房间
       socket.on("connect", () => {
+        // 如果有绑定事件，先解绑
+        socket.off("message");
+        socket.off("message-reply");
+        socket.off("room:addSong-reply");
+        socket.off("room:effect-reply");
+        socket.off("room:recall-reply");
+        socket.off("welcome");
+        socket.off("sync");
+        socket.off("ownerChange");
+        socket.off("disconnect");
+
         console.log("已连接至服务器...");
         commit("setSignalColor", "green");
 
@@ -1146,10 +1449,16 @@ export default createStore({
             // 无异常
           }
         } catch (error) {
-          if (localStorage.getItem("weyoung-music")) localStorage.setItem("weyoung-music-backup", localStorage.getItem("weyoung-music"));
+          if (localStorage.getItem("weyoung-music"))
+            localStorage.setItem(
+              "weyoung-music-backup",
+              localStorage.getItem("weyoung-music")
+            );
           localStorage.removeItem("weyoung-music");
           if (localStorage.getItem("weyoung-music-backup")) {
-            let uuid = JSON.parse(localStorage.getItem("weyoung-music-backup"))?.uuid || null;
+            let uuid =
+              JSON.parse(localStorage.getItem("weyoung-music-backup"))?.uuid ||
+              null;
             if (uuid) rootState._store.account.uuid = uuid;
           }
         }
@@ -1173,11 +1482,15 @@ export default createStore({
           };
 
           let typeMap = {
+            "room:join": "房间消息",
+            "room:leave": "房间消息",
+            "room:rejoin": "房间消息",
             "room:message": "房间消息",
             "room:addSong": "房间添加歌曲",
             "room:effect": "房间特效",
             "room:game": "房间游戏",
             "room:join-fail": "房间加入失败",
+            "room:recall": "房间消息",
           };
 
           if (type == "room:join-fail") {
@@ -1195,39 +1508,82 @@ export default createStore({
           }
 
           if (type == "room:effect") {
-            let { addition: { effect } } = data;
+            let {
+              addition: { effect },
+            } = data;
             commit("roomEffectHandler", { effect });
             message.addition = {
-              effect
-            }
+              effect,
+            };
           }
 
           if (type == "room:game") {
-            let { addition: { game } } = data;
+            let {
+              addition: { game },
+            } = data;
             commit("roomGameHandler", { game });
             message.addition = {
-              game
-            }
+              game,
+            };
           }
 
-          const generateMessage = type => {
+          const htmlDecode = (str) => {
+            let s = "";
+            if (str.length == 0) return "";
+            s = str.replace(/&amp;/g, "&");
+            s = s.replace(/&lt;/g, "<");
+            s = s.replace(/&gt;/g, ">");
+            s = s.replace(/&nbsp;/g, " ");
+            s = s.replace(/&#39;/g, "'");
+            s = s.replace(/&quot;/g, '"');
+            return s;
+          };
+
+          const generateMessage = (type) => {
             switch (type) {
+              case "room:join":
+                return `${username} 加入了房间`;
+              case "room:leave":
+                return `${username} 离开了房间`;
+              case "room:rejoin":
+                return `${username} 重新加入了房间`;
+              case "room:message":
+                return `${htmlDecode(msg).length > 25
+                  ? htmlDecode(msg).slice(0, 25) + "..."
+                  : htmlDecode(msg)
+                  }`;
               case "room:effect":
                 return `${username} 发送了一个特效`;
               case "room:game":
                 return `${username} 发起了一个游戏`;
+              case "room:recall":
+                return `${username} 撤回了一条消息`;
               default:
                 return msg;
             }
-          }
+          };
+
+          // console.log(data);
 
           if (!rootState._chatContainerShow)
             commit("setMsg", {
-              title: typeMap[type],
+              title:
+                (type == "room:message" ? `${username} · ` : "") +
+                typeMap[type],
               message: generateMessage(type),
               duration: 3000,
-              buttons: type.indexOf("room:") != -1 ? ['jumpToRoom'] : null
+              buttons: type.indexOf("room:") != -1 ? ["jumpToRoom"] : null,
             });
+
+          // 播放消息提示音
+          if (rootState._store.config.room.newMessageSound == "none") {
+            // do nothing
+          } else {
+            let audio = new Audio(
+              require(`@/assets/sound/${rootState._store.config.room.newMessageSound}`)
+            );
+            audio.play();
+          }
 
           // 请求浏览器通知权限
           if (Notification.permission != "granted") {
@@ -1247,14 +1603,58 @@ export default createStore({
             }
           }
 
+          if (type == "room:recall") {
+            // 清除消息
+            let {
+              addition: { id, index },
+            } = data;
+            rootState._message[index].type = "room:recalled";
+            message.addition = {
+              index,
+            };
+          }
+
+          if (
+            type == "room:join" ||
+            type == "room:leave" ||
+            type == "room:rejoin"
+          ) {
+            console.log(data);
+            let { count, onlineUserList } = data;
+            rootState._roomInfo.count = count;
+            rootState._roomInfo.onlineUserList = onlineUserList;
+            onlineUserList.forEach(({ uuid, avatar }) => {
+              rootState._roomInfo.avatarList[uuid] = avatar;
+            })
+          }
+
+          if (type == "room:rejoin") {
+            let {
+              addition: { index },
+            } = data;
+            message.addition = {
+              index,
+            };
+            rootState._message.splice(index, 1);
+          }
+
           rootState._message.push(message);
 
+          // 判断是否需要滚动到底部
+          if (type == "room:recall") {
+            return;
+          }
+
           nextTick(() => {
-            document.querySelector(".message__wrapper .el-scrollbar__wrap")?.scrollTo({
-              top: document.querySelector(".message__wrapper .el-scrollbar__view").offsetHeight,
-              left: 0,
-              behavior: "smooth"
-            })
+            document
+              .querySelector(".message__wrapper .el-scrollbar__wrap")
+              ?.scrollTo({
+                top: document.querySelector(
+                  ".message__wrapper .el-scrollbar__view"
+                ).offsetHeight,
+                left: 0,
+                behavior: "smooth",
+              });
           });
         });
 
@@ -1267,73 +1667,70 @@ export default createStore({
             type,
             uuid: rootState._store.account.uuid,
           });
+          this.commit('updateTaskProgress', { taskProgress: 2 });
           nextTick(() => {
-            document.querySelector(".message__wrapper .el-scrollbar__wrap").scrollTo({
-              top: document.querySelector(".message__wrapper .el-scrollbar__view").offsetHeight,
-              left: 0,
-              behavior: "smooth"
-            })
+            document
+              .querySelector(".message__wrapper .el-scrollbar__wrap")
+              .scrollTo({
+                top: document.querySelector(
+                  ".message__wrapper .el-scrollbar__view"
+                ).offsetHeight,
+                left: 0,
+                behavior: "smooth",
+              });
           });
         });
 
-        let fn = (data) => {
+        let fn = (data, needScrollToBottom = true) => {
           let { id, time, type, username, uuid, addition } = data;
           rootState._message.push({ id, time, type, username, uuid, addition });
-          nextTick(() => {
-            document.querySelector(".message__wrapper .el-scrollbar__wrap")?.scrollTo({
-              top: document.querySelector(".message__wrapper .el-scrollbar__view")?.offsetHeight,
-              left: 0,
-              behavior: "smooth"
-            })
-          });
-        }
+          if (needScrollToBottom)
+            nextTick(() => {
+              document
+                .querySelector(".message__wrapper .el-scrollbar__wrap")
+                ?.scrollTo({
+                  top: document.querySelector(
+                    ".message__wrapper .el-scrollbar__view"
+                  )?.offsetHeight,
+                  left: 0,
+                  behavior: "smooth",
+                });
+            });
+        };
 
         socket.on("room:addSong-reply", (data) => {
+          this.commit('updateTaskProgress', { taskProgress: 3 });
+          console.log(data);
           fn(data);
         });
 
         socket.on("room:effect-reply", (data) => {
+          this.commit('updateTaskProgress', { taskProgress: 4 });
           commit("roomEffectHandler", { effect: data.addition.effect });
           fn(data);
-        })
-
-        socket.on("join", (data) => {
-          let { id, msg, time, uuid, type, username, count } = data;
-          rootState._message.push({
-            id,
-            msg,
-            time,
-            type,
-            uuid,
-            username
-          });
-
-          rootState._roomInfo.count = count;
         });
 
-        socket.on("leave", (data) => {
-          console.log("已离开房间", data);
-
-          let { id, msg, time, uuid, type, username, count } = data;
-          rootState._message.push({
-            id,
-            msg,
-            time,
-            type,
-            uuid,
-            username
-          });
-          rootState._roomInfo.count = count;
+        socket.on("room:recall-reply", (data) => {
+          // 撤回消息效果
+          let {
+            addition: { id, index },
+          } = data;
+          rootState._message[index].type = "room:recalled";
+          fn(data, false);
         });
 
         socket.on("welcome", (data) => {
-          let { id, msg, time, uuid } = data;
+          let { id, msg, time, uuid, count, isAdmin, roomData, room } = data;
 
-          commit("setRid", { rid: data.room, status: "connected" });
+          rootState._roomInfo.onlineUserList = roomData.onlineUserList;
+          rootState._roomInfo.userList = roomData.userList;
+          rootState._roomInfo.avatarList = roomData.avatarList;
+
+          commit("setRid", { rid: room, status: "connected" });
           console.log("欢迎", data);
 
-          if (data.roomData) {
-            commit("setStore", data.roomData);
+          if (roomData) {
+            commit("setStore", roomData);
 
             // 获取上次离开的时间
             let lastLeaveTime = null;
@@ -1341,15 +1738,21 @@ export default createStore({
             tempMessage.reverse().find((message, index) => {
               if (message.type == "room:leave" && message.uuid == uuid) {
                 lastLeaveTime = new Date(message.time);
-                if (lastLeaveTime != null && new Date() - lastLeaveTime < 10000) {
+                if (
+                  lastLeaveTime != null &&
+                  new Date() - lastLeaveTime < 10000
+                ) {
                   // 删除最近一次离开房间的消息
-                  rootState._message.splice(rootState._message.length - index - 1, 1);
+                  rootState._message.splice(
+                    rootState._message.length - index - 1,
+                    1
+                  );
                   rootState._message.push({
                     id,
                     msg,
                     time,
                     type: "room:rejoin",
-                    uuid
+                    uuid,
                   });
                 } else lastLeaveTime = null;
                 return true;
@@ -1365,14 +1768,22 @@ export default createStore({
                 uuid,
               });
 
-            rootState._store.account.uuid = data.uuid;
-            rootState._roomInfo.count = data.count;
+            if (!rootState._store.account.uuid) setRequestHeader(data.uuid);
 
-            if (data.roomData._play.isPlaying) {
+            rootState._store.account.uuid = data.uuid;
+            rootState._roomInfo.count = count;
+            rootState._roomInfo.isAdmin = isAdmin;
+            rootState._roomInfo.joinTime = new Date();
+
+            if (roomData._play.isPlaying) {
               // 静音播放
               nextTick(() => {
                 rootState._showPopup = true;
-                commit("goPlay", { desIndex: data.roomData._play.nowPlaying, needSync: false, needPlay: false });
+                commit("goPlay", {
+                  desIndex: roomData._play.nowPlaying,
+                  needSync: false,
+                  needPlay: false,
+                });
 
                 // 判断音乐是否加载完成
                 let music = document.getElementById("music");
@@ -1382,11 +1793,14 @@ export default createStore({
                     console.log("音乐加载完成");
 
                     socket.emit("sync", {
-                      action: "getLatest"
-                    })
+                      action: "getLatest",
+                    });
 
                     socket.once("sync", (data) => {
-                      commit("goTime", { desTime: data.playTime, needSync: false })
+                      commit("goTime", {
+                        desTime: data.playTime,
+                        needSync: false,
+                      });
                     });
                   }
                 });
@@ -1399,13 +1813,7 @@ export default createStore({
             getDateApi(true)
               .then((response) => {
                 commit("setStore", response);
-                if (response._play.mode === "night")
-                  document
-                    .querySelector("body")
-                    .setAttribute(
-                      "style",
-                      "background-color:var(--dark_main_color)"
-                    );
+                setMode(response._play.mode);
                 commit("setRid", { rid: null, status: "failed" });
               })
               .catch(function (error) {
@@ -1416,11 +1824,23 @@ export default createStore({
         });
 
         socket.on("sync", (data) => {
-          if (data.action == "getLatest") return
+          if (rootState._showPopup) return;
+          if (data.action == "getLatest") {
+            // 获取最新进度
+            console.log("获取最新进度", data);
+            if (rootState._play.nowPlaying != data.nowPlaying)
+              commit("goPlay", {
+                desIndex: data.nowPlaying,
+                needSync: false,
+                needPlay: true,
+              });
+            commit("goTime", { desTime: data.playTime, needSync: false });
+            return;
+          }
           commit("setSignalColor", "received");
           commit(data.action, {
             needSync: false,
-            ...data
+            ...data,
           });
         });
 
@@ -1430,7 +1850,7 @@ export default createStore({
             commit("setMsg", {
               title: `「一起听」`,
               message: `您已成为房主`,
-              duration: 0
+              duration: 0,
             });
           }
         });
@@ -1455,9 +1875,15 @@ export default createStore({
             commit("setMsg", {
               message: `歌曲已播放`,
             });
+            commit("goTime", {
+              desTime: rootState._play.playTime,
+              needSync: false,
+            });
+            commit("musicFadeIn");
           } else {
             commit("setMsg", {
-              message: rootState._play.message.content || `处于隐私安全，请手动播放`,
+              message:
+                rootState._play.message.content || `处于隐私安全，请手动播放`,
             });
           }
         })
@@ -1465,7 +1891,7 @@ export default createStore({
           // 请求失败处理
           console.log(error);
           commit("skipMusic", index);
-          commit("next", { hasWrong: "wrong" })
+          commit("next", { hasWrong: "wrong" });
         });
     },
 
@@ -1487,7 +1913,7 @@ export default createStore({
             rootState._playList[musicIndex].skip = true;
             reject(error);
           });
-      })
+      });
     },
   },
   getters: {
@@ -1518,7 +1944,7 @@ export default createStore({
 
     // 返回跨域标识
     getAnonymous(state, url) {
-      return url.indexOf("cdn.weyoung.tech") == -1
+      return url.indexOf("cdn.weyoung.tech") == -1;
     },
 
     // 返回当前播放模式
@@ -1530,16 +1956,24 @@ export default createStore({
 
     // 获取下一首歌曲序号（用于倒数 30s 预载）
     getNextMusicIndex(state) {
+      // TODO: 显示随机播放的歌曲序号
       let desIndex = 0;
 
       // 若强制下一首则下一首
       // 即使处于单曲循环也进行下一首
       // 若处于随机状态则随机下一首
 
+      // 如果存在下一首歌曲，则直接返回下一首歌曲序号并清空
+      if (state._play.nextPlay) {
+        console.log(state._play.nextPlay);
+        return state._play.nextPlay;
+      }
+
       switch (state._playModeCount % 3) {
         // 单曲循环
         case 0:
-          if ((state._play.nowPlaying + 1) <= state._playList.length - 1) desIndex = state._play.nowPlaying + 1;
+          if (state._play.nowPlaying + 1 <= state._playList.length - 1)
+            desIndex = state._play.nowPlaying + 1;
           break;
         // 随机播放
         case 1:
@@ -1547,15 +1981,54 @@ export default createStore({
           break;
         // 列表循环
         case 2:
-          if ((state._play.nowPlaying + 1) <= state._playList.length - 1) desIndex = state._play.nowPlaying + 1;
+          if (state._play.nowPlaying + 1 <= state._playList.length - 1)
+            desIndex = state._play.nowPlaying + 1;
           break;
       }
+
+      console.log(desIndex);
       return desIndex;
     },
 
-    // 获取是否命中「樱花」效果
+    // 获取是否命中「樱花」效果，花 / Flower
     getSakuraModeByMusicName(state) {
-      return state._playList[state._play.nowPlaying].name.indexOf("花") != -1
+      return (
+        state._playList[state._play.nowPlaying]?.name.indexOf("花") != -1 ||
+        state._playList[state._play.nowPlaying]?.name
+          .toLowerCase()
+          .indexOf("flower") != -1
+      );
+    },
+
+    // 获取是否命中「雪花」效果
+
+    // 获取是否命中「大雨」效果，雨 / Rain
+    getRainModeByMusicName(state) {
+      let isRain =
+        state._playList[state._play.nowPlaying]?.name.indexOf("雨") != -1 ||
+        state._playList[state._play.nowPlaying]?.name
+          .toLowerCase()
+          .indexOf("rain") != -1;
+      if (isRain) {
+        // 判断小雨
+        if (
+          state._playList[state._play.nowPlaying]?.name.indexOf("小雨") != -1 ||
+          state._playList[state._play.nowPlaying]?.name
+            .toLowerCase()
+            .indexOf("light rain") != -1
+        )
+          window.rainCount = "light";
+        // 判断大雨
+        if (
+          state._playList[state._play.nowPlaying]?.name.indexOf("大雨") != -1 ||
+          state._playList[state._play.nowPlaying]?.name
+            .toLowerCase()
+            .indexOf("heavy rain") != -1
+        )
+          window.rainCount = "heavy";
+        window.rainCount = "medium";
+      }
+      return isRain;
     },
 
     // 根据 musicId 获取 music 信息
@@ -1566,7 +2039,7 @@ export default createStore({
     // 根据 musicId 获取 music 序号
     getMusicIndexById: (state) => (id) => {
       return state._playList.findIndex((item) => item.id == id);
-    }
+    },
   },
   modules: {},
 });

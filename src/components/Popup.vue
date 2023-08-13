@@ -2,7 +2,7 @@
  * @Author: ikouane
  * @PoweredBy: 未央宫©WeYounG
  * @Date: 2023-07-13 17:12:48
- * @LastEditTime: 2023-07-20 09:50:03
+ * @LastEditTime: 2023-08-11 14:17:52
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -11,14 +11,17 @@
   <!-- 遮罩层 -->
   <div class="popup-mask">
     <div class="popup">
-      <p class="title" v-html="formatString(title, '「一起听」')"></p>
+      <i v-if="icon" class="icon" :class="icon"></i>
+      <p class="title" v-if="title" v-html="formatString(title, '「一起听」')"></p>
       <p class="content">{{ content }}</p>
-      <div class="button-wrapper">
-        <button class="shine" @click="musicFadeIn">
+      <div class="button-wrapper" v-if="buttons.length">
+        <button class="shine" @click="musicFadeIn" v-if="buttons?.includes('welcome-musicPlay')">
           <i class="fa fa-play"></i>
           立即播放
         </button>
-        <button @click="emits('close-handler');">跳过</button>
+        <button @click="emits('close-handler');" v-if="buttons?.includes('welcome-skip')">跳过</button>
+        <button v-if="buttons.includes('tips-upgrade')">升级</button>
+        <button v-if="buttons.includes('tips-fix')">修复</button>
       </div>
     </div>
   </div>
@@ -29,6 +32,7 @@ import { useStore } from "vuex";
 import { defineEmits } from "vue";
 // 获取传入的参数
 const props = defineProps({
+  icon: String,
   title: String,
   time: Number,
   content: String,
@@ -58,7 +62,7 @@ console.log(props);
 const formatString = (str, keyword) => {
   if (!str) return "";
   const reg = new RegExp(keyword, "g");
-  return str.replace(reg, `<span class="highlight">${keyword}</span>`);
+  return str.replace(reg, `<span class="highlight heartbeat">${keyword}</span>`);
 };
 </script>
 <style lang='scss' scoped>
@@ -99,17 +103,88 @@ const formatString = (str, keyword) => {
     color: var(--title_color);
     text-align: center;
 
-    .dark & {
-      background-color: rgba(0, 0, 0, 0.72);
-      color: var(--dark_title_color);
-      border-color: var(--dark_border_color);
+    .icon {
+      font-size: 26px;
+      margin-bottom: 6px;
+
+      &.upAnimation {
+        animation: upAnimation 2s infinite both;
+
+        @keyframes upAnimation {
+          0% {
+            transform: translateY(0);
+          }
+
+          50% {
+            transform: translateY(-2px);
+          }
+
+          100% {
+            transform: translateY(0);
+          }
+        }
+      }
+
+      &.rotate {
+        animation: rotate 5s infinite both;
+
+        @keyframes rotate {
+          0% {
+            transform: rotate(0deg);
+          }
+
+          20% {
+            transform: rotate(90deg);
+          }
+
+          40% {
+            transform: rotate(180deg);
+          }
+
+          60% {
+            transform: rotate(270deg);
+          }
+
+          80%,
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+      }
     }
 
-    &::v-deep .highlight {
+    .dark & {
+      background-color: rgba(0, 0, 0, 0.72);
+    }
+
+    &:deep .highlight {
       color: var(--active_color);
 
-      .dark & {
-        color: var(--dark_active_color);
+      &.heartbeat {
+        animation: heartbeat 1.4s infinite both;
+      }
+
+      @keyframes heartbeat {
+
+        0%,
+        80%,
+        100% {
+          transform: scale(1);
+        }
+
+        20% {
+          transform: scale(1.05);
+          filter: brightness(1.1);
+          opacity: 0.8;
+        }
+
+        40% {
+          transform: scale(0.9);
+        }
+
+        55% {
+          transform: scale(1.03);
+        }
       }
     }
 
@@ -118,6 +193,9 @@ const formatString = (str, keyword) => {
       font-weight: bold;
       text-align: center;
       line-height: 200%;
+      display: flex;
+      justify-content: center;
+      margin-bottom: 4px;
     }
 
     .content {
@@ -169,10 +247,6 @@ const formatString = (str, keyword) => {
           }
         }
 
-        .dark & {
-          background-color: var(--dark_active_color);
-        }
-
         &:hover {
           opacity: .8;
         }
@@ -185,11 +259,6 @@ const formatString = (str, keyword) => {
         &:nth-child(2) {
           background-color: var(--player_color);
           color: var(--title_color);
-
-          .dark & {
-            background-color: var(--dark_player_color);
-            color: var(--dark_title_color);
-          }
         }
       }
     }

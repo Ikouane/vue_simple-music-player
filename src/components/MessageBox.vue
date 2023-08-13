@@ -172,11 +172,6 @@ export default {
 
     .button {
       background-color: rgba(0, 0, 0, 0.72);
-      color: var(--dark_active_color);
-
-      &:hover {
-        background-color: var(--dark_active_color);
-      }
     }
   }
 

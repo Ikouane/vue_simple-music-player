@@ -1,16 +1,16 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2022-12-04 13:31:22
+ * @LastEditTime: 2023-08-11 14:18:01
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
 -->
 <template>
   <div class="list-card" :class="{ active, skip }" :data-index="listIndex" v-mouse-menu="{
-      params: listIndex,
-      ...options,
-    }" :title="label">
+    params: listIndex,
+    ...options,
+  }" :title="label">
     <div class="music-info">
       <div class="title__wrapper">
         <span class="label" v-if="label">{{ formatLabel(label) }}</span>
@@ -77,15 +77,30 @@ export default {
     return {
       // isMobile: "ontouchstart" in window,
       options: {
+        menuWrapperCss: {
+          padding: "8px"
+        },
         // useLongPressInMobile: true,
         menuList: [
+          {
+            label: "下一首播放",
+            tips: "Play Next",
+            fn: (params) => {
+              store.commit("setNextPlay", {
+                musicIndex: params,
+              });
+            },
+          },
           {
             label: "分享",
             tips: "Share This Song",
             fn: (params, currentEl, bindingEl, e) => {
               store.commit(
                 "copyToClipBoard",
-                store.getters.getMusicIdByIndex(params)
+                {
+                  text: store.getters.getMusicIdByIndex(params),
+                  message: "分享链接已复制到剪贴板"
+                }
               );
               console.log("share", params, currentEl, bindingEl, e);
             },
@@ -94,7 +109,10 @@ export default {
             label: "精准空降",
             tips: "Share This Moment",
             fn: (params, currentEl, bindingEl, e) => {
-              store.commit("copyToClipBoard", store.getters.getThisMoment);
+              store.commit("copyToClipBoard", {
+                text: store.getters.getThisMoment,
+                message: "分享链接已复制到剪贴板"
+              });
               console.log("share this moment", params, currentEl, bindingEl, e);
             },
           },
@@ -127,6 +145,11 @@ export default {
           //     console.log("rename", params, currentEl, bindingEl, e),
           // },
         ],
+        menuItemCss: {
+          padding: "3px 6px",
+          hoverLabelColor: "#fff",
+          hoverTipsColor: "#fff",
+        }
       },
     };
   },
@@ -186,14 +209,6 @@ export default {
         color: var(--title_color);
         font-weight: bold;
         margin-bottom: 3px;
-
-        .dark & {
-          color: var(--dark_title_color);
-        }
-
-        .pink & {
-          color: var(--pink_title_color);
-        }
       }
 
       .label {
@@ -212,14 +227,6 @@ export default {
         align-items: center;
         transform: scale(0.9);
         user-select: none;
-
-        .dark & {
-          background-color: var(--dark_active_color);
-        }
-
-        .pink & {
-          background-color: var(--pink_active_color);
-        }
       }
     }
 

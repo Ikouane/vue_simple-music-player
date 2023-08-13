@@ -1,7 +1,7 @@
 <!--
  * @Author: ikouane
  * @Date: 2020-10-18 22:23:21
- * @LastEditTime: 2023-07-02 19:26:52
+ * @LastEditTime: 2023-08-11 13:56:29
  * @LastEditors: ikouane
  * @Description: 
  * @version: 
@@ -45,38 +45,14 @@ export default {
 };
 </script>
 <style lang="scss" scoped>
-$title_color: var(--title_color);
-$text_color: var(--text_color);
-$main_color: var(--main_color);
-$player_color: var(--player_color);
-$border_color: var(--border_color);
-$active_color: var(--active_color);
-$title_size: 30px;
-$text_size: 16px;
-$time_size: 12px;
-
-$dark_main_color: var(--dark_main_color);
-$dark_player_color: var(--dark_player_color);
-$dark_active_color: var(--dark_active_color);
-$dark_title_color: var(--dark_title_color);
-$dark_text_color: var(--dark_text_color);
-$dark_border_color: var(--dark_border_color);
-
-$pink_main_color: var(--pink_main_color);
-$pink_player_color: var(--pink_player_color);
-$pink_active_color: var(--pink_active_color);
-$pink_title_color: var(--pink_title_color);
-$pink_text_color: var(--pink_text_color);
-$pink_border_color: var(--pink_border_color);
-
 .appbar {
   display: flex;
   justify-content: space-between;
   text-align: center;
   align-items: center;
   margin-bottom: 40px;
-  color: $title_color;
-  font-size: $text_size;
+  color: var(--title_color);
+  font-size: var(--text_size);
 
   .top_more {
     position: absolute;
@@ -88,9 +64,9 @@ $pink_border_color: var(--pink_border_color);
   }
 
   .title {
-    font-size: $time_size;
+    font-size: var(--time_size);
     font-weight: bold;
-    color: $text_color;
+    color: var(--text_color);
     cursor: pointer;
     user-select: none;
     position: relative;

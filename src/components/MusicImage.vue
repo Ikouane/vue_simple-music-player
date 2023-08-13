@@ -124,30 +124,6 @@ export default {
 };
 </script>
 <style lang='scss' scoped>
-$title_color: var(--title_color);
-$text_color: var(--text_color);
-$main_color: var(--main_color);
-$player_color: var(--player_color);
-$border_color: var(--border_color);
-$active_color: var(--active_color);
-$title_size: 30px;
-$text_size: 16px;
-$time_size: 12px;
-
-$dark_main_color: var(--dark_main_color);
-$dark_player_color: var(--dark_player_color);
-$dark_active_color: var(--dark_active_color);
-$dark_title_color: var(--dark_title_color);
-$dark_text_color: var(--dark_text_color);
-$dark_border_color: var(--dark_border_color);
-
-$pink_main_color: var(--pink_main_color);
-$pink_player_color: var(--pink_player_color);
-$pink_active_color: var(--pink_active_color);
-$pink_title_color: var(--pink_title_color);
-$pink_text_color: var(--pink_text_color);
-$pink_border_color: var(--pink_border_color);
-
 .flexbox {
   display: flex;
   justify-content: center;
@@ -228,12 +204,12 @@ $pink_border_color: var(--pink_border_color);
       }
     }
 
-    &::v-deep .player-button {
+    &:deep .player-button {
       animation: fade-in 0.5s;
     }
   }
 
-  &::v-deep .player-button {
+  &:deep .player-button {
     animation: fade-out 0.5s;
   }
 
@@ -330,36 +306,22 @@ $pink_border_color: var(--pink_border_color);
     box-sizing: border-box;
     object-fit: cover;
     border-radius: 50%;
-    border: 6px solid $player_color;
+    border: 6px solid var(--player_color);
     background: linear-gradient(145deg, #f9ffff, #d2d9e3);
     transition: 0.3s all ease-in-out;
 
     &.small {
       width: 150px;
       height: 150px;
-      border: 4px solid $player_color;
+      border: 4px solid var(--player_color);
     }
 
     .dark & {
-      border: none;
-      border: 6px solid var(--dark_player_color);
       background: linear-gradient(145deg, #2a2e33, #23272b);
-
-      &.small {
-        border: none;
-        border: 4px solid var(--dark_player_color);
-      }
     }
 
     .pink & {
-      border: none;
-      border: 6px solid var(--pink_player_color);
       background: linear-gradient(145deg, #d3c4cd, #ffffff);
-
-      &.small {
-        border: none;
-        border: 4px solid var(--pink_player_color);
-      }
     }
 
     &.playing {
